@@ -65,3 +65,12 @@ poetry run pytest -q
 Key modules:
 - `plex_leon/core.py` — extraction, scanning, and move logic
 - `plex_leon/cli.py` — argument parsing and wiring to the core
+
+### Build standalone executables (CI)
+
+A GitHub Actions workflow builds single-file executables for Linux, macOS, and Windows using PyInstaller. It runs on tag pushes matching `v*` and on manual dispatch.
+
+- Workflow: `.github/workflows/build-binaries.yml`
+- Artifacts uploaded per-OS as `plex-leon-<OS>` (or `.exe` on Windows)
+
+To trigger manually, use the Actions tab → build-binaries → Run workflow.
