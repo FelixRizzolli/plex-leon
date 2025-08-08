@@ -13,6 +13,10 @@ dependencies = [
 [tool.poetry]
 packages = [{include = "plex_leon", from = "src"}]
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2"
+pytest-cov = "^5.0"
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
