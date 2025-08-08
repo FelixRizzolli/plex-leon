@@ -1,0 +1,27 @@
+{
+    "name": "Plex Leon - Development Container",
+    "dockerComposeFile": "./compose.yml",
+    "service": "devcontainer",
+    "shutdownAction": "none",
+
+    "remoteUser": "root",
+    "workspaceFolder": "/workspace/",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy",
+                "eamodio.gitlens",
+                "gruntfuggly.todo-tree",
+                "aaron-bond.better-comments",
+                "usernamehw.errorlens"
+            ],
+            "settings": {
+                "files.autoSave": "afterDelay",
+                "files.autoSaveDelay": 1000,
+                "editor.formatOnSave": true
+            }
+        }
+    }
+}
