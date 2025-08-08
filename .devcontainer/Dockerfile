@@ -12,4 +12,6 @@ RUN echo "INSTALL PLEX LEON IMAGE" && \
     git config --global --add safe.directory /workspace && \
     # Install GitHub CLI
     apt-get update && \
-    apt-get install gh -y
+    apt-get install gh -y && \
+    # Install poetry
+    curl -sSL https://install.python-poetry.org | python3 -
