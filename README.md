@@ -16,11 +16,25 @@ The tool will move any entry in library-a whose name contains a TVDB tag like `{
 	- `Game of Thrones (2011) {TVDB-121361}` → `121361`
 - Only the top-level children of each library are inspected (both files and folders). Hidden entries (starting with `.`) are ignored.
 - If an item in library-a has a TVDB ID that also exists among library-b's children, it is considered eligible and moved to library-c.
+- For movies (files), the destination inside library-c depends on a comparison with the matching item in library-b:
+	- `better-resolution/` when the source has a higher pixel count (width×height)
+	- `greater-filesize/` when resolution isn't higher but the source file is larger
+	- `to-delete/` when neither is true (i.e., the library-b item is as good or better)
+	Resolution is read via ffprobe (FFmpeg) first, then mediainfo. If both resolutions are unknown, the tool falls back to file-size comparison only.
+- For TV shows (folders), the tool preserves the original behavior and moves the folder directly under library-c (no categorization subfolder).
 - Moves print what would or did happen and end with a summary line: `Done. Eligible files/folders moved: X; skipped: Y.`
 
 ## Requirements
 
 - Python 3.13+
+- External tools on PATH (validated at startup): ffprobe (from FFmpeg) and mediainfo
+
+On Debian/Ubuntu you can install them with:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ffmpeg mediainfo
+```
 
 If you use Poetry, the project is already configured. Otherwise you can install it as a regular package in editable mode.
 
@@ -48,11 +62,16 @@ poetry run plex-leon --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
 ## Sample data
 
 This repository includes a `data/` directory with illustrative entries you can use for quick trials with `--dry-run`.
+Inside `data/library-c/` you'll see the categorization folders used for movies:
+- `better-resolution/`
+- `greater-filesize/`
+- `to-delete/`
 
 ## Exit code and logs
 
 - Returns `0` on normal completion.
-- Prints the number of discovered IDs in library-b, each move/skip decision, and a final summary.
+- Returns `2` if required external tools are missing (preflight check fails).
+- Prints the number of discovered IDs in library-b, detailed DECISION lines for eligible items (including resolution and size of A vs B), and a final summary.
 
 ## Development
 
