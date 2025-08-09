@@ -4,9 +4,16 @@ import argparse
 from pathlib import Path
 
 from .core import process_libraries
+from .utils import assert_required_tools_installed
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Preflight: ensure required external tools are available
+    try:
+        assert_required_tools_installed()
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}")
+        return 2
     parser = argparse.ArgumentParser(
         description="Move files and folders from library-a to library-c if their tvdb-id exists in library-b.",
     )
