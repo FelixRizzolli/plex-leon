@@ -19,6 +19,7 @@ Re-running is safe and will skip downloads and copies that already exist.
 
 from __future__ import annotations
 
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -26,29 +27,127 @@ import shutil
 import sys
 import urllib.request
 
+# Import downloads array from downloads.py
+import importlib.util
+import os
+
+# Dynamically import downloads.py to get the downloads array
+
+
+def get_downloads():
+    script_dir = Path(__file__).parent
+    downloads_path = script_dir / "downloads.py"
+    spec = importlib.util.spec_from_file_location(
+        "downloads", str(downloads_path))
+    downloads_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(downloads_mod)  # type: ignore
+    return downloads_mod.downloads
+
 
 # Configuration ----------------------------------------------------------------
 
-downloads: list[dict[str, object]] = [
-    {"resolution": 1920, "url": "https://file-examples.com/storage/fe79eba60468962519bf772/2017/04/file_example_MP4_1920_18MG.mp4"},
-    {"resolution": 480, "url": "https://file-examples.com/storage/fe79eba60468962519bf772/2017/04/file_example_MP4_480_1_5MG.mp4"},
-    {"resolution": 640, "url": "https://file-examples.com/storage/fe79eba60468962519bf772/2017/04/file_example_MP4_640_3MG.mp4"},
-    {"resolution": 1280, "url": "https://file-examples.com/storage/fe79eba60468962519bf772/2017/04/file_example_MP4_1280_10MG.mp4"},
-]
+downloads = get_downloads()
 
 library_a_movies: list[dict[str, object]] = [
-    {"filename": "John Wick (2014) {tvdb-155}.mp4", "resolution": 1920},
-    {"filename": "John Wick 2 (2017) {tvdb-511}.mp4", "resolution": 480},
-    {"filename": "John Wick 3 (2019) {tvdb-6494}.mp4", "resolution": 640},
-    {"filename": "John Wick 4 (2023) {tvdb-131523}.mp4", "resolution": 1280},
+    # Movies present in both libraries (some with same, some with different resolution/size)
+    {"filename": "John Wick (2014) {tvdb-155}.mp4",
+     "resolution": "1280x720", "size": "1"},
+    {"filename": "John Wick 2 (2017) {tvdb-511}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
+     "resolution": "1280x720", "size": "2"},
+    {"filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
+     "resolution": "1280x720", "size": "10"},
+    {"filename": "Inception (2010) {tvdb-27205}.mp4",
+     "resolution": "1280x720", "size": "5"},  # identical in both
+    # identical in both
+    {"filename": "The Matrix (1999) {tvdb-603}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "The Prestige (2006) {tvdb-1124}.mp4",
+     "resolution": "360x240", "size": "2"},  # identical in both
+    {"filename": "The Dark Knight (2008) {tvdb-155}.mp4",
+     "resolution": "1280x720", "size": "10"},  # identical in both
+    # identical in both
+    {"filename": "Forrest Gump (1994) {tvdb-13}.mp4",
+     "resolution": "720x480", "size": "1"},
+    # identical in both
+    {"filename": "Fight Club (1999) {tvdb-550}.mp4",
+     "resolution": "640x360", "size": "5"},
+    # Movies only in library A
+    {"filename": "Interstellar (2014) {tvdb-157336}.mp4",
+     "resolution": "640x360", "size": "2"},
+    {"filename": "The Prestige (2006) {tvdb-1124}.mp4",
+     "resolution": "360x240", "size": "1"},
+    {"filename": "Arrival (2016) {tvdb-329865}.mp4",
+     "resolution": "1280x720", "size": "1"},
+    {"filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
+     "resolution": "720x480", "size": "5"},
+    {"filename": "Whiplash (2014) {tvdb-244786}.mp4",
+     "resolution": "640x360", "size": "2"},
+    {"filename": "The Lion King (1994) {tvdb-8587}.mp4",
+     "resolution": "360x240", "size": "1"},
+    {"filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
+     "resolution": "1280x720", "size": "10"},
+    {"filename": "Goodfellas (1990) {tvdb-769}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "Parasite (2019) {tvdb-496243}.mp4",
+     "resolution": "640x360", "size": "5"},
+    {"filename": "Spirited Away (2001) {tvdb-129}.mp4",
+     "resolution": "360x240", "size": "2"},
 ]
 
 library_b_movies: list[dict[str, object]] = [
-    {"filename": "John Wick (2014) {tvdb-155}.mp4", "resolution": 1280},
-    {"filename": "John Wick 2 (2017) {tvdb-511}.mp4", "resolution": 480},
-    {"filename": "John Wick 3 (2019) {tvdb-6494}.mp4", "resolution": 1920},
-    {"filename": "John Wick 4 (2023) {tvdb-131523}.mp4", "resolution": 1280},
-    {"filename": "The Beekeeper (2024) {tvdb-349405}.mp4", "resolution": 1280},
+    # Movies present in both libraries (some with same, some with different resolution/size)
+    {"filename": "John Wick (2014) {tvdb-155}.mp4",
+     "resolution": "1280x720", "size": "1"},
+    {"filename": "John Wick 2 (2017) {tvdb-511}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
+     "resolution": "1280x720", "size": "2"},
+    {"filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
+     "resolution": "1280x720", "size": "10"},
+    {"filename": "Inception (2010) {tvdb-27205}.mp4",
+     "resolution": "1280x720", "size": "5"},  # identical in both
+    # identical in both
+    {"filename": "The Matrix (1999) {tvdb-603}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "The Prestige (2006) {tvdb-1124}.mp4",
+     "resolution": "360x240", "size": "2"},  # identical in both
+    {"filename": "The Dark Knight (2008) {tvdb-155}.mp4",
+     "resolution": "1280x720", "size": "10"},  # identical in both
+    # identical in both
+    {"filename": "Forrest Gump (1994) {tvdb-13}.mp4",
+     "resolution": "720x480", "size": "1"},
+    # identical in both
+    {"filename": "Fight Club (1999) {tvdb-550}.mp4",
+     "resolution": "640x360", "size": "5"},
+    # Movies only in library B
+    {"filename": "The Beekeeper (2024) {tvdb-349405}.mp4",
+     "resolution": "1280x720", "size": "1"},
+    {"filename": "Avatar (2009) {tvdb-19995}.mp4",
+     "resolution": "640x360", "size": "10"},
+    {"filename": "The Godfather (1972) {tvdb-238}.mp4",
+     "resolution": "360x240", "size": "2"},
+    {"filename": "Pulp Fiction (1994) {tvdb-680}.mp4",
+     "resolution": "720x480", "size": "5"},
+    {"filename": "Interstellar (2014) {tvdb-157336}.mp4",
+     "resolution": "640x360", "size": "10"},
+    {"filename": "Arrival (2016) {tvdb-329865}.mp4",
+     "resolution": "1280x720", "size": "5"},
+    {"filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
+     "resolution": "720x480", "size": "2"},
+    {"filename": "Whiplash (2014) {tvdb-244786}.mp4",
+     "resolution": "640x360", "size": "2"},
+    {"filename": "The Lion King (1994) {tvdb-8587}.mp4",
+     "resolution": "360x240", "size": "1"},
+    {"filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
+     "resolution": "1280x720", "size": "2"},
+    {"filename": "Goodfellas (1990) {tvdb-769}.mp4",
+     "resolution": "720x480", "size": "5"},
+    {"filename": "Parasite (2019) {tvdb-496243}.mp4",
+     "resolution": "640x360", "size": "1"},
+    {"filename": "Spirited Away (2001) {tvdb-129}.mp4",
+     "resolution": "360x240", "size": "2"},
 ]
 
 library_a_tvshows: list[str] = [
@@ -66,7 +165,8 @@ library_b_tvshows: list[str] = [
 
 @dataclass(frozen=True)
 class DownloadSpec:
-    resolution: int
+    resolution: str
+    size: str
     url: str
 
 
@@ -97,21 +197,18 @@ def download_to(path: Path, url: str, *, overwrite: bool = False) -> None:
             path.write_bytes(b"")
 
 
-def ensure_download_cache(temp_dir: Path, specs: Iterable[DownloadSpec]) -> dict[int, Path]:
-    """Ensure sample videos are present in temp_dir, keyed by resolution.
-
-    Returns a mapping: resolution -> file path
-    """
-    mapping: dict[int, Path] = {}
+def ensure_download_cache(temp_dir: Path, specs: Iterable[DownloadSpec]) -> dict[tuple[str, str], Path]:
+    """Ensure sample videos are present in temp_dir, keyed by (resolution, size)."""
+    mapping: dict[tuple[str, str], Path] = {}
     for spec in specs:
         # preserve extension from URL if present
         ext = ".mp4"
         url_path = spec.url.split("?")[0]
         if "." in url_path.rsplit("/", 1)[-1]:
             ext = "." + url_path.rsplit(".", 1)[-1]
-        dest = temp_dir / f"sample_{spec.resolution}{ext}"
+        dest = temp_dir / f"sample_{spec.resolution}_{spec.size}{ext}"
         download_to(dest, spec.url)
-        mapping[spec.resolution] = dest
+        mapping[(spec.resolution, spec.size)] = dest
     return mapping
 
 
@@ -144,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
         d.mkdir(parents=True, exist_ok=True)
 
     # Prepare download specs and cache
-    specs = [DownloadSpec(int(d["resolution"]), str(d["url"]))
+    specs = [DownloadSpec(str(d["resolution"]), str(d["size"]), str(d["url"]))
              for d in downloads]
     cache = ensure_download_cache(temp, specs)
 
@@ -152,11 +249,12 @@ def main(argv: list[str] | None = None) -> int:
     for entry in library_a_movies:
         # e.g., "John Wick (2014) {tvdb-155}.mp4"
         fname = str(entry["filename"])
-        res = int(entry["resolution"])   # e.g., 1920
-        src = cache.get(res)
+        res = str(entry["resolution"])
+        size = str(entry["size"])
+        src = cache.get((res, size))
         if src is None:
             print(
-                f"WARN: no cached clip for resolution {res}, skipping {fname}")
+                f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
             continue
         copy_movie(lib_a / fname, src)
 
@@ -164,11 +262,12 @@ def main(argv: list[str] | None = None) -> int:
     for entry in library_b_movies:
         # e.g., "John Wick 2 (2017) {tvdb-511}.mp4"
         fname = str(entry["filename"])
-        res = int(entry["resolution"])   # e.g., 480
-        src = cache.get(res)
+        res = str(entry["resolution"])
+        size = str(entry["size"])
+        src = cache.get((res, size))
         if src is None:
             print(
-                f"WARN: no cached clip for resolution {res}, skipping {fname}")
+                f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
             continue
         copy_movie(lib_b / fname, src)
 
