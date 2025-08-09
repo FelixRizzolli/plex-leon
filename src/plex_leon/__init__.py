@@ -1,10 +1,6 @@
-from .core import (
-    TVDB_REGEX,
-    collect_tvdb_ids,
-    extract_tvdb_id,
-    move_file,
-    process_libraries,
-)
+
+from .utils import TVDB_REGEX, collect_tvdb_ids, extract_tvdb_id, move_file
+from .core import process_libraries
 
 # Maintain backward compatibility: expose a CLI-compatible main that delegates to cli.main
 from .cli import main
