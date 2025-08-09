@@ -1,5 +1,5 @@
 
-from .utils import TVDB_REGEX, collect_tvdb_ids, extract_tvdb_id, move_file
+from .utils import TVDB_REGEX, collect_tvdb_ids, extract_tvdb_id, move_file, file_size, read_video_resolution
 from .core import process_libraries
 
 # Maintain backward compatibility: expose a CLI-compatible main that delegates to cli.main
@@ -10,6 +10,8 @@ __all__ = [
     "extract_tvdb_id",
     "collect_tvdb_ids",
     "move_file",
+    "file_size",
+    "read_video_resolution",
     "process_libraries",
     "main",
 ]
