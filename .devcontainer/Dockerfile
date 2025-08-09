@@ -14,4 +14,8 @@ RUN echo "INSTALL PLEX LEON IMAGE" && \
     apt-get update && \
     apt-get install gh -y && \
     # Install poetry
-    curl -sSL https://install.python-poetry.org | python3 -
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    # Install ffmpeg & mediainfo
+    sudo apt-get update -y && \
+    sudo apt-get install -y ffmpeg && \
+    sudo apt-get install -y mediainfo
