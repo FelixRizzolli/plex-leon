@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [1.2.0] - 2025-08-10
+
+### Added
+- Support for a bucketed reference library-b layout under A–Z and a single non-letter bucket `0-9`.
+- Recursive scanning of library-b so TVDB IDs and matches are discovered inside bucket folders (not just top-level).
+- Sample data generator updated with titles starting with special characters (e.g., `[REC] …`) that land in the `0-9` bucket.
+
+### Changed
+- README updated to document the bucketed layout and recursive scanning behavior for library-b.
+- Backward compatible: a flat, top-level-only library-b still works.
+
 ## [1.1.0] - 2025-08-09
 
 ### Added
