@@ -26,12 +26,13 @@ def test_collect_tvdb_ids(tmp_path: Path):
     names = [
         "John Wick (2014) {tvdb-155}.mp4",
         "Game of Thrones (2011) {tvdb-121361}",
+        "[REC] (2007) {tvdb-12345}.mp4",
         ".hidden {tvdb-9999}.mp4",
         "No id.mp4",
     ]
     make_files(tmp_path, names)
     ids = collect_tvdb_ids(tmp_path)
-    assert ids == {"155", "121361"}
+    assert ids == {"155", "121361", "12345"}
 
 
 @pytest.mark.parametrize("overwrite", [False, True])

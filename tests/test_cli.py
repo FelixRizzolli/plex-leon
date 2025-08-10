@@ -26,6 +26,7 @@ def test_cli_end_to_end_basic(tmp_path: Path, dry_run: bool, monkeypatch: pytest
     ])
     make_files(lib_b, [
         "Other (2000) {tvdb-42}.mp4",
+        "[REC] (2007) {tvdb-12345}.mp4",
         "Game of Thrones (2011) {tvdb-121361}",
         "John Wick (2014) {tvdb-155}.mp4",
     ])
