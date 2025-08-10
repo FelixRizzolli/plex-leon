@@ -1,4 +1,4 @@
-
+import os
 from pathlib import Path
 from .utils import (
     extract_tvdb_id,
@@ -28,21 +28,32 @@ def process_libraries(
         print(f"ERROR: library-b not found: {lib_b}")
         return (0, 0)
 
-    b_ids = collect_tvdb_ids(lib_b)
+    # Recursively collect TVDB ids from library-b to support bucketed layout (A-Z, 0-9)
+    def _iter_nonhidden(root: Path):
+        for dirpath, dirnames, filenames in os.walk(root):
+            # prune hidden directories
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            # yield directories (TV shows) and files (movies)
+            for d in dirnames:
+                yield Path(dirpath) / d
+            for f in filenames:
+                if f.startswith("."):
+                    continue
+                yield Path(dirpath) / f
+
+    b_ids: set[str] = set()
+    b_index: dict[str, list[Path]] = {}
+    for b_entry in _iter_nonhidden(lib_b):
+        b_tvdb = extract_tvdb_id(b_entry.name)
+        if not b_tvdb:
+            continue
+        b_ids.add(b_tvdb)
+        b_index.setdefault(b_tvdb, []).append(b_entry)
+
     print(f"Found {len(b_ids)} tvdb-ids in library-b")
 
     moved = 0
     skipped = 0
-
-    # Build a quick index of entries in lib_b by tvdb id for lookups
-    b_index: dict[str, list[Path]] = {}
-    for b_entry in lib_b.iterdir():
-        if b_entry.name.startswith("."):
-            continue
-        b_tvdb = extract_tvdb_id(b_entry.name)
-        if not b_tvdb:
-            continue
-        b_index.setdefault(b_tvdb, []).append(b_entry)
 
     for entry in lib_a.iterdir():
         if entry.name.startswith("."):
