@@ -4,18 +4,23 @@ A tiny CLI that moves media from one library to another based on TVDB IDs.
 
 Given three folders:
 - library-a: source library (files/folders to consider)
-- library-b: reference library (whose TVDB IDs authorize moves)
+- library-b: reference library (whose TVDB IDs authorize moves). This library can be bucketed under A–Z and a single non-letter bucket `0-9`.
 - library-c: destination library
 
-The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears in any immediate child name of library-b.
+The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
 
 ## How it works
 
 - TVDB IDs are extracted with a case-insensitive pattern: `{tvdb-<digits>}`. Examples:
 	- `John Wick (2014) {tvdb-155}.mp4` → `155`
 	- `Game of Thrones (2011) {TVDB-121361}` → `121361`
-- Only the top-level children of each library are inspected (both files and folders). Hidden entries (starting with `.`) are ignored.
-- If an item in library-a has a TVDB ID that also exists among library-b's children, it is considered eligible and moved to library-c.
+- Hidden entries (starting with `.`) are ignored.
+- Library-b is scanned recursively to support a production-like, bucketed layout under A–Z and `0-9` (non-letter starters). Examples:
+	- `library-b/A/Avatar (2009) {tvdb-19995}.mp4`
+	- `library-b/0-9/[REC] (2007) {tvdb-12345}.mp4`
+	- `library-b/0-9/2001 A Space Odyssey (1968) {tvdb-...}.mp4`
+- Library-a is still scanned at the top level only (both files and folders).
+- If an item in library-a has a TVDB ID that also exists anywhere under library-b, it’s considered eligible and moved to library-c.
 - For movies (files), the destination inside library-c depends on a comparison with the matching item in library-b:
 	- `better-resolution/` when the source has a higher pixel count (width×height)
 	- `greater-filesize/` when resolution isn't higher but the source file is larger
@@ -66,6 +71,8 @@ Inside `data/library-c/` you'll see the categorization folders used for movies:
 - `better-resolution/`
 - `greater-filesize/`
 - `to-delete/`
+
+Note: `data/library-b/` uses the bucketed layout described above (A–Z and a single `0-9` bucket for items that don’t start with a letter).
 
 ## Exit code and logs
 
