@@ -13,6 +13,13 @@ For each movie listed below, a sample clip is copied from the cached downloads
 into the corresponding library, using the exact filename provided. TV shows are
 created as empty folders only.
 
+Production-like layout note:
+- library-a keeps a flat layout (files/folders directly under library-a)
+- library-b organizes all items under A/B/C/... buckets based on the first
+    letter of the filename/folder name. Example: "Avatar (2009) ..." goes into
+    library-b/A/Avatar (2009) .... Re-running will also migrate any previously
+    flat items into their correct bucket to avoid duplicates.
+
 This script avoids external dependencies and uses urllib for downloads.
 Re-running is safe and will skip downloads and copies that already exist.
 """
@@ -258,6 +265,57 @@ def make_tv_folders(base: Path, names: Iterable[str]) -> None:
         print(f"mkdir: {p}")
 
 
+# Bucketing helpers for library-b --------------------------------------------
+
+def letter_bucket(name: str) -> str:
+    """Return A-Z bucket for given name, or '#' if no alpha character found."""
+    s = name.strip()
+    for ch in s:
+        if ch.isalpha():
+            return ch.upper()
+    return "#"
+
+
+def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
+    """Place movie file under base/<Bucket>/<name>.
+
+    If a flat item already exists at base/<name>, migrate it via move to keep
+    the operation idempotent and avoid duplicates across script versions.
+    """
+    bucket = letter_bucket(name)
+    dst = base / bucket / name
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    if dst.exists():
+        print(f"skip copy (exists): {dst}")
+        return
+
+    flat = base / name
+    if flat.exists():
+        print(f"move (re-bucket): {flat} -> {dst}")
+        shutil.move(str(flat), str(dst))
+        return
+
+    copy_movie(dst, src)
+
+
+def ensure_tv_folder_in_bucket(base: Path, name: str) -> None:
+    """Create/migrate TV show folder under base/<Bucket>/<name>."""
+    bucket = letter_bucket(name)
+    dst = base / bucket / name
+    if dst.exists():
+        print(f"skip mkdir (exists): {dst}")
+        return
+    flat = base / name
+    if flat.exists():
+        print(f"move (re-bucket): {flat} -> {dst}")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(flat), str(dst))
+        return
+    dst.mkdir(parents=True, exist_ok=True)
+    print(f"mkdir: {dst}")
+
+
 def main(argv: list[str] | None = None) -> int:
     # Base directory under repo: data/
     base = repo_root() / "data"
@@ -288,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         copy_movie(lib_a / fname, src)
 
-    # Populate library B movies
+    # Populate library B movies (bucketed under A/B/C/... like production)
     for entry in library_b_movies:
         # e.g., "John Wick 2 (2017) {tvdb-511}.mp4"
         fname = str(entry["filename"])
@@ -299,11 +357,13 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
             continue
-        copy_movie(lib_b / fname, src)
+        copy_or_move_into_bucket(lib_b, fname, src)
 
     # Create TV show folders only
     make_tv_folders(lib_a, library_a_tvshows)
-    make_tv_folders(lib_b, library_b_tvshows)
+    # For library-b, create TV show folders inside A/B/C/... buckets
+    for show in library_b_tvshows:
+        ensure_tv_folder_in_bucket(lib_b, show)
 
     print("Done.")
     return 0
