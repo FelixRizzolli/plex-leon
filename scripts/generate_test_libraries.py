@@ -16,9 +16,14 @@ created as empty folders only.
 Production-like layout note:
 - library-a keeps a flat layout (files/folders directly under library-a)
 - library-b organizes all items under A/B/C/... buckets based on the first
-    letter of the filename/folder name. Example: "Avatar (2009) ..." goes into
-    library-b/A/Avatar (2009) .... Re-running will also migrate any previously
-    flat items into their correct bucket to avoid duplicates.
+    non-space character of the filename/folder name. If that character is a
+    letter, the corresponding uppercase letter bucket is used; otherwise the
+    item goes into the '0-9' bucket (single bucket for all non-letters).
+    Example: "Avatar (2009) ..." -> library-b/A/Avatar (2009) ...
+    Example: "2001: A Space Odyssey (1968) ..." -> library-b/0-9/2001: A ...
+    Example: "[REC] (2007) ..." -> library-b/0-9/[REC] (2007) ...
+    Re-running will also migrate any previously flat items into their correct
+    bucket to avoid duplicates.
 
 This script avoids external dependencies and uses urllib for downloads.
 Re-running is safe and will skip downloads and copies that already exist.
@@ -149,6 +154,12 @@ library_b_movies: list[dict[str, object]] = [
     # in both libraries the same
     {"filename": "Fight Club (1999) {tvdb-550}.mp4",
      "resolution": "640x360", "size": "5"},
+    # special-char starter to exercise 0-9 bucket
+    {"filename": "[REC] (2007) {tvdb-12345}.mp4",
+     "resolution": "640x360", "size": "5"},
+    # another in the series
+    {"filename": "[REC] 2 (2009) {tvdb-12346}.mp4",
+     "resolution": "720x480", "size": "2"},
     # only in library_b
     {"filename": "The Beekeeper (2024) {tvdb-349405}.mp4",
      "resolution": "1280x720", "size": "1"},
@@ -268,20 +279,28 @@ def make_tv_folders(base: Path, names: Iterable[str]) -> None:
 # Bucketing helpers for library-b --------------------------------------------
 
 def letter_bucket(name: str) -> str:
-    """Return A-Z bucket for given name, or '#' if no alpha character found."""
-    s = name.strip()
-    for ch in s:
-        if ch.isalpha():
-            return ch.upper()
-    return "#"
+    """Return A-Z bucket by first non-space character, else '0-9' for non-letters."""
+    s = name.lstrip()
+    if not s:
+        return "0-9"
+    ch = s[0]
+    return ch.upper() if ch.isalpha() else "0-9"
 
 
 def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
     """Place movie file under base/<Bucket>/<name>.
 
-    If a flat item already exists at base/<name>, migrate it via move to keep
+    If a flat or differently-bucketed item exists, migrate it via move to keep
     the operation idempotent and avoid duplicates across script versions.
     """
+    def find_bucketed_item(base: Path, name: str) -> Path | None:
+        # Search any existing bucket (A-Z and '0-9')
+        for b in [*(chr(c) for c in range(ord('A'), ord('Z') + 1)), "0-9"]:
+            p = base / b / name
+            if p.exists():
+                return p
+        return None
+
     bucket = letter_bucket(name)
     dst = base / bucket / name
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -296,11 +315,25 @@ def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
         shutil.move(str(flat), str(dst))
         return
 
+    other = find_bucketed_item(base, name)
+    if other and other != dst:
+        print(f"move (re-bucket): {other} -> {dst}")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(other), str(dst))
+        return
+
     copy_movie(dst, src)
 
 
 def ensure_tv_folder_in_bucket(base: Path, name: str) -> None:
     """Create/migrate TV show folder under base/<Bucket>/<name>."""
+    def find_bucketed_item(base: Path, name: str) -> Path | None:
+        for b in [*(chr(c) for c in range(ord('A'), ord('Z') + 1)), "0-9"]:
+            p = base / b / name
+            if p.exists():
+                return p
+        return None
+
     bucket = letter_bucket(name)
     dst = base / bucket / name
     if dst.exists():
@@ -311,6 +344,12 @@ def ensure_tv_folder_in_bucket(base: Path, name: str) -> None:
         print(f"move (re-bucket): {flat} -> {dst}")
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(flat), str(dst))
+        return
+    other = find_bucketed_item(base, name)
+    if other and other != dst:
+        print(f"move (re-bucket): {other} -> {dst}")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(other), str(dst))
         return
     dst.mkdir(parents=True, exist_ok=True)
     print(f"mkdir: {dst}")
