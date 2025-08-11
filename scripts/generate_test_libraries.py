@@ -33,6 +33,8 @@ from __future__ import annotations
 
 
 from dataclasses import dataclass
+import random
+import re
 from pathlib import Path
 from typing import Iterable
 import shutil
@@ -276,6 +278,125 @@ def make_tv_folders(base: Path, names: Iterable[str]) -> None:
         print(f"mkdir: {p}")
 
 
+# --- TV episodes generation ---------------------------------------------------
+
+# Minimal TVDB id extractor (local copy to keep this script self-contained)
+_TVDB_RE = re.compile(r"\{tvdb-(\d+)\}", re.IGNORECASE)
+
+
+def _tvdb_id_from_name(name: str) -> str | None:
+    m = _TVDB_RE.search(name)
+    return m.group(1) if m else None
+
+
+# Known season/episode counts for the sample shows we generate
+# Keys are TVDB IDs as strings
+EPISODE_MAP: dict[str, dict[int, int]] = {
+    # Game of Thrones (2011)
+    "121361": {
+        1: 10,
+        2: 10,
+        3: 10,
+        4: 10,
+        5: 10,
+        6: 10,
+        7: 7,
+        8: 6,
+    },
+    # Code Geass: Lelouch of the Rebellion (2006) — two 25-episode seasons
+    "79525": {
+        1: 25,
+        2: 25,
+    },
+    # Classroom of the Elite — S1:12, S2:13, S3:13
+    "329822": {
+        1: 12,
+        2: 13,
+        3: 13,
+    },
+}
+
+
+def _distinct_cache_keys(cache: dict[tuple[str, str], Path]) -> list[tuple[str, str]]:
+    # Return a stable-ordered list of resolution/size combos
+    return sorted(cache.keys())
+
+
+def _show_dir_for_lib_b(base: Path, show_name: str) -> Path:
+    # Mirror ensure_tv_folder_in_bucket logic to locate the final folder
+    b = letter_bucket(show_name)
+    return base / b / show_name
+
+
+def create_seasons_and_episodes(
+    base: Path,
+    show_names: Iterable[str],
+    cache: dict[tuple[str, str], Path],
+    *,
+    bucketed: bool = False,
+    seed: int | None = 42,
+) -> None:
+    """Create Season XX folders and episode files for provided shows.
+
+    - base: library root (e.g., data/library-a or data/library-b)
+    - show_names: iterable of show folder names (must include the TVDB tag)
+    - cache: mapping from (resolution, size) -> sample clip Path
+    - bucketed: when True, place shows under A–Z/0-9 buckets (library-b style)
+    - seed: optional RNG seed for reproducible random picks
+    """
+    rng = random.Random(seed)
+    keys = _distinct_cache_keys(cache)
+    if not keys:
+        print("WARN: no cached sample videos available; skipping episode files")
+        # dummy fallback; files will be empty if missing
+        keys = [("640x360", "1")]
+
+    for show in show_names:
+        tvdb = _tvdb_id_from_name(show)
+        if not tvdb or tvdb not in EPISODE_MAP:
+            # Create the show folder at least (and continue)
+            target = _show_dir_for_lib_b(
+                base, show) if bucketed else (base / show)
+            target.mkdir(parents=True, exist_ok=True)
+            print(f"mkdir: {target}")
+            continue
+
+        seasons = EPISODE_MAP[tvdb]
+        show_dir = _show_dir_for_lib_b(
+            base, show) if bucketed else (base / show)
+        show_dir.mkdir(parents=True, exist_ok=True)
+        print(f"mkdir: {show_dir}")
+
+        # Build a canonical series title prefix for episode filenames
+        # Keep the folder name prefix before the tvdb tag
+        title_prefix = show.split(" {")[0].strip()
+
+        for season_num in sorted(seasons.keys()):
+            season_dir = show_dir / f"Season {season_num:02d}"
+            season_dir.mkdir(parents=True, exist_ok=True)
+            print(f"mkdir: {season_dir}")
+
+            for ep_num in range(1, seasons[season_num] + 1):
+                # Randomly pick a resolution/size combo and get the cached file
+                res, size = rng.choice(keys)
+                src = cache.get((res, size))
+                if src is None:
+                    # Shouldn't happen, but guard anyway
+                    print(
+                        f"WARN: cache miss for {res} {size} while creating {title_prefix} s{season_num:02d}e{ep_num:02d}"
+                    )
+                    # Create an empty placeholder
+                    dst = season_dir / \
+                        f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
+                    if not dst.exists():
+                        dst.write_bytes(b"")
+                    continue
+
+                dst = season_dir / \
+                    f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
+                copy_movie(dst, src)
+
+
 # Bucketing helpers for library-b --------------------------------------------
 
 def letter_bucket(name: str) -> str:
@@ -398,11 +519,15 @@ def main(argv: list[str] | None = None) -> int:
             continue
         copy_or_move_into_bucket(lib_b, fname, src)
 
-    # Create TV show folders only
-    make_tv_folders(lib_a, library_a_tvshows)
-    # For library-b, create TV show folders inside A/B/C/... buckets
+    # Create TV show folders and populate with seasons/episodes
+    create_seasons_and_episodes(
+        lib_a, library_a_tvshows, cache, bucketed=False, seed=123)
+    # For library-b, create TV show folders inside A/B/C/... buckets and add episodes
+    # Ensure the bucketed show folders exist/migrated first
     for show in library_b_tvshows:
         ensure_tv_folder_in_bucket(lib_b, show)
+    create_seasons_and_episodes(
+        lib_b, library_b_tvshows, cache, bucketed=True, seed=456)
 
     print("Done.")
     return 0
