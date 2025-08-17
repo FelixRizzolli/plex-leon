@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [1.3.0] - 2025-08-17
+
+### Added
+- TV show episodes are now compared and moved individually: for each episode in a show present in both libraries, the tool matches by season and episode number (e.g., s01e01) and applies the same resolution and size logic as for movies. Each episode is categorized under `better-resolution/`, `greater-filesize/`, or `to-delete/` in library-c, preserving the show/season/episode folder structure. The show folder itself is not moved, only its episodes.
+
+### Changed
+- README updated to clarify the per-episode comparison and categorization logic for TV shows.
+
 ## [1.2.0] - 2025-08-10
 
 ### Added
