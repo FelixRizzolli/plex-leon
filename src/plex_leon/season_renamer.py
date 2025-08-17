@@ -30,8 +30,8 @@ def _is_season_dir_name(name: str) -> tuple[bool, int | None]:
 
 
 def process_library(
-    library: Path,
-    dry_run: bool,
+    library: Path | None = None,
+    dry_run: bool = False,
 ) -> tuple[int]:
     """Rename season folders under a single library path.
 
@@ -42,6 +42,10 @@ def process_library(
     - Dry-run prints planned renames without touching the filesystem.
     Returns a 1-tuple with the number of renamed folders.
     """
+    if library is None:
+        library = Path("data/library-s")
+    if not isinstance(library, Path):
+        library = Path(library)
     if not library.is_dir():
         print(f"ERROR: library not found: {library}")
         return (0,)
