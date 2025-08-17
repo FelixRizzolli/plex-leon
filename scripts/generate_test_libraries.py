@@ -15,15 +15,16 @@ created as empty folders only.
 
 Production-like layout note:
 - library-a keeps a flat layout (files/folders directly under library-a)
-- library-b organizes all items under A/B/C/... buckets based on the first
-    non-space character of the filename/folder name. If that character is a
-    letter, the corresponding uppercase letter bucket is used; otherwise the
-    item goes into the '0-9' bucket (single bucket for all non-letters).
+- library-b buckets MOVIES under A/B/C/... based on the first non-space
+    character of the filename. Non-letters go into the single bucket '0-9'.
     Example: "Avatar (2009) ..." -> library-b/A/Avatar (2009) ...
     Example: "2001: A Space Odyssey (1968) ..." -> library-b/0-9/2001: A ...
     Example: "[REC] (2007) ..." -> library-b/0-9/[REC] (2007) ...
-    Re-running will also migrate any previously flat items into their correct
+    Re-running will migrate any previously flat movie files into their correct
     bucket to avoid duplicates.
+- TV SHOWS are NOT bucketed in library-b: they live directly under
+    library-b/<Show Name with {tvdb-...}>. Re-running will migrate any previously
+    bucketed show folders back to flat paths.
 
 This script avoids external dependencies and uses urllib for downloads.
 Re-running is safe and will skip downloads and copies that already exist.
@@ -323,9 +324,8 @@ def _distinct_cache_keys(cache: dict[tuple[str, str], Path]) -> list[tuple[str, 
 
 
 def _show_dir_for_lib_b(base: Path, show_name: str) -> Path:
-    # Mirror ensure_tv_folder_in_bucket logic to locate the final folder
-    b = letter_bucket(show_name)
-    return base / b / show_name
+    # TV shows in library-b are flat (not bucketed)
+    return base / show_name
 
 
 def create_seasons_and_episodes(
@@ -341,7 +341,8 @@ def create_seasons_and_episodes(
     - base: library root (e.g., data/library-a or data/library-b)
     - show_names: iterable of show folder names (must include the TVDB tag)
     - cache: mapping from (resolution, size) -> sample clip Path
-    - bucketed: when True, place shows under A–Z/0-9 buckets (library-b style)
+        - bucketed: when True, place shows under A–Z/0-9 buckets (legacy behavior).
+            For library-b in production, this should be False (flat layout for shows).
     - seed: optional RNG seed for reproducible random picks
     """
     rng = random.Random(seed)
@@ -355,15 +356,15 @@ def create_seasons_and_episodes(
         tvdb = _tvdb_id_from_name(show)
         if not tvdb or tvdb not in EPISODE_MAP:
             # Create the show folder at least (and continue)
-            target = _show_dir_for_lib_b(
-                base, show) if bucketed else (base / show)
+            target = (_show_dir_for_lib_b(base, show)
+                      if bucketed else (base / show))
             target.mkdir(parents=True, exist_ok=True)
             print(f"mkdir: {target}")
             continue
 
         seasons = EPISODE_MAP[tvdb]
-        show_dir = _show_dir_for_lib_b(
-            base, show) if bucketed else (base / show)
+        show_dir = (_show_dir_for_lib_b(base, show)
+                    if bucketed else (base / show))
         show_dir.mkdir(parents=True, exist_ok=True)
         print(f"mkdir: {show_dir}")
 
@@ -446,8 +447,11 @@ def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
     copy_movie(dst, src)
 
 
-def ensure_tv_folder_in_bucket(base: Path, name: str) -> None:
-    """Create/migrate TV show folder under base/<Bucket>/<name>."""
+def ensure_tv_folder_flat(base: Path, name: str) -> None:
+    """Create/migrate TV show folder directly under base/<name> (no buckets).
+
+    If the show exists in any bucket (legacy), move it back to flat.
+    """
     def find_bucketed_item(base: Path, name: str) -> Path | None:
         for b in [*(chr(c) for c in range(ord('A'), ord('Z') + 1)), "0-9"]:
             p = base / b / name
@@ -455,23 +459,18 @@ def ensure_tv_folder_in_bucket(base: Path, name: str) -> None:
                 return p
         return None
 
-    bucket = letter_bucket(name)
-    dst = base / bucket / name
+    dst = base / name
     if dst.exists():
         print(f"skip mkdir (exists): {dst}")
         return
-    flat = base / name
-    if flat.exists():
-        print(f"move (re-bucket): {flat} -> {dst}")
+
+    bucketed = find_bucketed_item(base, name)
+    if bucketed and bucketed != dst:
+        print(f"move (unbucket): {bucketed} -> {dst}")
         dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(flat), str(dst))
+        shutil.move(str(bucketed), str(dst))
         return
-    other = find_bucketed_item(base, name)
-    if other and other != dst:
-        print(f"move (re-bucket): {other} -> {dst}")
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(other), str(dst))
-        return
+
     dst.mkdir(parents=True, exist_ok=True)
     print(f"mkdir: {dst}")
 
@@ -522,12 +521,12 @@ def main(argv: list[str] | None = None) -> int:
     # Create TV show folders and populate with seasons/episodes
     create_seasons_and_episodes(
         lib_a, library_a_tvshows, cache, bucketed=False, seed=123)
-    # For library-b, create TV show folders inside A/B/C/... buckets and add episodes
-    # Ensure the bucketed show folders exist/migrated first
+    # For library-b, TV shows are flat (no buckets). Migrate any legacy
+    # bucketed folders back to flat, then create seasons/episodes.
     for show in library_b_tvshows:
-        ensure_tv_folder_in_bucket(lib_b, show)
+        ensure_tv_folder_flat(lib_b, show)
     create_seasons_and_episodes(
-        lib_b, library_b_tvshows, cache, bucketed=True, seed=456)
+        lib_b, library_b_tvshows, cache, bucketed=False, seed=456)
 
     print("Done.")
     return 0
