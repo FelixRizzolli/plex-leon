@@ -55,7 +55,7 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 		- `--lib-c PATH`  Destination library (default: `./data/library-c`)
 		- `--overwrite`   Replace existing files/folders in library-c
 		- `--dry-run`     Show planned moves without changing the filesystem
-- `season-renamer` — placeholder
+- `season-renamer` — renames season folders in a library to the canonical 'Season NN' form (e.g., 'season 01', 'Staffel 01', 'Satffel 01', or any folder with a single number will be renamed to 'Season NN'). Supports --dry-run and works recursively. Typos and numbers >= 100 are supported.
 - `episode-renamer` — placeholder
 - `episode-check` — placeholder
 
@@ -67,6 +67,12 @@ poetry run plex-leon migrate --dry-run
 
 # Optional: specify custom paths and actually move files
 poetry run plex-leon migrate --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
+
+# Optional: rename all season folders in a library (dry run)
+poetry run plex-leon season-renamer --lib ./data/library-b --dry-run
+
+# Actually rename all season folders in a library
+poetry run plex-leon season-renamer --lib ./data/library-b
 ```
 
 ## Sample data
@@ -95,7 +101,13 @@ poetry run pytest -q
 
 Key modules:
 - `plex_leon/migrate.py` — extraction, scanning, and move logic
+- `plex_leon/season_renamer.py` — season folder renaming utility
 - `plex_leon/cli.py` — subcommands and argument parsing
+
+## Breaking changes
+
+- The CLI now requires a subcommand (e.g., `migrate`, `season-renamer`). The default `poetry run plex-leon ...` is no longer supported; you must use `poetry run plex-leon migrate ...` for migration tasks. See usage above.
+
 
 ### Build standalone executables (CI)
 
