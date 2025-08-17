@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [2.0.0] - 2025-08-17
+
+### Added
+- New utility: `season-renamer` for renaming season folders in a library to the canonical 'Season NN' form. Handles typos (e.g., 'Satffel'), different languages (e.g., 'Staffel'), and any folder with a single number. Supports dry-run and works recursively. Numbers >= 100 are supported.
+
+### Changed
+- CLI is now subcommand-based. You must use `poetry run plex-leon migrate ...` instead of `poetry run plex-leon ...`.
+- Improved regex for parsing season and episode numbers in the migrate script, now supports numbers >= 100.
+
+### Breaking
+- The CLI no longer defaults to migration. You must specify a subcommand (e.g., `migrate`, `season-renamer`).
+
 ## [1.3.0] - 2025-08-17
 
 ### Added
