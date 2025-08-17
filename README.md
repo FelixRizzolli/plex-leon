@@ -26,7 +26,8 @@ The tool will move any entry in library-a whose name contains a TVDB tag like `{
 	- `greater-filesize/` when resolution isn't higher but the source file is larger
 	- `to-delete/` when neither is true (i.e., the library-b item is as good or better)
 	Resolution is read via ffprobe (FFmpeg) first, then mediainfo. If both resolutions are unknown, the tool falls back to file-size comparison only.
-- For TV shows (folders), the tool preserves the original behavior and moves the folder directly under library-c (no categorization subfolder).
+- For TV shows (folders), the tool compares episodes individually by matching season and episode numbers (e.g., s01e01) between library-a and library-b. Each episode is moved to the appropriate categorization folder in library-c (`better-resolution/`, `greater-filesize/`, or `to-delete/`) based on the same resolution and size logic as for movies. The show/season/episode folder structure is preserved under the categorization folder. The show folder itself is not moved, only its episodes.
+  The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
 - Moves print what would or did happen and end with a summary line: `Done. Eligible files/folders moved: X; skipped: Y.`
 
 ## Requirements
