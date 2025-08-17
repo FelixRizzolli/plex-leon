@@ -46,23 +46,27 @@ If you use Poetry, the project is already configured. Otherwise you can install 
 
 ## Usage
 
-The CLI entry point is `plex-leon`.
+The CLI entry point is `plex-leon` with subcommands. Current commands:
 
-Options:
-- `--lib-a PATH`  Source library (default: `./data/library-a`)
-- `--lib-b PATH`  Reference library (default: `./data/library-b`)
-- `--lib-c PATH`  Destination library (default: `./data/library-c`)
-- `--overwrite`   Replace existing files/folders in library-c
-- `--dry-run`     Show planned moves without changing the filesystem
+- `migrate` — move items from library-a to library-c when the TVDB ID exists in library-b
+	- Options:
+		- `--lib-a PATH`  Source library (default: `./data/library-a`)
+		- `--lib-b PATH`  Reference library (default: `./data/library-b`)
+		- `--lib-c PATH`  Destination library (default: `./data/library-c`)
+		- `--overwrite`   Replace existing files/folders in library-c
+		- `--dry-run`     Show planned moves without changing the filesystem
+- `season-renamer` — placeholder
+- `episode-renamer` — placeholder
+- `episode-check` — placeholder
 
 ### Examples (optional commands)
 
 ```bash
-# Optional: run with defaults against the sample data folder
-poetry run plex-leon --dry-run
+# Optional: run migrate with defaults against the sample data folder
+poetry run plex-leon migrate --dry-run
 
 # Optional: specify custom paths and actually move files
-poetry run plex-leon --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
+poetry run plex-leon migrate --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
 ```
 
 ## Sample data
@@ -90,8 +94,8 @@ poetry run pytest -q
 ```
 
 Key modules:
-- `plex_leon/core.py` — extraction, scanning, and move logic
-- `plex_leon/cli.py` — argument parsing and wiring to the core
+- `plex_leon/migrate.py` — extraction, scanning, and move logic
+- `plex_leon/cli.py` — subcommands and argument parsing
 
 ### Build standalone executables (CI)
 

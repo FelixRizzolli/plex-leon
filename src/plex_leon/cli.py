@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .core import process_libraries
+from .migrate import process_libraries
 from .utils import assert_required_tools_installed
 
 

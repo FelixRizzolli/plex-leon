@@ -18,7 +18,7 @@ def process_libraries(
     dry_run: bool,
 ) -> tuple[int, int]:
     """Core operation: move entries from lib_a to lib_c if their TVDB id exists in lib_b.
-
+k
     Returns a tuple (moved_count, skipped_count).
     """
     if not lib_a.is_dir():
