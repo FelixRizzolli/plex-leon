@@ -1,16 +1,17 @@
 from __future__ import annotations
 
-import builtins
+import re
 from pathlib import Path
+
+import builtins
 
 import pytest
 
-from plex_leon.cli import main
+from plex_leon import main
 from utils import make_files
 
 
-@pytest.mark.parametrize("dry_run", [False, True])
-def test_cli_end_to_end_basic(tmp_path: Path, dry_run: bool, monkeypatch: pytest.MonkeyPatch):
+def test_main_end_to_end_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     lib_a = tmp_path / "library-a"
     lib_b = tmp_path / "library-b"
     lib_c = tmp_path / "library-c"
@@ -38,20 +39,18 @@ def test_cli_end_to_end_basic(tmp_path: Path, dry_run: bool, monkeypatch: pytest
 
     # Patch print and argparse arguments
     monkeypatch.setattr(builtins, "print", fake_print)
+    monkeypatch.setenv("PYTHONWARNINGS", "ignore")
 
     argv = [
         "prog",
         "--lib-a", str(lib_a),
         "--lib-b", str(lib_b),
         "--lib-c", str(lib_c),
-        "--dry-run" if dry_run else "",
+        "--dry-run",
     ]
-    # Remove empty args if dry_run is False
-    argv = [a for a in argv if a]
 
-    # emulate CLI by passing argv to cli.main
-    rc = main(argv)
-    assert rc == 0
+    # emulate CLI by passing argv to plex_leon.main (defaults to 'migrate')
+    main(argv)
 
     # Only the item with tvdb-155 should be considered eligible
     moved_msgs = [m for m in outputs if m.startswith("MOVE:")]

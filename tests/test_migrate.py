@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import builtins
@@ -12,7 +11,7 @@ from utils import make_files
 
 
 def test_process_libraries_integration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    from plex_leon.core import process_libraries
+    from plex_leon.migrate import process_libraries
 
     lib_a = tmp_path / "library-a"
     lib_b = tmp_path / "library-b"
