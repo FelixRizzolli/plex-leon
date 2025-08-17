@@ -205,10 +205,19 @@ library_a_tvshows: list[str] = [
     "Classroom of the Elite (2017) {tvdb-329822}",
     "Code Geass (2006) {tvdb-79525}",
     "Game of Thrones (2011) {tvdb-121361}",
+    "Attack on Titan (2013) {tvdb-267440}",  # Only in A
+    "Death Note (2006) {tvdb-79434}",         # Only in A
+    "Overlord (2015) {tvdb-295068}",         # Only in A
+    "Breaking Bad (2008) {tvdb-81189}",      # In both, different quality
+    "The Day of the Jackal (1973) {tvdb-80379}",  # Only in A
 ]
 
 library_b_tvshows: list[str] = [
     "Game of Thrones (2011) {tvdb-121361}",
+    "My Name (2021) {tvdb-410235}",          # Only in B
+    "Squid Game (2021) {tvdb-407183}",       # Only in B
+    "One Punch Man (2015) {tvdb-299880}",    # Only in B
+    "Breaking Bad (2008) {tvdb-81189}",      # In both, different quality
 ]
 
 
@@ -314,6 +323,49 @@ EPISODE_MAP: dict[str, dict[int, int]] = {
         1: 12,
         2: 13,
         3: 13,
+    },
+    # Attack on Titan (2013)
+    "267440": {
+        1: 25,
+        2: 12,
+        3: 22,
+        4: 28,
+    },
+    # Death Note (2006)
+    "79434": {
+        1: 37,
+    },
+    # Overlord (2015)
+    "295068": {
+        1: 13,
+        2: 13,
+        3: 13,
+        4: 13,
+    },
+    # Breaking Bad (2008)
+    "81189": {
+        1: 7,
+        2: 13,
+        3: 13,
+        4: 13,
+        5: 16,
+    },
+    # The Day of the Jackal (1973) - treat as 1 season, 1 episode (movie as show)
+    "80379": {
+        1: 1,
+    },
+    # My Name (2021)
+    "410235": {
+        1: 8,
+    },
+    # Squid Game (2021)
+    "407183": {
+        1: 9,
+    },
+    # One Punch Man (2015)
+    "299880": {
+        1: 12,
+        2: 12,
     },
 }
 
