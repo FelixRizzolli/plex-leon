@@ -346,6 +346,7 @@ library_a_tvshows: list[str] = [
 
 library_b_tvshows: list[str] = [
     "Game of Thrones (2011) {tvdb-121361}",  # In both
+    "Attack on Titan (2013) {tvdb-267440}",  # In both
     "My Name (2021) {tvdb-410235}",  # Only in B
     "Squid Game (2021) {tvdb-407183}",  # Only in B
     "One Punch Man (2015) {tvdb-299880}",  # Only in B
