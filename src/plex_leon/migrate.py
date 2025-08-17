@@ -57,7 +57,7 @@ k
 
     # Helper to parse sXXeYY from episode filenames
     import re as _re
-    _EP_RE = _re.compile(r"[sS](\d{2})[eE](\d{2})")
+    _EP_RE = _re.compile(r"[sS](\d*)[eE](\d*)")
 
     def _parse_season_episode(name: str) -> tuple[int, int] | None:
         m = _EP_RE.search(name)
