@@ -159,34 +159,71 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
             season_dir.mkdir(parents=True, exist_ok=True)
             print(f"mkdir: {season_dir}")
 
-            for ep_num in range(1, seasons[season_num] + 1):
-                # Choose per-episode whether to add a title and whether to add a tiny typo
-                add_title = include_titles and rng.random() < 0.85
-                episode_title = _random_title(
-                    rng, tvdb, season_num, ep_num) if add_title else ""
-                if episode_title and rng.random() < 0.35:
-                    episode_title = _introduce_typos(episode_title, rng)
+            ep_total = seasons[season_num]
+            ep_num = 1
+            while ep_num <= ep_total:
+                # Randomly decide if this file should be a double-episode file (about 1 in 8 chance, and only if next ep exists)
+                is_double = ep_num < ep_total and rng.random() < 0.125
+                if is_double:
+                    # S01E01-E02 style
+                    ep_start = ep_num
+                    ep_end = ep_num + 1
+                    # Choose per-file whether to add a title and whether to add a tiny typo
+                    add_title = include_titles and rng.random() < 0.85
+                    episode_title = _random_title(
+                        rng, tvdb, season_num, ep_start) if add_title else ""
+                    if episode_title and rng.random() < 0.35:
+                        episode_title = _introduce_typos(episode_title, rng)
 
-                # Build S/E tag
-                s_tag = f"s{season_num:02d}e{ep_num:02d}"
-                if upper_se_tag:
-                    s_tag = s_tag.upper()  # S01E01
+                    # Build S/E tag
+                    s_tag = f"s{season_num:02d}e{ep_start:02d}-e{ep_end:02d}"
+                    if upper_se_tag:
+                        s_tag = s_tag.upper()  # S01E01-E02
 
-                # Build show part (maybe omit year)
-                show_part = title_with_year if include_year else title_no_year
+                    # Build show part (maybe omit year)
+                    show_part = title_with_year if include_year else title_no_year
 
-                # Assemble filename
-                parts = [show_part, s_tag]
-                if episode_title:
-                    parts.append(episode_title)
-                filename = " - ".join(parts) + ".mp4"
-                dst = season_dir / filename
+                    # Assemble filename
+                    parts = [show_part, s_tag]
+                    if episode_title:
+                        parts.append(episode_title)
+                    filename = " - ".join(parts) + ".mp4"
+                    dst = season_dir / filename
 
-                if dst.exists():
-                    print(f"skip (exists): {dst}")
-                    continue
-                dst.write_bytes(b"")
-                print(f"touch: {dst}")
+                    if dst.exists():
+                        print(f"skip (exists): {dst}")
+                        ep_num += 2
+                        continue
+                    dst.write_bytes(b"")
+                    print(f"touch: {dst}")
+                    ep_num += 2
+                else:
+                    # Single episode file as before
+                    add_title = include_titles and rng.random() < 0.85
+                    episode_title = _random_title(
+                        rng, tvdb, season_num, ep_num) if add_title else ""
+                    if episode_title and rng.random() < 0.35:
+                        episode_title = _introduce_typos(episode_title, rng)
+
+                    s_tag = f"s{season_num:02d}e{ep_num:02d}"
+                    if upper_se_tag:
+                        s_tag = s_tag.upper()
+
+                    show_part = title_with_year if include_year else title_no_year
+
+                    parts = [show_part, s_tag]
+                    if episode_title:
+                        parts.append(episode_title)
+                    filename = " - ".join(parts) + ".mp4"
+                    dst = season_dir / filename
+
+                    if dst.exists():
+                        print(f"skip (exists): {dst}")
+                        ep_num += 1
+                        continue
+                    dst.write_bytes(b"")
+                    print(f"touch: {dst}")
+                    ep_num += 1
 
 
 def main(argv: list[str] | None = None) -> int:
