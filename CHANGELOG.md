@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [2.1.0] - 2025-08-22
+### Added
+- `season-renamer` now uses a robust two-step swap logic for case-only renames (e.g., 'season 01' → '.plexleon_swap_Season 01' → 'Season 01').
+- If a canonical 'Season NN' folder already exists, contents are merged non-destructively; any conflicts are moved to a '.plexleon_conflicts' subfolder. No folders or files are deleted or overwritten by default.
+- Dry-run output now clearly shows all planned swap/merge operations.
+
 ## [2.0.0] - 2025-08-17
 
 ### Added
