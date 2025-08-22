@@ -56,6 +56,7 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 		- `--overwrite`   Replace existing files/folders in library-c
 		- `--dry-run`     Show planned moves without changing the filesystem
 - `season-renamer` — renames season folders in a library to the canonical 'Season NN' form (e.g., 'season 01', 'Staffel 01', 'Satffel 01', or any folder with a single number will be renamed to 'Season NN'). Supports --dry-run and works recursively. Typos and numbers >= 100 are supported.
+	- For case-only renames (e.g., 'season 01' → 'Season 01'), a two-step swap is performed: first, the folder is renamed to `.plexleon_swap_Season NN`, then to `Season NN`. If a canonical `Season NN` already exists, contents are merged non-destructively (conflicts are moved to a `.plexleon_conflicts` subfolder). No folders or files are deleted or overwritten by default.
 - `episode-renamer` — placeholder
 - `episode-check` — placeholder
 
@@ -73,6 +74,8 @@ poetry run plex-leon season-renamer --lib ./data/library-b --dry-run
 
 # Actually rename all season folders in a library
 poetry run plex-leon season-renamer --lib ./data/library-b
+
+# The two-step swap logic for case-only renames (e.g., 'season 01' to 'Season 01') ensures safe renaming even on case-insensitive filesystems and merges contents if the canonical folder already exists. No data is lost; conflicts are preserved in a `.plexleon_conflicts` folder.
 ```
 
 ## Sample data
