@@ -46,7 +46,7 @@ def _add_season_renamer_parser(subparsers: argparse._SubParsersAction) -> argpar
         ),
     )
     p.add_argument(
-        "--lib", type=Path, default=Path("./data/library-b"), help="Path to the library to process (default: ./data/library-b)"
+        "--lib", type=Path, default=Path("./data/library-s"), help="Path to the library to process (default: ./data/library-s)"
     )
     p.add_argument(
         "--dry-run", action="store_true", help="Show planned renames without changing the filesystem."
