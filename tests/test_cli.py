@@ -58,3 +58,32 @@ def test_main_end_to_end_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert "tvdb-155" in "\n".join(outputs)
     assert any("Found" in m for m in outputs)
     assert any("Done." in m for m in outputs)
+
+
+def test_cli_episode_and_season_subcommands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    outputs: list[str] = []
+
+    def fake_print(*args, **kwargs):
+        outputs.append(" ".join(map(str, args)))
+
+    monkeypatch.setattr(builtins, "print", fake_print)
+
+    # Episode renamer
+    lib_e = tmp_path / "data" / "library-e" / \
+        "Code Geass (2006) {tvdb-79525}" / "Season 01"
+    lib_e.mkdir(parents=True)
+    make_files(lib_e, [
+        "Code Geass - s01e01.mp4",
+        "Code Geass (2006) - S01E02.mp4",
+    ])
+    main(["plex-leon", "episode-renamer", "--lib",
+         str(tmp_path / "data" / "library-e"), "--dry-run"])
+    assert any("RENAME:" in m for m in outputs)
+
+    # Season renamer
+    outputs.clear()
+    lib_s = tmp_path / "data" / "library-s" / "Show (2011) {tvdb-42}"
+    make_files(lib_s, ["season 01/", "Staffel 02/"])
+    main(["plex-leon", "season-renamer", "--lib",
+         str(tmp_path / "data" / "library-s"), "--dry-run"])
+    assert any("RENAME:" in m for m in outputs)
