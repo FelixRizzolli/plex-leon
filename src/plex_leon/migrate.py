@@ -6,6 +6,11 @@ from .utils import (
     move_file,
     file_size,
     read_video_resolution,
+    iter_nonhidden_entries,
+    parse_season_episode,
+    find_episode_in_dirs,
+    format_bytes,
+    format_resolution,
 )
 
 
@@ -28,22 +33,10 @@ k
         print(f"ERROR: library-b not found: {lib_b}")
         return (0, 0)
 
-    # Recursively collect TVDB ids from library-b to support bucketed layout (A-Z, 0-9)
-    def _iter_nonhidden(root: Path):
-        for dirpath, dirnames, filenames in os.walk(root):
-            # prune hidden directories
-            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
-            # yield directories (TV shows) and files (movies)
-            for d in dirnames:
-                yield Path(dirpath) / d
-            for f in filenames:
-                if f.startswith("."):
-                    continue
-                yield Path(dirpath) / f
-
     b_ids: set[str] = set()
     b_index: dict[str, list[Path]] = {}
-    for b_entry in _iter_nonhidden(lib_b):
+    # Recursively collect TVDB ids from library-b to support bucketed layout (A-Z, 0-9)
+    for b_entry in iter_nonhidden_entries(lib_b):
         b_tvdb = extract_tvdb_id(b_entry.name)
         if not b_tvdb:
             continue
@@ -55,33 +48,9 @@ k
     moved = 0
     skipped = 0
 
-    # Helper to parse sXXeYY from episode filenames
-    import re as _re
-    _EP_RE = _re.compile(r"[sS](\d*)[eE](\d*)")
-
-    def _parse_season_episode(name: str) -> tuple[int, int] | None:
-        m = _EP_RE.search(name)
-        if not m:
-            return None
-        try:
-            return int(m.group(1)), int(m.group(2))
-        except ValueError:
-            return None
-
-    def _find_episode_in_b(show_dirs: list[Path], season: int, episode: int) -> Path | None:
-        needle = f"s{season:02d}e{episode:02d}"
-        needle_upper = needle.upper()
-        for d in show_dirs:
-            if not d.is_dir():
-                continue
-            for dirpath, _, filenames in os.walk(d):
-                for fn in filenames:
-                    if fn.startswith("."):
-                        continue
-                    up = fn.upper()
-                    if needle_upper in up:
-                        return Path(dirpath) / fn
-        return None
+    # Helper lambdas for concise logging
+    _fmt_res = format_resolution
+    _fmt_size = format_bytes
 
     for entry in lib_a.iterdir():
         if entry.name.startswith("."):
@@ -125,20 +94,6 @@ k
                         reason = "to-delete"
 
                 # Pretty formatting helpers
-                def _fmt_res(res: tuple[int, int] | None) -> str:
-                    return f"{res[0]}x{res[1]}" if res else "unknown"
-
-                def _fmt_size(num_bytes: int) -> str:
-                    units = ["B", "KB", "MB", "GB", "TB"]
-                    size = float(num_bytes)
-                    unit = 0
-                    while size >= 1024 and unit < len(units) - 1:
-                        size /= 1024.0
-                        unit += 1
-                    if unit == 0:
-                        return f"{int(size)} {units[unit]}"
-                    return f"{size:.1f} {units[unit]}"
-
                 # Log the decision with details
                 b_name = b_match.name if b_match is not None else "<missing>"
                 print(
@@ -165,12 +120,12 @@ k
                             continue
                         src_ep = Path(dirpath) / fn
                         # Parse season/episode; skip non-matching files
-                        se = _parse_season_episode(fn)
+                        se = parse_season_episode(fn)
                         if not se:
                             skipped += 1
                             continue
                         season_num, ep_num = se
-                        b_ep = _find_episode_in_b(
+                        b_ep = find_episode_in_dirs(
                             show_dirs_in_b, season_num, ep_num)
 
                         # Compare resolution when possible
@@ -198,20 +153,6 @@ k
                                 reason = "to-delete"
 
                         # Pretty formatting helpers (reuse local lambdas)
-                        def _fmt_res(res: tuple[int, int] | None) -> str:
-                            return f"{res[0]}x{res[1]}" if res else "unknown"
-
-                        def _fmt_size(num_bytes: int) -> str:
-                            units = ["B", "KB", "MB", "GB", "TB"]
-                            size = float(num_bytes)
-                            unit = 0
-                            while size >= 1024 and unit < len(units) - 1:
-                                size /= 1024.0
-                                unit += 1
-                            if unit == 0:
-                                return f"{int(size)} {units[unit]}"
-                            return f"{size:.1f} {units[unit]}"
-
                         b_name = b_ep.name if b_ep is not None else "<missing>"
                         print(
                             "DECISION:",

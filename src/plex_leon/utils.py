@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import re
 import shutil
@@ -300,3 +301,66 @@ def two_step_case_rename(old_path: Path, new_path: Path, *, dry_run: bool) -> bo
         except OSError:
             pass
         return False
+
+
+def iter_nonhidden_entries(root: Path):
+    """Yield non-hidden files and directories recursively under root.
+
+    Hidden directories and files (starting with '.') are skipped.
+    """
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if not d.startswith('.')]
+        for d in dirnames:
+            yield Path(dirpath) / d
+        for f in filenames:
+            if f.startswith('.'):
+                continue
+            yield Path(dirpath) / f
+
+
+def parse_season_episode(text: str) -> tuple[int, int] | None:
+    """Return (season, episode) from text or None.
+
+    For double-episode tags, returns the first episode number.
+    """
+    parsed = parse_episode_tag(text)
+    if not parsed:
+        return None
+    s, e1, _ = parsed
+    return (s, e1)
+
+
+def find_episode_in_dirs(show_dirs: list[Path], season: int, episode: int) -> Path | None:
+    """Search for an episode file within provided show directories.
+
+    Matches case-insensitively on the substring 'sNNeMM' in filenames.
+    """
+    needle_upper = f"s{season:02d}e{episode:02d}".upper()
+    for d in show_dirs:
+        if not d.is_dir():
+            continue
+        for dirpath, _, filenames in os.walk(d):
+            for fn in filenames:
+                if fn.startswith('.'):
+                    continue
+                if needle_upper in fn.upper():
+                    return Path(dirpath) / fn
+    return None
+
+
+def format_bytes(num_bytes: int) -> str:
+    """Format a byte count using human-readable units."""
+    units = ["B", "KB", "MB", "GB", "TB"]
+    size = float(num_bytes)
+    unit = 0
+    while size >= 1024 and unit < len(units) - 1:
+        size /= 1024.0
+        unit += 1
+    if unit == 0:
+        return f"{int(size)} {units[unit]}"
+    return f"{size:.1f} {units[unit]}"
+
+
+def format_resolution(res: tuple[int, int] | None) -> str:
+    """Format a resolution tuple as 'WxH' or 'unknown'."""
+    return f"{res[0]}x{res[1]}" if res else "unknown"
