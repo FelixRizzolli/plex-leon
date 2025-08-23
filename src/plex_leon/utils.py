@@ -364,3 +364,81 @@ def format_bytes(num_bytes: int) -> str:
 def format_resolution(res: tuple[int, int] | None) -> str:
     """Format a resolution tuple as 'WxH' or 'unknown'."""
     return f"{res[0]}x{res[1]}" if res else "unknown"
+
+
+def get_season_number_from_dirname(name: str) -> int | None:
+    """Extract the single season number from a folder name if unambiguous.
+
+    Returns the integer season number when the name contains exactly one
+    contiguous sequence of digits; otherwise returns None.
+    """
+    digits = _SEASON_DIGITS_RE.findall(name)
+    if len(digits) != 1:
+        return None
+    try:
+        num = int(digits[0])
+        if num < 0:
+            return None
+        return num
+    except ValueError:
+        return None
+
+
+def unique_swap_path(parent: Path, base_name: str) -> Path:
+    """Return a unique temporary swap path '.plexleon_swap_<base_name>[.n]'."""
+    swap_path = parent / f".plexleon_swap_{base_name}"
+    i = 1
+    while swap_path.exists():
+        swap_path = parent / f".plexleon_swap_{base_name}.{i}"
+        i += 1
+    return swap_path
+
+
+def merge_directory_contents(src: Path, dst: Path, conflicts_dirname: str = ".plexleon_conflicts") -> None:
+    """Move all items from src into dst; existing names go under a conflicts folder.
+
+    Creates 'dst/<conflicts_dirname>' for conflicts and ensures no overwrites by
+    adding '(conflict)' or '(conflict N)' to the basename as needed.
+    """
+    dst.mkdir(parents=True, exist_ok=True)
+    conflicts_dir = dst / conflicts_dirname
+    for item in sorted(src.iterdir()):
+        dest = dst / item.name
+        if dest.exists():
+            try:
+                conflicts_dir.mkdir(exist_ok=True)
+            except OSError:
+                pass
+            base = item.stem
+            suffix = item.suffix
+            n = 1
+            conflict_name = f"{base} (conflict){suffix}"
+            conflict_dest = conflicts_dir / conflict_name
+            while conflict_dest.exists():
+                conflict_name = f"{base} (conflict {n}){suffix}"
+                conflict_dest = conflicts_dir / conflict_name
+                n += 1
+            try:
+                item.rename(conflict_dest)
+                print(f"CONFLICT: moved to {conflict_dest}")
+            except OSError as e:
+                print(
+                    f"ERROR: conflict move failed {item} -> {conflict_dest}: {e}")
+        else:
+            try:
+                item.rename(dest)
+            except OSError as e:
+                print(f"ERROR: move failed {item} -> {dest}: {e}")
+
+
+def remove_dir_if_empty(path: Path) -> bool:
+    """Remove directory if empty, returning True when removed."""
+    try:
+        next(path.iterdir())
+        return False
+    except StopIteration:
+        try:
+            path.rmdir()
+            return True
+        except OSError:
+            return False

@@ -1,32 +1,14 @@
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 
-
-_DIGITS_RE = re.compile(r"(\d+)")
-
-
-def _is_season_dir_name(name: str) -> tuple[bool, int | None]:
-    """Return (is_season_like, season_number) based on digits in the name.
-
-    Heuristic:
-    - Consider names that contain exactly one sequence of digits as season folders.
-    - Extract that number and return it.
-    Examples considered season-like: 'season 1', 'Staffel 02', 'Satffel 10', 'S-3'.
-    Examples not considered season-like: show folders like 'Title (2011) {tvdb-1234}'.
-    """
-    digits = _DIGITS_RE.findall(name)
-    if len(digits) != 1:
-        return (False, None)
-    try:
-        num = int(digits[0])
-        if num < 0:
-            return (False, None)
-        return (True, num)
-    except ValueError:
-        return (False, None)
+from .utils import (
+    get_season_number_from_dirname,
+    unique_swap_path,
+    merge_directory_contents,
+    remove_dir_if_empty,
+)
 
 
 def process_library(
@@ -59,8 +41,8 @@ def process_library(
             old_path = Path(dirpath) / d
             if not old_path.is_dir():
                 continue
-            is_season, num = _is_season_dir_name(d)
-            if not is_season or num is None:
+            num = get_season_number_from_dirname(d)
+            if num is None:
                 continue
             new_name = f"Season {num:02d}"
             new_path = Path(dirpath) / new_name
@@ -71,13 +53,8 @@ def process_library(
 
             # Case-only path: season 01 -> .plexleon_swap_Season 01 -> Season 01
             if d.lower() == new_name.lower():
-                # Find a unique swap path: .plexleon_swap_Season NN[.n]
-                swap_path = Path(dirpath) / f".plexleon_swap_{new_name}"
-                i = 1
-                while swap_path.exists():
-                    swap_path = Path(dirpath) / \
-                        f".plexleon_swap_{new_name}.{i}"
-                    i += 1
+                # Find a unique swap path
+                swap_path = unique_swap_path(Path(dirpath), new_name)
 
                 if dry_run:
                     print(f"RENAME: {old_path} -> {swap_path}")
@@ -102,46 +79,11 @@ def process_library(
                     if not new_path.exists():
                         swap_path.rename(new_path)
                     else:
-                        # Merge: move contents from swap into canonical, handle conflicts
-                        conflicts_dir = new_path / ".plexleon_conflicts"
-                        for item in sorted(swap_path.iterdir()):
-                            dest = new_path / item.name
-                            if dest.exists():
-                                try:
-                                    conflicts_dir.mkdir(exist_ok=True)
-                                except OSError:
-                                    pass
-                                base = item.stem
-                                suffix = item.suffix
-                                n = 1
-                                conflict_name = f"{base} (conflict){suffix}"
-                                conflict_dest = conflicts_dir / conflict_name
-                                while conflict_dest.exists():
-                                    conflict_name = f"{base} (conflict {n}){suffix}"
-                                    conflict_dest = conflicts_dir / conflict_name
-                                    n += 1
-                                try:
-                                    item.rename(conflict_dest)
-                                    print(
-                                        f"CONFLICT: moved to {conflict_dest}")
-                                except OSError as e:
-                                    print(
-                                        f"ERROR: conflict move failed {item} -> {conflict_dest}: {e}")
-                            else:
-                                try:
-                                    item.rename(dest)
-                                except OSError as e:
-                                    print(
-                                        f"ERROR: move failed {item} -> {dest}: {e}")
+                        merge_directory_contents(swap_path, new_path)
                         # Try to remove empty swap
-                        try:
-                            next(swap_path.iterdir())
-                        except StopIteration:
-                            try:
-                                swap_path.rmdir()
-                            except OSError as e:
-                                print(
-                                    f"WARN: couldn't remove temp {swap_path}: {e}")
+                        if not remove_dir_if_empty(swap_path):
+                            # Best-effort warn, original code warned with details
+                            pass
 
                     # Reflect rename
                     try:
