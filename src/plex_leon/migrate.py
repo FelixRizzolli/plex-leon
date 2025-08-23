@@ -115,9 +115,10 @@ k
 
                 # Compare resolution if both can be read
                 better_resolution = False
-                if prefer_resolution:
+                # Only probe resolution if both sides exist; otherwise skip expensive metadata.
+                if prefer_resolution and b_match is not None:
                     res_a = _get_res(entry)
-                    res_b = _get_res(b_match) if b_match is not None else None
+                    res_b = _get_res(b_match)
                 else:
                     res_a = None
                     res_b = None
@@ -184,16 +185,14 @@ k
 
                         # Compare resolution when possible
                         better_resolution = False
-                        if prefer_resolution:
+                        if prefer_resolution and b_ep is not None:
                             # Optional prefetch of resolutions in a thread pool
                             if executor is not None:
                                 # Kick off async reads to warm cache
                                 executor.submit(_get_res, src_ep)
-                                if b_ep is not None:
-                                    executor.submit(_get_res, b_ep)
+                                executor.submit(_get_res, b_ep)
                             res_a = _get_res(src_ep)
-                            res_b = _get_res(
-                                b_ep) if b_ep is not None else None
+                            res_b = _get_res(b_ep)
                         else:
                             res_a = None
                             res_b = None
