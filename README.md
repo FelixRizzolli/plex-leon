@@ -28,7 +28,7 @@ The tool will move any entry in library-a whose name contains a TVDB tag like `{
 	Resolution is read via ffprobe (FFmpeg) first, then mediainfo. If both resolutions are unknown, the tool falls back to file-size comparison only.
 - For TV shows (folders), the tool compares episodes individually by matching season and episode numbers (e.g., s01e01) between library-a and library-b. Each episode is moved to the appropriate categorization folder in library-c (`better-resolution/`, `greater-filesize/`, or `to-delete/`) based on the same resolution and size logic as for movies. The show/season/episode folder structure is preserved under the categorization folder. The show folder itself is not moved, only its episodes.
   The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
-- Moves print what would or did happen and end with a summary line: `Done. Eligible files/folders moved: X; skipped: Y.`
+- Moves print what would or did happen and end with a summary line including timing, for example: `Done. Eligible files/folders moved: X; skipped: Y. Took 2.34s.`
 
 ## Requirements
 
@@ -55,6 +55,8 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 		- `--lib-c PATH`  Destination library (default: `./data/library-c`)
 		- `--overwrite`   Replace existing files/folders in library-c
 		- `--dry-run`     Show planned moves without changing the filesystem
+		- `--threads N`   Optional thread count for metadata reads (I/O bound)
+		- `--no-resolution` Skip resolution comparisons (size-only heuristic)
 - `season-renamer` — renames season folders in a library to the canonical 'Season NN' form (e.g., 'season 01', 'Staffel 01', 'Satffel 01', or any folder with a single number will be renamed to 'Season NN'). Supports --dry-run and works recursively. Typos and numbers >= 100 are supported.
 	- For case-only renames (e.g., 'season 01' → 'Season 01'), a two-step swap is performed: first, the folder is renamed to `.plexleon_swap_Season NN`, then to `Season NN`. If a canonical `Season NN` already exists, contents are merged non-destructively (conflicts are moved to a `.plexleon_conflicts` subfolder). No folders or files are deleted or overwritten by default.
 - `episode-renamer` — renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
@@ -102,7 +104,13 @@ Note: `data/library-b/` uses the bucketed layout described above (A–Z and a si
 
 - Returns `0` on normal completion.
 - Returns `2` if required external tools are missing (preflight check fails).
-- Prints the number of discovered IDs in library-b, detailed DECISION lines for eligible items (including resolution and size of A vs B), and a final summary.
+- Prints the number of discovered IDs in library-b, detailed DECISION lines for eligible items (including resolution and size of A vs B), and a final summary with total duration.
+
+## Performance notes
+
+- Resolution probing uses `ffprobe` (FFmpeg) first and falls back to `mediainfo`; use `--no-resolution` to skip and rely on size-only comparison.
+- `--threads` warms metadata reads in parallel for I/O-bound speedups; moderate values (e.g., 4–8) are recommended to avoid disk thrash.
+- When there is no counterpart found in library-b for a given item, resolution probing is skipped entirely to save time.
 
 ## Development
 
