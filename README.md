@@ -1,6 +1,6 @@
 # plex-leon
 
-A tiny CLI that moves media from one library to another based on TVDB IDs.
+A tiny CLI to manage media libraries: migrate by TVDB IDs, rename seasons and episodes.
 
 Given three folders:
 - library-a: source library (files/folders to consider)
@@ -9,7 +9,7 @@ Given three folders:
 
 The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
 
-## How it works
+## How it works (migrate)
 
 - TVDB IDs are extracted with a case-insensitive pattern: `{tvdb-<digits>}`. Examples:
 	- `John Wick (2014) {tvdb-155}.mp4` → `155`
@@ -57,7 +57,11 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 		- `--dry-run`     Show planned moves without changing the filesystem
 - `season-renamer` — renames season folders in a library to the canonical 'Season NN' form (e.g., 'season 01', 'Staffel 01', 'Satffel 01', or any folder with a single number will be renamed to 'Season NN'). Supports --dry-run and works recursively. Typos and numbers >= 100 are supported.
 	- For case-only renames (e.g., 'season 01' → 'Season 01'), a two-step swap is performed: first, the folder is renamed to `.plexleon_swap_Season NN`, then to `Season NN`. If a canonical `Season NN` already exists, contents are merged non-destructively (conflicts are moved to a `.plexleon_conflicts` subfolder). No folders or files are deleted or overwritten by default.
-- `episode-renamer` — placeholder
+- `episode-renamer` — renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
+	- The show title and year are taken from the parent show folder (e.g., `Code Geass (2006) {tvdb-79525}` → `Code Geass (2006)`).
+	- The episode id is parsed from the original filename (supports `s01e01`, `S01E01`, and double-episodes like `S01E01-E02`) and normalized to lowercase.
+	- Any additional episode title text in the filename is removed.
+	- Case-only changes (e.g., `S01E01` → `s01e01`) are performed via a safe two-step rename using a hidden swap file to avoid filesystem issues.
 - `episode-check` — placeholder
 
 ### Examples (optional commands)
@@ -74,6 +78,12 @@ poetry run plex-leon season-renamer --lib ./data/library-b --dry-run
 
 # Actually rename all season folders in a library
 poetry run plex-leon season-renamer --lib ./data/library-b
+
+# Optional: rename all episode files to canonical form (dry run)
+poetry run plex-leon episode-renamer --lib ./data/library-e --dry-run
+
+# Actually rename episodes
+poetry run plex-leon episode-renamer --lib ./data/library-e
 
 # The two-step swap logic for case-only renames (e.g., 'season 01' to 'Season 01') ensures safe renaming even on case-insensitive filesystems and merges contents if the canonical folder already exists. No data is lost; conflicts are preserved in a `.plexleon_conflicts` folder.
 ```
@@ -105,11 +115,13 @@ poetry run pytest -q
 Key modules:
 - `plex_leon/migrate.py` — extraction, scanning, and move logic
 - `plex_leon/season_renamer.py` — season folder renaming utility
+- `plex_leon/episode_renamer.py` — episode file renaming utility
+- `plex_leon/utils.py` — shared helpers (regex, parsing, formatting, safe renames)
 - `plex_leon/cli.py` — subcommands and argument parsing
 
-## Breaking changes
+## Notes on CLI compatibility
 
-- The CLI now requires a subcommand (e.g., `migrate`, `season-renamer`). The default `poetry run plex-leon ...` is no longer supported; you must use `poetry run plex-leon migrate ...` for migration tasks. See usage above.
+- The CLI is subcommand-based (e.g., `migrate`, `season-renamer`, `episode-renamer`). For backward compatibility, running without a subcommand defaults to `migrate`.
 
 
 ### Build standalone executables (CI)
