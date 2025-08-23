@@ -21,6 +21,8 @@ def process_libraries(
     *,
     overwrite: bool,
     dry_run: bool,
+    prefer_resolution: bool = True,
+    threads: int | None = None,
 ) -> tuple[int, int]:
     """Core operation: move entries from lib_a to lib_c if their TVDB id exists in lib_b.
 k
@@ -52,6 +54,51 @@ k
     _fmt_res = format_resolution
     _fmt_size = format_bytes
 
+    # Lazy cache: per-TVDB episode index for library-b shows
+    # tvdb -> {(season, ep): Path}
+    b_episode_index_cache: dict[str, dict[tuple[int, int], Path]] = {}
+
+    # Resolution cache to avoid repeated probes
+    from functools import lru_cache
+
+    @lru_cache(maxsize=4096)
+    def _res_cached(p: str) -> tuple[int, int] | None:
+        return read_video_resolution(Path(p))
+
+    def _get_res(path: Path) -> tuple[int, int] | None:
+        return _res_cached(path.as_posix())
+
+    def _build_episode_index(show_dirs: list[Path]) -> dict[tuple[int, int], Path]:
+        idx: dict[tuple[int, int], Path] = {}
+        for d in show_dirs:
+            if not d.is_dir():
+                continue
+            for dirpath, _, filenames in os.walk(d):
+                for fn in filenames:
+                    if fn.startswith('.'):
+                        continue
+                    se = parse_season_episode(fn)
+                    if not se:
+                        # Try double-episode parsing to index both
+                        from .utils import parse_episode_tag
+                        parsed = parse_episode_tag(fn)
+                        if not parsed:
+                            continue
+                        s, e1, e2 = parsed
+                        idx.setdefault((s, e1), Path(dirpath) / fn)
+                        if e2 is not None:
+                            idx.setdefault((s, e2), Path(dirpath) / fn)
+                        continue
+                    s, e = se
+                    idx.setdefault((s, e), Path(dirpath) / fn)
+        return idx
+
+    # Optional thread pool for prefetching resolutions (I/O bound)
+    executor = None
+    if threads and threads > 1 and prefer_resolution:
+        from concurrent.futures import ThreadPoolExecutor
+        executor = ThreadPoolExecutor(max_workers=threads)
+
     for entry in lib_a.iterdir():
         if entry.name.startswith("."):
             continue
@@ -68,9 +115,12 @@ k
 
                 # Compare resolution if both can be read
                 better_resolution = False
-                res_a = read_video_resolution(entry)
-                res_b = read_video_resolution(
-                    b_match) if b_match is not None else None
+                if prefer_resolution:
+                    res_a = _get_res(entry)
+                    res_b = _get_res(b_match) if b_match is not None else None
+                else:
+                    res_a = None
+                    res_b = None
                 if res_a and res_b:
                     pixels_a = res_a[0] * res_a[1]
                     pixels_b = res_b[0] * res_b[1]
@@ -113,6 +163,11 @@ k
                 # For folders (TV shows), compare and move episodes individually
                 show_dirs_in_b = [
                     p for p in b_index.get(tvdb, []) if p.is_dir()]
+                # Build or reuse episode index for this TVDB id
+                if tvdb not in b_episode_index_cache:
+                    b_episode_index_cache[tvdb] = _build_episode_index(
+                        show_dirs_in_b)
+                ep_idx = b_episode_index_cache[tvdb]
                 # Walk seasons and episodes under this show
                 for dirpath, _, filenames in os.walk(entry):
                     for fn in filenames:
@@ -125,14 +180,23 @@ k
                             skipped += 1
                             continue
                         season_num, ep_num = se
-                        b_ep = find_episode_in_dirs(
-                            show_dirs_in_b, season_num, ep_num)
+                        b_ep = ep_idx.get((season_num, ep_num))
 
                         # Compare resolution when possible
                         better_resolution = False
-                        res_a = read_video_resolution(src_ep)
-                        res_b = read_video_resolution(
-                            b_ep) if b_ep is not None else None
+                        if prefer_resolution:
+                            # Optional prefetch of resolutions in a thread pool
+                            if executor is not None:
+                                # Kick off async reads to warm cache
+                                executor.submit(_get_res, src_ep)
+                                if b_ep is not None:
+                                    executor.submit(_get_res, b_ep)
+                            res_a = _get_res(src_ep)
+                            res_b = _get_res(
+                                b_ep) if b_ep is not None else None
+                        else:
+                            res_a = None
+                            res_b = None
                         if res_a and res_b:
                             pixels_a = res_a[0] * res_a[1]
                             pixels_b = res_b[0] * res_b[1]
@@ -176,5 +240,9 @@ k
                 # Do not move the show folder itself
         else:
             skipped += 1
+
+    # Clean up thread pool if created
+    if executor is not None:
+        executor.shutdown(wait=True)
 
     return moved, skipped

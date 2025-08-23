@@ -30,6 +30,12 @@ def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.Argu
     p.add_argument(
         "--dry-run", action="store_true", help="Show what would be moved, but do not actually move files."
     )
+    p.add_argument(
+        "--threads", type=int, default=None, help="Optional thread count for metadata reads (I/O bound)."
+    )
+    p.add_argument(
+        "--no-resolution", action="store_true", help="Skip resolution comparisons to speed up large runs."
+    )
     return p
 
 
@@ -126,6 +132,8 @@ def main(argv: list[str] | None = None) -> int:
             lib_c=args.lib_c,
             overwrite=args.overwrite,
             dry_run=args.dry_run,
+            prefer_resolution=not args.no_resolution,
+            threads=args.threads,
         )
         if moved or skipped:
             print(
