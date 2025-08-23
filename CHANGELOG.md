@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [2.2.0] - 2025-08-23
+### Added
+- New `episode-renamer` utility that renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
+  - Show title/year is taken from the show folder; TVDB suffix is stripped.
+  - Episode ids parsed from filenames (supports lowercase/uppercase and double episodes) and normalized to lowercase.
+  - Case-only renames are done via a safe two-step swap to avoid filesystem issues.
+- CLI subcommand `episode-renamer` with `--lib` and `--dry-run`.
+
+### Changed
+- Refactored shared logic into `utils.py` (episode parsing/normalization, season detection, two-step renames, iterators, formatting helpers, directory merge utilities).
+- `migrate` and `season-renamer` now use the shared helpers, reducing duplication and improving readability.
+- README updated with episode-renamer docs and clarified CLI compatibility notes.
+
+### Tests
+- Added tests for episode renamer and season renamer.
+- Expanded tests for migrate and CLI.
+- Added comprehensive tests for new utilities and regex behavior.
+
 ## [2.1.0] - 2025-08-22
 ### Added
 - `season-renamer` now uses a robust two-step swap logic for case-only renames (e.g., 'season 01' → '.plexleon_swap_Season 01' → 'Season 01').
