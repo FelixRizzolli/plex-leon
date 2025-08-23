@@ -7,6 +7,7 @@ from pathlib import Path
 from .migrate import process_libraries
 from .utils import assert_required_tools_installed
 from .season_renamer import process_library as season_process_library
+from .episode_renamer import process_library as episode_process_library
 
 
 def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -54,6 +55,24 @@ def _add_season_renamer_parser(subparsers: argparse._SubParsersAction) -> argpar
     return p
 
 
+def _add_episode_renamer_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    p = subparsers.add_parser(
+        "episode-renamer",
+        help="Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name.",
+        description=(
+            "Rename episode files under a library so the basename is derived from the show folder title "
+            "and the episode id extracted from the file (supports SxxExx and double episodes)."
+        ),
+    )
+    p.add_argument(
+        "--lib", type=Path, default=Path("./data/library-e"), help="Path to the library to process (default: ./data/library-e)"
+    )
+    p.add_argument(
+        "--dry-run", action="store_true", help="Show planned renames without changing the filesystem."
+    )
+    return p
+
+
 def main(argv: list[str] | None = None) -> int:
     # Build top-level parser with subcommands
     parser = argparse.ArgumentParser(
@@ -65,8 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     # Subcommands
     _add_migrate_parser(subparsers)
     _add_season_renamer_parser(subparsers)
-    _add_stub_parser(subparsers, "episode-renamer",
-                     "Rename episodes (not implemented yet)")
+    _add_episode_renamer_parser(subparsers)
     _add_stub_parser(subparsers, "episode-check",
                      "Check episodes (not implemented yet)")
 
@@ -119,7 +137,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Done. Season folders renamed: {renamed_count}.")
         return 0
 
-    if args.command in {"episode-renamer", "episode-check"}:
+    if args.command == "episode-renamer":
+        renamed_count, = episode_process_library(args.lib, args.dry_run)
+        print(f"Done. Episode files renamed: {renamed_count}.")
+        return 0
+
+    if args.command in {"episode-check"}:
         print(f"'{args.command}' is not implemented yet.")
         return 0
 
