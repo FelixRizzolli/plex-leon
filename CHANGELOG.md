@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [2.3.0] - 2025-08-23
+### Added
+- CLI now reports wall-clock duration for each command:
+  - `migrate`: `Done. Eligible files/folders moved: X; skipped: Y. Took Z.ZZs.`
+  - `season-renamer`: `Done. Season folders renamed: N. Took Z.ZZs.`
+  - `episode-renamer`: `Done. Episode files renamed: N. Took Z.ZZs.`
+
+### Changed
+- Migrate performance improvements and tuning:
+  - Optional concurrency for metadata reads via `--threads <N>` (I/O bound).
+  - `--no-resolution` to skip resolution comparisons when you want size-only heuristics.
+  - Avoid resolution probing when the counterpart in library-b is missing (saves ffprobe/mediainfo calls).
+- README updated to document timing output and new migrate flags.
+
 ## [2.2.0] - 2025-08-23
 ### Added
 - New `episode-renamer` utility that renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
