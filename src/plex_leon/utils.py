@@ -6,6 +6,11 @@ import shutil
 import subprocess
 from pathlib import Path
 
+# Additional regex/utilities for episode and folder handling
+EPISODE_TAG_REGEX = re.compile(r"(?i)s(\d{1,2})e(\d{1,2})(?:-e(\d{1,2}))?")
+TVDB_SUFFIX_REGEX = re.compile(r"\s*\{tvdb-\d+}\s*", re.IGNORECASE)
+_SEASON_DIGITS_RE = re.compile(r"(\d+)")
+
 # Compiled regex used to extract TVDB ids like "{tvdb-12345}" from filenames
 TVDB_REGEX = re.compile(r"\{tvdb-(\d+)\}", re.IGNORECASE)
 
@@ -213,3 +218,85 @@ def assert_required_tools_installed() -> None:
             + ". Please install FFmpeg (provides ffprobe) and mediainfo, then retry."
         )
         raise RuntimeError(msg)
+
+
+def strip_tvdb_suffix(name: str) -> str:
+    """Remove occurrences of ' {tvdb-...}' from a name and trim whitespace.
+
+    Example: 'Code Geass (2006) {tvdb-79525}' -> 'Code Geass (2006)'
+    """
+    return TVDB_SUFFIX_REGEX.sub("", name).strip()
+
+
+def parse_episode_tag(text: str) -> tuple[int, int, int | None] | None:
+    """Parse an episode tag from text and return (season, ep1, ep2_or_None).
+
+    Supports 's01e01', 'S01E01', and double episodes like 'S01E01-E02'.
+    Returns None when no tag is found or parsing fails.
+    """
+    m = EPISODE_TAG_REGEX.search(text)
+    if not m:
+        return None
+    try:
+        s = int(m.group(1))
+        e1 = int(m.group(2))
+        e2s = m.group(3)
+        e2 = int(e2s) if e2s is not None else None
+        return (s, e1, e2)
+    except ValueError:
+        return None
+
+
+def normalize_episode_tag(text: str) -> str | None:
+    """Return the normalized lowercase episode tag (e.g., 's01e01[-e02]') or None."""
+    parsed = parse_episode_tag(text)
+    if not parsed:
+        return None
+    s, e1, e2 = parsed
+    if e2 is not None:
+        return f"s{s:02d}e{e1:02d}-e{e2:02d}"
+    return f"s{s:02d}e{e1:02d}"
+
+
+def is_season_like_dirname(name: str) -> bool:
+    """Heuristic to detect season directory names: contains exactly one number chunk."""
+    return len(_SEASON_DIGITS_RE.findall(name)) == 1
+
+
+def two_step_case_rename(old_path: Path, new_path: Path, *, dry_run: bool) -> bool:
+    """Perform a two-step rename to handle case-only changes reliably.
+
+    Returns True on success, False otherwise. Prints actions. Does not merge directories.
+    """
+    parent = old_path.parent
+    swap_name = f".plexleon_swap_{new_path.name}"
+    swap_path = parent / swap_name
+    i = 1
+    while swap_path.exists():
+        swap_path = parent / f"{swap_name}.{i}"
+        i += 1
+
+    if dry_run:
+        print(f"RENAME: {old_path} -> {swap_path}")
+        print(f"RENAME: {swap_path} -> {new_path}")
+        return True
+
+    try:
+        old_path.rename(swap_path)
+        if new_path.exists():
+            print(f"SKIP exists: {new_path}")
+            try:
+                swap_path.rename(old_path)
+            except OSError:
+                pass
+            return False
+        swap_path.rename(new_path)
+        return True
+    except OSError as e:
+        print(f"ERROR: two-step rename failed {old_path} -> {new_path}: {e}")
+        try:
+            if swap_path.exists():
+                swap_path.rename(old_path)
+        except OSError:
+            pass
+        return False
