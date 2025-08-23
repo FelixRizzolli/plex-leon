@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 from .migrate import process_libraries
@@ -126,6 +127,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {exc}")
             return 2
 
+        t0 = time.perf_counter()
         moved, skipped = process_libraries(
             lib_a=args.lib_a,
             lib_b=args.lib_b,
@@ -135,19 +137,26 @@ def main(argv: list[str] | None = None) -> int:
             prefer_resolution=not args.no_resolution,
             threads=args.threads,
         )
+        dt = time.perf_counter() - t0
         if moved or skipped:
             print(
-                f"Done. Eligible files/folders moved: {moved}; skipped: {skipped}.")
+                f"Done. Eligible files/folders moved: {moved}; skipped: {skipped}. Took {dt:.2f}s."
+            )
         return 0
 
     if args.command == "season-renamer":
+        t0 = time.perf_counter()
         renamed_count, = season_process_library(args.lib, args.dry_run)
-        print(f"Done. Season folders renamed: {renamed_count}.")
+        dt = time.perf_counter() - t0
+        print(
+            f"Done. Season folders renamed: {renamed_count}. Took {dt:.2f}s.")
         return 0
 
     if args.command == "episode-renamer":
+        t0 = time.perf_counter()
         renamed_count, = episode_process_library(args.lib, args.dry_run)
-        print(f"Done. Episode files renamed: {renamed_count}.")
+        dt = time.perf_counter() - t0
+        print(f"Done. Episode files renamed: {renamed_count}. Took {dt:.2f}s.")
         return 0
 
     if args.command in {"episode-check"}:
