@@ -18,7 +18,7 @@ def process_library(
     """Rename season folders under a single library path.
 
     Rules:
-    - Any subfolder whose name contains exactly one series of digits is
+    - Any subfolder (not the top-level show folders) whose name contains exactly one series of digits is
       considered a season folder, renamed to 'Season NN' (NN zero-padded).
     - For case-only renames (e.g., 'season 01' -> 'Season 01') always perform a
       two-step rename via '.plexleon_swap_Season NN' then to 'Season NN'. If a
@@ -40,6 +40,10 @@ def process_library(
         for d in list(dirnames):
             old_path = Path(dirpath) / d
             if not old_path.is_dir():
+                continue
+            # Skip top-level show folders directly under the library root
+            # (only their subfolders should be treated as season folders)
+            if Path(dirpath).resolve() == Path(library).resolve():
                 continue
             num = get_season_number_from_dirname(d)
             if num is None:

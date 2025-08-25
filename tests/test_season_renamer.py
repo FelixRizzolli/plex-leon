@@ -42,3 +42,19 @@ def test_season_renamer_variants(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     assert (show / "Season 01").exists()
     assert (show / "Season 02").exists()
     assert (show / "Season 03").exists()
+
+
+def test_season_renamer_ignores_top_level_show_dirs(tmp_path: Path):
+    # Create a show folder at the library root containing digits
+    root = tmp_path / "library-s"
+    show_dir = root / "Game of Thrones 2011"
+    show_dir.mkdir(parents=True)
+    # Also add a real season-like subfolder to ensure it still gets renamed
+    (show_dir / "season 01").mkdir()
+    (show_dir / "season 01" / "file.mp4").write_text("x")
+
+    renamed_count, = season_process(root, dry_run=False)
+    # Only the season folder should be processed, not the top-level show dir
+    assert renamed_count == 1
+    assert (show_dir.exists())
+    assert (show_dir / "Season 01").exists()

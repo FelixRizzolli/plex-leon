@@ -31,7 +31,7 @@ import importlib.util
 library_a_tvshows = [
     "Classroom of the Elite (2017) {tvdb-329822}",
     "Code Geass (2006) {tvdb-79525}",
-    "Game of Thrones (2011) {tvdb-121361}",
+    "Game of Thrones 2011 {tvdb-121361}",
     "Attack on Titan (2013) {tvdb-267440}",
     "Death Note (2006) {tvdb-79434}",
     "Overlord (2015) {tvdb-295068}",
@@ -39,7 +39,7 @@ library_a_tvshows = [
     "The Day of the Jackal (1973) {tvdb-80379}",
 ]
 library_b_tvshows = [
-    "Game of Thrones (2011) {tvdb-121361}",
+    "Game of Thrones 2011 {tvdb-121361}",
     "Attack on Titan (2013) {tvdb-267440}",
     "My Name (2021) {tvdb-410235}",
     "Squid Game (2021) {tvdb-407183}",
