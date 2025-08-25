@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+# [2.3.1] - 2025-08-25
+### Fixed
+- `season-renamer` no longer renames top-level show folders in the library, even if their names contain digits (e.g., 'Game of Thrones 2011'). Only subfolders (season folders) are considered for renaming.
+- Test data generator now always creates a show folder without a TVDB id or year (e.g., 'Game of Thrones 2011') with a season subfolder, ensuring this edge case is always present for testing.
+
 ## [2.3.0] - 2025-08-23
 ### Added
 - CLI now reports wall-clock duration for each command:
