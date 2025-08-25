@@ -58,6 +58,7 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 		- `--threads N`   Optional thread count for metadata reads (I/O bound)
 		- `--no-resolution` Skip resolution comparisons (size-only heuristic)
 - `season-renamer` — renames season folders in a library to the canonical 'Season NN' form (e.g., 'season 01', 'Staffel 01', 'Satffel 01', or any folder with a single number will be renamed to 'Season NN'). Supports --dry-run and works recursively. Typos and numbers >= 100 are supported.
+	- Only subfolders inside show folders are considered for renaming; top-level show folders (even if they contain digits, e.g., 'Game of Thrones 2011') are never renamed.
 	- For case-only renames (e.g., 'season 01' → 'Season 01'), a two-step swap is performed: first, the folder is renamed to `.plexleon_swap_Season NN`, then to `Season NN`. If a canonical `Season NN` already exists, contents are merged non-destructively (conflicts are moved to a `.plexleon_conflicts` subfolder). No folders or files are deleted or overwritten by default.
 - `episode-renamer` — renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
 	- The show title and year are taken from the parent show folder (e.g., `Code Geass (2006) {tvdb-79525}` → `Code Geass (2006)`).
