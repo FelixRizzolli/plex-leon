@@ -1,12 +1,11 @@
 """Generate test library for the `prepare` script (library-p).
 
-This script creates an idempotent test dataset under `data/library-p` with
-three group folders ("anime sub", "anime dub", "serien"). Each group
-contains several TV show folders named using the repository convention
-"Title (YYYY) {tvdb-...}". All episode files are generated directly inside
-their show folder (no `Season XX` directories) so the `prepare.process`
-function can discover loose episode files, create season folders, and move
-and rename them.
+This script creates a test dataset under `data/library-p` with three group
+folders ("anime sub", "anime dub", "serien"). Each group contains several
+TV show folders named using the repository convention "Title (YYYY) {tvdb-...}".
+All episode files are generated directly inside their show folder (no
+`Season XX` directories) so the `prepare.process` function can discover loose
+episode files, create season folders, and move and rename them.
 
 Naming patterns used by the generator:
 - Most shows: German-style filenames like
@@ -20,11 +19,12 @@ single "-01" duplicate file, but only for Game of Thrones season 1 episode
 the `prepare` command can be tested against a focused conflict scenario.
 
 Behavior notes:
-- The generator is idempotent: re-running it will skip files that already
-    exist and will not overwrite them.
-- The script is non-destructive by design; it does not attempt to remove or
-    reconcile existing files in the destination. (In previous runs you may have
-    manually removed extraneous duplicates; that was a one-off cleanup.)
+- Running the script will remove the destination `data/library-p` folder (if
+    present) before creating the test dataset. Use with caution: this is a
+    destructive operation and will delete any existing files under that path.
+
+- The generator will then create files from a clean slate. It is therefore
+    deterministic and safe to rely on for reproducible test datasets.
 
 Season/episode counts are driven from the `SEASON_EP_COUNTS` mapping so the
 generator produces multiple seasons per show where configured.
@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+import shutil
 
 
 ROOT_REL = Path("data") / "library-p"
@@ -54,7 +55,6 @@ SHOW_GROUPS: dict[str, list[str]] = {
     ],
 }
 
-# For most shows we create (season, episodes) pairs.
 SEASON_EP_COUNTS: dict[str, list[tuple[int, int]]] = {
     "Attack on Titan": [(1, 25), (2, 12), (3, 22), (4, 30)],
     "Classroom of the Elite": [(1, 12), (2, 13), (3, 13)],
@@ -64,8 +64,6 @@ SEASON_EP_COUNTS: dict[str, list[tuple[int, int]]] = {
     "My Name": [(1, 8)],
     "The Day of the Jackal": [(1, 10)],
 }
-
-# Classroom of the Elite uses SxxExx pattern across all seasons (counts from SEASON_EP_COUNTS).
 
 
 def _base_show_name(folder_name: str) -> str:
@@ -83,7 +81,11 @@ def _base_show_name(folder_name: str) -> str:
 
 
 def create_library(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+
     root.mkdir(parents=True, exist_ok=True)
+
     for group, shows in SHOW_GROUPS.items():
         group_dir = root / group
         group_dir.mkdir(parents=True, exist_ok=True)
