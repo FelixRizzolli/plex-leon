@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
-# [2.3.1] - 2025-08-25
+## [2.4.0] - 2025-10-10
+### Added
+- New `prepare` utility: scans a library for TV show folders, validates shows (ensures `{tvdb-...}` suffix and detects duplicate episode files), creates canonical `Season NN` folders, and moves/renames loose episode files to the `Show (Year) - eEE sSS.ext` format. If validation reports ERROR-level issues for a show, processing for that show is skipped.
+- Test-data generator (`scripts/generate_prepare_test_library.py`) updated to remove and recreate the `data/library-p` test library and to produce a focused duplicate (Game of Thrones S01E05) for exercising `prepare`'s conflict handling.
+
+
+## [2.3.1] - 2025-08-25
 ### Fixed
 - `season-renamer` no longer renames top-level show folders in the library, even if their names contain digits (e.g., 'Game of Thrones 2011'). Only subfolders (season folders) are considered for renaming.
 - Test data generator now always creates a show folder without a TVDB id or year (e.g., 'Game of Thrones 2011') with a season subfolder, ensuring this edge case is always present for testing.
