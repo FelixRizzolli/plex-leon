@@ -126,6 +126,50 @@ def _parse_season_episode_from_name(name: str) -> tuple[int, int] | None:
     return None
 
 
+def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
+    """Validate a show directory.
+
+    Checks performed:
+    - presence of a TVDB id in the folder name ("{tvdb-<digits>}")
+    - duplicate episode detections among loose media files (same season/episode)
+
+    Returns (is_valid, messages). If is_valid is False the caller should skip
+    performing any renames or creating season folders for this show.
+    """
+    msgs: list[str] = []
+    name = show_dir.name
+    # TVDB id check
+    if __import__("re").search(r"\{tvdb-\d+\}", name) is None:
+        msgs.append(f"ERROR: missing tvdb id in show folder name: '{name}'")
+
+    # Collect loose media files and map parsed (season, ep) -> files
+    counts: dict[tuple[int, int], list[Path]] = {}
+    for entry in sorted(show_dir.iterdir()):
+        if entry.is_dir() or entry.name.startswith('.'):
+            continue
+        ext = entry.suffix.lower().lstrip('.')
+        if ext not in MEDIA_EXTS:
+            continue
+        parsed = _parse_season_episode_from_name(entry.name)
+        if not parsed:
+            # unparseable files are not considered fatal for validation here,
+            # but we log a warning so the user can inspect them.
+            msgs.append(
+                f"WARN: could not parse season/episode from filename: {entry.name}")
+            continue
+        season, ep = parsed
+        counts.setdefault((season, ep), []).append(entry)
+
+    # Detect duplicates: same season/episode mapped by multiple files
+    for (season, ep), files in counts.items():
+        if len(files) > 1:
+            file_list = ", ".join(str(p.name) for p in files)
+            msgs.append(
+                f"ERROR: duplicate episode detected S{season:02d}E{ep:02d}: {file_list}")
+
+    return (len([m for m in msgs if m.startswith("ERROR:")]) == 0, msgs)
+
+
 def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]:
     """Process a root folder and normalise loose episode files.
 
@@ -150,6 +194,14 @@ def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]
 
     for show_dir in _iter_show_dirs(root):
         show_title = strip_tvdb_suffix(show_dir.name)  # 'Name (YYYY)'
+
+        # Validate show before making any changes
+        valid, messages = _validate_show(show_dir)
+        for m in messages:
+            print(m)
+        if not valid:
+            print(f"SKIP show due to validation errors: {show_dir}")
+            continue
 
         # Collect candidate files directly in the show directory (ignore existing Season folders)
         for entry in sorted(show_dir.iterdir()):
