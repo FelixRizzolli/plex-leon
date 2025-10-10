@@ -1,6 +1,6 @@
 [project]
 name = "plex-leon"
-version = "2.3.1"
+version = "2.4.0"
 description = ""
 authors = [
     {name = "Felix Rizzolli",email = "felix.rizzolli@outlook.de"}
