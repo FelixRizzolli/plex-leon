@@ -9,6 +9,7 @@ from .migrate import process_libraries
 from .utils import assert_required_tools_installed
 from .season_renamer import process_library as season_process_library
 from .episode_renamer import process_library as episode_process_library
+from .prepare import process as prepare_process
 
 
 def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -80,6 +81,29 @@ def _add_episode_renamer_parser(subparsers: argparse._SubParsersAction) -> argpa
     return p
 
 
+def _add_prepare_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    p = subparsers.add_parser(
+        "prepare",
+        help="Prepare a library by moving loose episode files into Season folders and renaming them",
+        description=(
+            "Scan a root folder for TV show folders named 'Title (YYYY) {tvdb-#}' and "
+            "move/rename loose episode files into 'Season NN' folders."
+        ),
+    )
+    p.add_argument(
+        "--lib",
+        type=Path,
+        default=Path("./data/library-p"),
+        help="Path to the library to process (default: ./data/library-p)",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show planned moves/renames without changing the filesystem.",
+    )
+    return p
+
+
 def main(argv: list[str] | None = None) -> int:
     # Build top-level parser with subcommands
     parser = argparse.ArgumentParser(
@@ -92,6 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     _add_migrate_parser(subparsers)
     _add_season_renamer_parser(subparsers)
     _add_episode_renamer_parser(subparsers)
+    _add_prepare_parser(subparsers)
     _add_stub_parser(subparsers, "episode-check",
                      "Check episodes (not implemented yet)")
 
@@ -107,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
         "migrate",
         "season-renamer",
         "episode-renamer",
+        "prepare",
         "episode-check",
     }:
         # Drop program name
@@ -150,6 +176,13 @@ def main(argv: list[str] | None = None) -> int:
         dt = time.perf_counter() - t0
         print(
             f"Done. Season folders renamed: {renamed_count}. Took {dt:.2f}s.")
+        return 0
+
+    if args.command == "prepare":
+        t0 = time.perf_counter()
+        renamed_count, = prepare_process(args.lib, args.dry_run)
+        dt = time.perf_counter() - t0
+        print(f"Done. Episodes processed: {renamed_count}. Took {dt:.2f}s.")
         return 0
 
     if args.command == "episode-renamer":
