@@ -10,13 +10,24 @@ and rename them.
 
 Naming patterns used by the generator:
 - Most shows: German-style filenames like
-  "Episode {ep} Staffel {season} von <Show> K to - Serien Online.mp4".
+    "Episode {ep} Staffel {season} von <Show> K to - Serien Online.mp4".
 - Classroom of the Elite: uses the SxxExx pattern across all seasons:
-  "Watch Classroom of the Elite S{SS}E{EE} German 720p WEB h264-WvF - OWE Content.mp4".
+    "Watch Classroom of the Elite S{SS}E{EE} German 720p WEB h264-WvF - OWE Content.mp4".
+
+To simulate real-world duplicate/conflict cases this generator will create a
+single "-01" duplicate file, but only for Game of Thrones season 1 episode
+5. This is intentional: duplicate creation was restricted to the GOT show so
+the `prepare` command can be tested against a focused conflict scenario.
+
+Behavior notes:
+- The generator is idempotent: re-running it will skip files that already
+    exist and will not overwrite them.
+- The script is non-destructive by design; it does not attempt to remove or
+    reconcile existing files in the destination. (In previous runs you may have
+    manually removed extraneous duplicates; that was a one-off cleanup.)
 
 Season/episode counts are driven from the `SEASON_EP_COUNTS` mapping so the
-generator produces multiple seasons per show where configured. Re-running the
-script is safe; existing files are left untouched.
+generator produces multiple seasons per show where configured.
 """
 
 from __future__ import annotations
@@ -83,8 +94,8 @@ def create_library(root: Path) -> None:
             print(f"mkdir: {show_dir}")
             base_name = _base_show_name(show)
 
+            # Naming Pattern S01E01
             if base_name == "Classroom of the Elite":
-                # Use SEASON_EP_COUNTS for seasons; custom SxxExx naming pattern.
                 for season, ep_count in SEASON_EP_COUNTS.get(base_name, []):
                     for ep in range(1, ep_count + 1):
                         filename = (
@@ -99,7 +110,7 @@ def create_library(root: Path) -> None:
                         print(f"touch: {fp}")
                 continue
 
-            # Standard German pattern shows
+            # Naming Pattern Episode 1 Staffel 1
             for season, ep_count in SEASON_EP_COUNTS.get(base_name, []):
                 for ep in range(1, ep_count + 1):
                     filename = f"Episode {ep} Staffel {season} von {base_name} K to - Serien Online.mp4"
@@ -109,6 +120,13 @@ def create_library(root: Path) -> None:
                         continue
                     fp.write_bytes(b"")
                     print(f"touch: {fp}")
+
+                    # Create a '-01' variant only for Game of Thrones season 1 episode 5
+                    if base_name == "Game of Thrones" and season == 1 and ep == 5:
+                        dup = fp.with_name(fp.stem + "-01" + fp.suffix)
+                        if not dup.exists():
+                            dup.write_bytes(b"")
+                            print(f"touch: {dup}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -120,5 +138,5 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     raise SystemExit(main())
