@@ -27,7 +27,7 @@ The tool will move any entry in library-a whose name contains a TVDB tag like `{
 	- `to-delete/` when neither is true (i.e., the library-b item is as good or better)
 	Resolution is read via ffprobe (FFmpeg) first, then mediainfo. If both resolutions are unknown, the tool falls back to file-size comparison only.
 - For TV shows (folders), the tool compares episodes individually by matching season and episode numbers (e.g., s01e01) between library-a and library-b. Each episode is moved to the appropriate categorization folder in library-c (`better-resolution/`, `greater-filesize/`, or `to-delete/`) based on the same resolution and size logic as for movies. The show/season/episode folder structure is preserved under the categorization folder. The show folder itself is not moved, only its episodes.
-  The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
+	The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
 - Moves print what would or did happen and end with a summary line including timing, for example: `Done. Eligible files/folders moved: X; skipped: Y. Took 2.34s.`
 
 ## Requirements
@@ -66,6 +66,7 @@ The CLI entry point is `plex-leon` with subcommands. Current commands:
 	- Any additional episode title text in the filename is removed.
 	- Case-only changes (e.g., `S01E01` → `s01e01`) are performed via a safe two-step rename using a hidden swap file to avoid filesystem issues.
 - `episode-check` — placeholder
+ - `prepare` — organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`. Validates show folders (TVDB id present and duplicate detection) before making changes.
 
 ### Examples (optional commands)
 
@@ -87,6 +88,12 @@ poetry run plex-leon episode-renamer --lib ./data/library-e --dry-run
 
 # Actually rename episodes
 poetry run plex-leon episode-renamer --lib ./data/library-e
+
+# Dry-run (preview changes)
+poetry run plex-leon prepare --lib ./data/library-p --dry-run
+
+# Apply changes to data/library-p
+poetry run plex-leon prepare --lib ./data/library-p
 
 # The two-step swap logic for case-only renames (e.g., 'season 01' to 'Season 01') ensures safe renaming even on case-insensitive filesystems and merges contents if the canonical folder already exists. No data is lost; conflicts are preserved in a `.plexleon_conflicts` folder.
 ```
@@ -127,6 +134,7 @@ Key modules:
 - `plex_leon/episode_renamer.py` — episode file renaming utility
 - `plex_leon/utils.py` — shared helpers (regex, parsing, formatting, safe renames)
 - `plex_leon/cli.py` — subcommands and argument parsing
+ - `plex_leon/prepare.py` — prepares a library by organising loose TV episode files into canonical `Season NN` folders and renaming them to `<Show (Year)> - eEE sSS.ext` (episode before season).
 
 ## Notes on CLI compatibility
 
