@@ -28,6 +28,21 @@ TV show folders and normalises episode placement & naming:
 Returns a 1-tuple with the count of episode files moved/renamed.
 
 Inspired by logic in `episode_renamer` & `season_renamer` modules.
+
+Validation
+----------
+Before making any filesystem changes for a show, `process` runs a validation
+step that checks each show folder for two common problems:
+
+- Missing TVDB id in the folder name (the folder name must contain
+    "{tvdb-<digits>}"), and
+- Duplicate episode files for the same season/episode (e.g. two files that
+    both parse as S01E05).
+
+Any validation messages are printed. If validation reports any ERROR-level
+problems for a show, the renaming and season-folder creation are skipped for
+that show; WARN-level issues (unparseable filenames) are reported but are not
+fatal by default.
 """
 
 import os
