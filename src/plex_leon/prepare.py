@@ -54,6 +54,7 @@ from .utils import (
     parse_episode_tag,
     two_step_case_rename,
 )
+import sys
 
 SHOW_DIR_REGEX = re.compile(r"^.+ \(\d{4}\) \{tvdb-\d+}\Z")
 
@@ -155,7 +156,7 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
     name = show_dir.name
     # TVDB id check
     if __import__("re").search(r"\{tvdb-\d+\}", name) is None:
-        msgs.append(f"ERROR: missing tvdb id in show folder name: '{name}'")
+        msgs.append(f"❌ ERROR: missing tvdb id in show folder name: '{name}'")
 
     # Collect loose media files and map parsed (season, ep) -> files
     counts: dict[tuple[int, int], list[Path]] = {}
@@ -180,9 +181,9 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
         if len(files) > 1:
             file_list = ", ".join(str(p.name) for p in files)
             msgs.append(
-                f"ERROR: duplicate episode detected S{season:02d}E{ep:02d}: {file_list}")
+                f"❌ ERROR: duplicate episode detected S{season:02d}E{ep:02d}: {file_list}")
 
-    return (len([m for m in msgs if m.startswith("ERROR:")]) == 0, msgs)
+    return (len([m for m in msgs if m.startswith("❌ ERROR:")]) == 0, msgs)
 
 
 def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]:
@@ -206,6 +207,9 @@ def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]
         root = Path(root)
 
     processed = 0
+    renamed_per_show: dict[str, int] = {}
+    skipped_per_show: dict[str, int] = {}
+    error_per_show: dict[str, int] = {}
 
     for show_dir in _iter_show_dirs(root):
         show_title = strip_tvdb_suffix(show_dir.name)  # 'Name (YYYY)'
@@ -215,7 +219,12 @@ def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]
         for m in messages:
             print(m)
         if not valid:
-            print(f"SKIP show due to validation errors: {show_dir}")
+            # Count any validation ERROR messages for the show
+            err_count = sum(1 for m in messages if m.startswith("❌ ERROR:"))
+            if err_count:
+                error_per_show.setdefault(show_title, 0)
+                error_per_show[show_title] += err_count
+            print(f"⚠️  SKIP show due to validation errors: {show_dir}")
             continue
 
         # Collect candidate files directly in the show directory (ignore existing Season folders)
@@ -243,7 +252,7 @@ def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]
 
             # Ensure season directory
             if dry_run and not season_dir.exists():
-                print(f"MKDIR: {season_dir}")
+                print(f"📁 MKDIR: {season_dir}")
             elif not dry_run:
                 season_dir.mkdir(parents=True, exist_ok=True)
 
@@ -252,24 +261,66 @@ def process(root: Path | str | None = None, dry_run: bool = False) -> tuple[int]
                 ok = two_step_case_rename(entry, target_path, dry_run=dry_run)
                 if ok:
                     processed += 1
+                    renamed_per_show.setdefault(show_title, 0)
+                    renamed_per_show[show_title] += 1
+                else:
+                    error_per_show.setdefault(show_title, 0)
+                    error_per_show[show_title] += 1
                 continue
 
             # If destination exists (different file), skip.
             if target_path.exists() and target_path != entry:
-                print(f"SKIP exists: {target_path}")
+                print(f"⚠️  SKIP exists: {target_path}")
+                skipped_per_show.setdefault(show_title, 0)
+                skipped_per_show[show_title] += 1
                 continue
 
             if dry_run:
-                print(f"MOVE+RENAME: {entry} -> {target_path}")
+                print(f"🔁 MOVE+RENAME (dry-run): {entry} -> {target_path}")
                 processed += 1
+                renamed_per_show.setdefault(show_title, 0)
+                renamed_per_show[show_title] += 1
                 continue
 
             try:
                 # If moving across directories we can just rename with new path
                 entry.rename(target_path)
                 processed += 1
+                renamed_per_show.setdefault(show_title, 0)
+                renamed_per_show[show_title] += 1
+                print(f"✅ MOVED: {entry} -> {target_path}")
             except OSError as e:
-                print(f"ERROR: failed to move {entry} -> {target_path}: {e}")
+                print(f"❌ ERROR: failed to move {entry} -> {target_path}: {e}")
+                error_per_show.setdefault(show_title, 0)
+                error_per_show[show_title] += 1
+
+    # Print per-show summaries (RENAMED / SKIPPED / ERRORS)
+    shows = set()
+    shows.update(renamed_per_show.keys())
+    shows.update(skipped_per_show.keys())
+    shows.update(error_per_show.keys())
+    for show in sorted(shows, key=lambda x: x.lower()):
+        r = renamed_per_show.get(show, 0)
+        s = skipped_per_show.get(show, 0)
+        e = error_per_show.get(show, 0)
+
+        suffix = "✅"
+        if e > 0:
+            suffix = "❌"
+        elif s > 0:
+            suffix = "⚠️"
+
+        print(f"📺 {show}")
+        print(f"    — RENAMED: {r}")
+        print(f"    - SKIPPED: {s}")
+        print(f"    — ERRORS: {e}")
+
+    total_errors = sum(error_per_show.values())
+    if total_errors:
+        print(
+            f"❌ ERROR: {total_errors} file(s) failed during prepare; see above for details.",
+            file=sys.stderr,
+        )
 
     return (processed,)
 
