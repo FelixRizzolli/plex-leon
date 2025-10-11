@@ -49,9 +49,9 @@ def move_file(src: Path, dst: Path, *, overwrite: bool, dry_run: bool) -> None:
     """
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists() and not overwrite:
-        print(f"SKIP exists: {dst}")
+        print(f"⚠️  SKIP exists: {dst}")
         return
-    print(f"MOVE: {src} -> {dst}")
+    print(f"📦 MOVE: {src} -> {dst}")
     if dry_run:
         return
     if dst.exists():
@@ -278,14 +278,14 @@ def two_step_case_rename(old_path: Path, new_path: Path, *, dry_run: bool) -> bo
         i += 1
 
     if dry_run:
-        print(f"RENAME: {old_path} -> {swap_path}")
-        print(f"RENAME: {swap_path} -> {new_path}")
+        print(f"🔁 RENAME: {old_path} -> {swap_path}")
+        print(f"🔁 RENAME: {swap_path} -> {new_path}")
         return True
 
     try:
         old_path.rename(swap_path)
         if new_path.exists():
-            print(f"SKIP exists: {new_path}")
+            print(f"⚠️  SKIP exists: {new_path}")
             try:
                 swap_path.rename(old_path)
             except OSError:
@@ -294,7 +294,7 @@ def two_step_case_rename(old_path: Path, new_path: Path, *, dry_run: bool) -> bo
         swap_path.rename(new_path)
         return True
     except OSError as e:
-        print(f"ERROR: two-step rename failed {old_path} -> {new_path}: {e}")
+        print(f"❌ ERROR: two-step rename failed {old_path} -> {new_path}: {e}")
         try:
             if swap_path.exists():
                 swap_path.rename(old_path)
@@ -420,15 +420,15 @@ def merge_directory_contents(src: Path, dst: Path, conflicts_dirname: str = ".pl
                 n += 1
             try:
                 item.rename(conflict_dest)
-                print(f"CONFLICT: moved to {conflict_dest}")
+                print(f"⚠️  CONFLICT: moved to {conflict_dest}")
             except OSError as e:
                 print(
-                    f"ERROR: conflict move failed {item} -> {conflict_dest}: {e}")
+                    f"❌ ERROR: conflict move failed {item} -> {conflict_dest}: {e}")
         else:
             try:
                 item.rename(dest)
             except OSError as e:
-                print(f"ERROR: move failed {item} -> {dest}: {e}")
+                print(f"❌ ERROR: move failed {item} -> {dest}: {e}")
 
 
 def remove_dir_if_empty(path: Path) -> bool:

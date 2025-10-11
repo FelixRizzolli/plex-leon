@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import sys
 
 from .utils import (
     strip_tvdb_suffix,
@@ -29,6 +30,9 @@ def process_library(library: Path | None = None, dry_run: bool = False) -> tuple
         library = Path(library)
 
     renamed = 0
+    renamed_per_show: dict[str, int] = {}
+    skipped_per_show: dict[str, int] = {}
+    error_per_show: dict[str, int] = {}
 
     for dirpath, _, filenames in os.walk(library):
         parent = Path(dirpath)
@@ -60,22 +64,65 @@ def process_library(library: Path | None = None, dry_run: bool = False) -> tuple
                 ok = two_step_case_rename(old_path, new_path, dry_run=dry_run)
                 if ok:
                     renamed += 1
+                    renamed_per_show.setdefault(show_title, 0)
+                    renamed_per_show[show_title] += 1
+                    suffix = " (dry-run)" if dry_run else ""
+                    print(
+                        f"✅ RENAMED (case-only): {old_path} -> {new_path}{suffix}")
                 continue
 
             # Non-case change: direct rename if destination doesn't exist
             if new_path.exists():
-                print(f"SKIP exists: {new_path}")
+                skipped_per_show.setdefault(show_title, 0)
+                skipped_per_show[show_title] += 1
+                print(f"⚠️ SKIP exists: {old_path} -> {new_path}")
                 continue
 
             if dry_run:
-                print(f"RENAME: {old_path} -> {new_path}")
                 renamed += 1
+                renamed_per_show.setdefault(show_title, 0)
+                renamed_per_show[show_title] += 1
+                print(f"🔁 RENAME (dry-run): {old_path} -> {new_path}")
                 continue
 
             try:
                 old_path.rename(new_path)
                 renamed += 1
+                renamed_per_show.setdefault(show_title, 0)
+                renamed_per_show[show_title] += 1
+                print(f"✅ RENAMED: {old_path} -> {new_path}")
             except OSError as e:
-                print(f"ERROR: failed to rename {old_path} -> {new_path}: {e}")
+                # write errors to stderr and count per-show
+                print(
+                    f"❌ ERROR: failed to rename {old_path} -> {new_path}: {e}", file=sys.stderr)
+                error_per_show.setdefault(show_title, 0)
+                error_per_show[show_title] += 1
+
+    # Print per-show summaries (RENAMED / SKIPPED / ERRORS)
+    shows = set()
+    shows.update(renamed_per_show.keys())
+    shows.update(skipped_per_show.keys())
+    shows.update(error_per_show.keys())
+    for show in sorted(shows, key=lambda x: x.lower()):
+        r = renamed_per_show.get(show, 0)
+        s = skipped_per_show.get(show, 0)
+        e = error_per_show.get(show, 0)
+
+        suffix = "✅"
+        if e > 0:
+            suffix = "❌"
+        elif s > 0:
+            suffix = "⚠️"
+
+        print(f"📺 {show}")
+        print(f"    — RENAMED: {r}")
+        print(f"    - SKIPPED: {s}")
+        print(f"    — ERRORS: {e}")
+
+    # If there were any file-level errors, print a short stderr summary
+    total_errors = sum(error_per_show.values())
+    if total_errors:
+        print(
+            f"❌ ERROR: {total_errors} file(s) failed to rename; see stderr for details.", file=sys.stderr)
 
     return (renamed,)

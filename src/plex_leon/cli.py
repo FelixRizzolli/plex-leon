@@ -150,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             assert_required_tools_installed()
         except RuntimeError as exc:
-            print(f"ERROR: {exc}")
+            print(f"❌ ERROR: {exc}")
             return 2
 
         t0 = time.perf_counter()
