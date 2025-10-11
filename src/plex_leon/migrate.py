@@ -45,10 +45,14 @@ k
         b_ids.add(b_tvdb)
         b_index.setdefault(b_tvdb, []).append(b_entry)
 
-    print(f"Found {len(b_ids)} tvdb-ids in library-b")
+    print(f"🔎 Found {len(b_ids)} tvdb-ids in library-b")
 
     moved = 0
     skipped = 0
+    # per-show statistics keyed by tvdb id or show name
+    moved_per_show: dict[str, int] = {}
+    skipped_per_show: dict[str, int] = {}
+    error_per_show: dict[str, int] = {}
 
     # Helper lambdas for concise logging
     _fmt_res = format_resolution
@@ -148,7 +152,7 @@ k
                 # Log the decision with details
                 b_name = b_match.name if b_match is not None else "<missing>"
                 print(
-                    "DECISION:",
+                    "🔁 DECISION:",
                     entry.name,
                     "->",
                     dest_base.name,
@@ -160,6 +164,9 @@ k
                 dest = dest_base / entry.name
                 move_file(entry, dest, overwrite=overwrite, dry_run=dry_run)
                 moved += 1
+                key = tvdb or entry.name
+                moved_per_show.setdefault(key, 0)
+                moved_per_show[key] += 1
             else:
                 # For folders (TV shows), compare and move episodes individually
                 show_dirs_in_b = [
@@ -218,7 +225,7 @@ k
                         # Pretty formatting helpers (reuse local lambdas)
                         b_name = b_ep.name if b_ep is not None else "<missing>"
                         print(
-                            "DECISION:",
+                            "🔁 DECISION:",
                             src_ep.name,
                             "->",
                             dest_base.name,
@@ -236,12 +243,40 @@ k
                         move_file(src_ep, dest, overwrite=overwrite,
                                   dry_run=dry_run)
                         moved += 1
+                        key = tvdb or entry.name
+                        moved_per_show.setdefault(key, 0)
+                        moved_per_show[key] += 1
                 # Do not move the show folder itself
         else:
             skipped += 1
+            # track skipped by folder name
+            key = extract_tvdb_id(entry.name) or entry.name
+            skipped_per_show.setdefault(key, 0)
+            skipped_per_show[key] += 1
 
     # Clean up thread pool if created
     if executor is not None:
         executor.shutdown(wait=True)
+
+    # Print per-show summaries
+    shows = set()
+    shows.update(moved_per_show.keys())
+    shows.update(skipped_per_show.keys())
+    shows.update(error_per_show.keys())
+    for show in sorted(shows, key=lambda x: x.lower()):
+        r = moved_per_show.get(show, 0)
+        s = skipped_per_show.get(show, 0)
+        e = error_per_show.get(show, 0)
+
+        suffix = "✅"
+        if e > 0:
+            suffix = "❌"
+        elif s > 0:
+            suffix = "⚠️"
+
+        print(f"📺 {show}")
+        print(f"    — MOVED: {r}")
+        print(f"    - SKIPPED: {s}")
+        print(f"    — ERRORS: {e}")
 
     return moved, skipped
