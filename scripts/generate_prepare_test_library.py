@@ -134,7 +134,24 @@ def create_library(root: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
-    dest = ROOT_REL if not argv else Path(argv[0])
+    # simple arg handling: optional dest path and optional --force / -f flag
+    force = False
+    args = [a for a in argv]
+    if '--force' in args:
+        force = True
+        args.remove('--force')
+    if '-f' in args:
+        force = True
+        args.remove('-f')
+
+    dest = ROOT_REL if not args else Path(args[0])
+
+    if dest.exists() and not force:
+        resp = input(f"Target {dest} exists. Delete it and recreate? [y/N]: ")
+        if resp.strip().lower() not in ("y", "yes"):
+            print("Aborted — target not removed.")
+            return 1
+
     create_library(dest)
     print("Done generating library-p test data.")
     return 0
