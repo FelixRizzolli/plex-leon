@@ -130,8 +130,19 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 def main(argv: list[str] | None = None) -> int:
     base = repo_root() / "data" / "library-s"
-    # Remove existing test library to guarantee deterministic generation
-    if base.exists():
+    if argv is None:
+        argv = sys.argv[1:]
+    force = False
+    if '--force' in argv:
+        force = True
+    if '-f' in argv:
+        force = True
+
+    if base.exists() and not force:
+        resp = input(f"Target {base} exists. Delete it and recreate? [y/N]: ")
+        if resp.strip().lower() not in ("y", "yes"):
+            print("Aborted — target not removed.")
+            return 1
         shutil.rmtree(base)
 
     base.mkdir(parents=True, exist_ok=True)
