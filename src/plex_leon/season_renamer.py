@@ -34,6 +34,9 @@ def process_library(
         library = Path(library)
 
     renamed = 0
+    renamed_per_show: dict[str, int] = {}
+    skipped_per_show: dict[str, int] = {}
+    error_per_show: dict[str, int] = {}
 
     for dirpath, dirnames, _ in os.walk(library):
         # Work on a copy so we can safely update dirnames for os.walk
@@ -61,12 +64,15 @@ def process_library(
                 swap_path = unique_swap_path(Path(dirpath), new_name)
 
                 if dry_run:
-                    print(f"RENAME: {old_path} -> {swap_path}")
+                    print(f"🔁 RENAME: {old_path} -> {swap_path}")
                     if new_path.exists():
-                        print(f"MERGE: {swap_path} -> {new_path}")
+                        print(f"🔀 MERGE: {swap_path} -> {new_path}")
                     else:
-                        print(f"RENAME: {swap_path} -> {new_path}")
+                        print(f"🔁 RENAME: {swap_path} -> {new_path}")
                     renamed += 1
+                    show = Path(dirpath).name
+                    renamed_per_show.setdefault(show, 0)
+                    renamed_per_show[show] += 1
                     # Reflect rename so os.walk doesn't traverse old name
                     try:
                         idx = dirnames.index(d)
@@ -96,19 +102,31 @@ def process_library(
                     except ValueError:
                         pass
                     renamed += 1
+                    show = Path(dirpath).name
+                    renamed_per_show.setdefault(show, 0)
+                    renamed_per_show[show] += 1
                 except OSError as e:
                     print(
-                        f"ERROR: two-step rename failed {old_path} -> {new_path}: {e}")
+                        f"❌ ERROR: two-step rename failed {old_path} -> {new_path}: {e}")
+                    show = Path(dirpath).name
+                    error_per_show.setdefault(show, 0)
+                    error_per_show[show] += 1
                 continue
 
             # Non-case-only path: direct rename when target doesn't exist; else skip.
             if new_path.exists():
-                print(f"SKIP exists: {new_path}")
+                print(f"⚠️ SKIP exists: {new_path}")
+                show = Path(dirpath).name
+                skipped_per_show.setdefault(show, 0)
+                skipped_per_show[show] += 1
                 continue
 
             if dry_run:
-                print(f"RENAME: {old_path} -> {new_path}")
+                print(f"🔁 RENAME: {old_path} -> {new_path}")
                 renamed += 1
+                show = Path(dirpath).name
+                renamed_per_show.setdefault(show, 0)
+                renamed_per_show[show] += 1
                 try:
                     idx = dirnames.index(d)
                     dirnames[idx] = new_name
@@ -124,7 +142,35 @@ def process_library(
                 except ValueError:
                     pass
                 renamed += 1
+                show = Path(dirpath).name
+                renamed_per_show.setdefault(show, 0)
+                renamed_per_show[show] += 1
             except OSError as e:
-                print(f"ERROR: failed to rename {old_path} -> {new_path}: {e}")
+                print(
+                    f"❌ ERROR: failed to rename {old_path} -> {new_path}: {e}")
+                show = Path(dirpath).name
+                error_per_show.setdefault(show, 0)
+                error_per_show[show] += 1
+
+    # Print per-show summaries
+    shows = set()
+    shows.update(renamed_per_show.keys())
+    shows.update(skipped_per_show.keys())
+    shows.update(error_per_show.keys())
+    for show in sorted(shows, key=lambda x: x.lower()):
+        r = renamed_per_show.get(show, 0)
+        s = skipped_per_show.get(show, 0)
+        e = error_per_show.get(show, 0)
+
+        suffix = "✅"
+        if e > 0:
+            suffix = "❌"
+        elif s > 0:
+            suffix = "⚠️"
+
+        print(f"📺 {show}")
+        print(f"    — RENAMED: {r}")
+        print(f"    - SKIPPED: {s}")
+        print(f"    — ERRORS: {e}")
 
     return (renamed,)
