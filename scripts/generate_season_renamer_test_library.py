@@ -130,6 +130,10 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 def main(argv: list[str] | None = None) -> int:
     base = repo_root() / "data" / "library-s"
+    # Remove existing test library to guarantee deterministic generation
+    if base.exists():
+        shutil.rmtree(base)
+
     base.mkdir(parents=True, exist_ok=True)
     # Use all unique TV shows from both libraries
     all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
