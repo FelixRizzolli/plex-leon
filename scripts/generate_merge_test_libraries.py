@@ -669,8 +669,21 @@ def main(argv: list[str] | None = None) -> int:
     lib_c = base / "library-c"
 
     # Create root and libraries
+    if argv is None:
+        argv = sys.argv[1:]
+    force = False
+    if '--force' in argv:
+        force = True
+    if '-f' in argv:
+        force = True
+
     # Remove and recreate target folders to ensure deterministic generation
     for d in (base, temp, lib_a, lib_b, lib_c):
+        if d.exists() and not force:
+            resp = input(f"Target {d} exists. Delete it and recreate? [y/N]: ")
+            if resp.strip().lower() not in ("y", "yes"):
+                print("Aborted — target not removed.")
+                return 1
         if d.exists():
             shutil.rmtree(d)
         d.mkdir(parents=True, exist_ok=True)
