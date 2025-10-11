@@ -669,7 +669,10 @@ def main(argv: list[str] | None = None) -> int:
     lib_c = base / "library-c"
 
     # Create root and libraries
+    # Remove and recreate target folders to ensure deterministic generation
     for d in (base, temp, lib_a, lib_b, lib_c):
+        if d.exists():
+            shutil.rmtree(d)
         d.mkdir(parents=True, exist_ok=True)
 
     # Prepare download specs and cache
