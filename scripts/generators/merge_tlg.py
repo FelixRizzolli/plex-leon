@@ -41,6 +41,7 @@ from typing import Iterable
 import shutil
 import sys
 import urllib.request
+from .base_test_library_generator import BaseTestLibraryGenerator
 
 # Import downloads array from downloads.py
 import importlib.util
@@ -661,76 +662,86 @@ def ensure_tv_folder_flat(base: Path, name: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    # Base directory under repo: data/
-    base = repo_root() / "data"
-    temp = base / "temp"
-    lib_a = base / "library-a"
-    lib_b = base / "library-b"
-    lib_c = base / "library-c"
+    gen = MergeTestLibraryGenerator()
+    return gen.run(argv)
 
-    # Create root and libraries
-    if argv is None:
-        argv = sys.argv[1:]
-    force = False
-    if '--force' in argv:
-        force = True
-    if '-f' in argv:
-        force = True
 
-    # Remove and recreate target folders to ensure deterministic generation
-    for d in (base, temp, lib_a, lib_b, lib_c):
-        if d.exists() and not force:
-            resp = input(f"Target {d} exists. Delete it and recreate? [y/N]: ")
-            if resp.strip().lower() not in ("y", "yes"):
-                print("Aborted — target not removed.")
-                return 1
-        if d.exists():
-            shutil.rmtree(d)
-        d.mkdir(parents=True, exist_ok=True)
+class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
+    """Generator for merge test libraries (library-a/library-b/library-c)."""
 
-    # Prepare download specs and cache
-    specs = [DownloadSpec(str(d["resolution"]), str(d["size"]), str(d["url"]))
-             for d in downloads]
-    cache = ensure_download_cache(temp, specs)
+    # type: ignore[override]
+    def execute(self, argv: list[str] | None = None) -> int:
+        # Base directory under repo: data/
+        base = self.repo_root / "data"
+        temp = base / "temp"
+        lib_a = base / "library-a"
+        lib_b = base / "library-b"
+        lib_c = base / "library-c"
 
-    # Populate library A movies
-    for entry in library_a_movies:
-        # e.g., "John Wick (2014) {tvdb-155}.mp4"
-        fname = str(entry["filename"])
-        res = str(entry["resolution"])
-        size = str(entry["size"])
-        src = cache.get((res, size))
-        if src is None:
-            print(
-                f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
-            continue
-        copy_movie(lib_a / fname, src)
+        # Create root and libraries
+        if argv is None:
+            argv = sys.argv[1:]
+        force = False
+        if '--force' in argv:
+            force = True
+        if '-f' in argv:
+            force = True
 
-    # Populate library B movies (bucketed under A/B/C/... like production)
-    for entry in library_b_movies:
-        # e.g., "John Wick 2 (2017) {tvdb-511}.mp4"
-        fname = str(entry["filename"])
-        res = str(entry["resolution"])
-        size = str(entry["size"])
-        src = cache.get((res, size))
-        if src is None:
-            print(
-                f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
-            continue
-        copy_or_move_into_bucket(lib_b, fname, src)
+        # Remove and recreate target folders to ensure deterministic generation
+        for d in (base, temp, lib_a, lib_b, lib_c):
+            if d.exists() and not force:
+                resp = input(
+                    f"Target {d} exists. Delete it and recreate? [y/N]: ")
+                if resp.strip().lower() not in ("y", "yes"):
+                    print("Aborted — target not removed.")
+                    return 1
+            if d.exists():
+                shutil.rmtree(d)
+            d.mkdir(parents=True, exist_ok=True)
 
-    # Create TV show folders and populate with seasons/episodes
-    create_seasons_and_episodes(
-        lib_a, library_a_tvshows, cache, bucketed=False, seed=123)
-    # For library-b, TV shows are flat (no buckets). Migrate any legacy
-    # bucketed folders back to flat, then create seasons/episodes.
-    for show in library_b_tvshows:
-        ensure_tv_folder_flat(lib_b, show)
-    create_seasons_and_episodes(
-        lib_b, library_b_tvshows, cache, bucketed=False, seed=456)
+        # Prepare download specs and cache
+        specs = [DownloadSpec(str(d["resolution"]), str(d["size"]), str(d["url"]))
+                 for d in downloads]
+        cache = ensure_download_cache(temp, specs)
 
-    print("Done.")
-    return 0
+        # Populate library A movies
+        for entry in library_a_movies:
+            # e.g., "John Wick (2014) {tvdb-155}.mp4"
+            fname = str(entry["filename"])
+            res = str(entry["resolution"])
+            size = str(entry["size"])
+            src = cache.get((res, size))
+            if src is None:
+                print(
+                    f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
+                continue
+            copy_movie(lib_a / fname, src)
+
+        # Populate library B movies (bucketed under A/B/C/... like production)
+        for entry in library_b_movies:
+            # e.g., "John Wick 2 (2017) {tvdb-511}.mp4"
+            fname = str(entry["filename"])
+            res = str(entry["resolution"])
+            size = str(entry["size"])
+            src = cache.get((res, size))
+            if src is None:
+                print(
+                    f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
+                continue
+            copy_or_move_into_bucket(lib_b, fname, src)
+
+        # Create TV show folders and populate with seasons/episodes
+        create_seasons_and_episodes(
+            lib_a, library_a_tvshows, cache, bucketed=False, seed=123)
+        # For library-b, TV shows are flat (no buckets). Migrate any legacy
+        # bucketed folders back to flat, then create seasons/episodes.
+        for show in library_b_tvshows:
+            ensure_tv_folder_flat(lib_b, show)
+        create_seasons_and_episodes(
+            lib_b, library_b_tvshows, cache, bucketed=False, seed=456)
+
+        print("Done.")
+        return 0
 
 
 if __name__ == "__main__":

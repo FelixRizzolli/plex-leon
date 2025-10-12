@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 import builtins
 import pytest
-from plex_leon.shared.utils import (
+from plex_leon.shared import (
     extract_tvdb_id,
     collect_tvdb_ids,
     move_file,

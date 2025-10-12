@@ -27,6 +27,7 @@ from __future__ import annotations
 import random
 import re
 from pathlib import Path
+from .base_test_library_generator import BaseTestLibraryGenerator
 from typing import Iterable
 import sys
 import shutil
@@ -228,28 +229,43 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 
 def main(argv: list[str] | None = None) -> int:
-    base = repo_root() / "data" / "library-e"
-    if argv is None:
-        argv = sys.argv[1:]
-    force = False
-    if '--force' in argv:
-        force = True
-    if '-f' in argv:
-        force = True
+    # Delegate to the EpisodeRenamerTLG for behavior
+    gen = EpisodeRenamerTLG()
+    return gen.run(argv)
 
-    if base.exists() and not force:
-        resp = input(f"Target {base} exists. Delete it and recreate? [y/N]: ")
-        if resp.strip().lower() not in ("y", "yes"):
-            print("Aborted — target not removed.")
-            return 1
-        shutil.rmtree(base)
 
-    base.mkdir(parents=True, exist_ok=True)
-    # Use all unique TV shows from both libraries
-    all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
-    create_seasons_and_episodes(base, all_tvshows, seed=1337)
-    print("Done.")
-    return 0
+class EpisodeRenamerTLG(BaseTestLibraryGenerator):
+    """Generator for episode renamer test library.
+
+    This class wraps the script behavior and provides `execute()` for the
+    BaseTestLibraryGenerator.run() template.
+    """
+
+    # type: ignore[override]
+    def execute(self, argv: list[str] | None = None) -> int:
+        base = self.repo_root / "data" / "library-e"
+        if argv is None:
+            argv = sys.argv[1:]
+        force = False
+        if '--force' in argv:
+            force = True
+        if '-f' in argv:
+            force = True
+
+        if base.exists() and not force:
+            resp = input(
+                f"Target {base} exists. Delete it and recreate? [y/N]: ")
+            if resp.strip().lower() not in ("y", "yes"):
+                print("Aborted — target not removed.")
+                return 1
+            shutil.rmtree(base)
+
+        base.mkdir(parents=True, exist_ok=True)
+        # Use all unique TV shows from both libraries
+        all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
+        create_seasons_and_episodes(base, all_tvshows, seed=1337)
+        print("Done.")
+        return 0
 
 
 if __name__ == "__main__":

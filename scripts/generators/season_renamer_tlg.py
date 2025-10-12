@@ -26,6 +26,7 @@ from typing import Iterable
 import shutil
 import sys
 import importlib.util
+from .base_test_library_generator import BaseTestLibraryGenerator
 
 # --- TV show config (copied from generate_merge_test_libraries.py) ---
 library_a_tvshows = [
@@ -129,28 +130,38 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 
 def main(argv: list[str] | None = None) -> int:
-    base = repo_root() / "data" / "library-s"
-    if argv is None:
-        argv = sys.argv[1:]
-    force = False
-    if '--force' in argv:
-        force = True
-    if '-f' in argv:
-        force = True
+    gen = SeasonRenamerTestLibraryGenerator()
+    return gen.run(argv)
 
-    if base.exists() and not force:
-        resp = input(f"Target {base} exists. Delete it and recreate? [y/N]: ")
-        if resp.strip().lower() not in ("y", "yes"):
-            print("Aborted — target not removed.")
-            return 1
-        shutil.rmtree(base)
 
-    base.mkdir(parents=True, exist_ok=True)
-    # Use all unique TV shows from both libraries
-    all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
-    create_seasons_and_episodes(base, all_tvshows, seed=789)
-    print("Done.")
-    return 0
+class SeasonRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
+    """Generator for season renamer test library (library-s)."""
+
+    # type: ignore[override]
+    def execute(self, argv: list[str] | None = None) -> int:
+        base = self.repo_root / "data" / "library-s"
+        if argv is None:
+            argv = sys.argv[1:]
+        force = False
+        if '--force' in argv:
+            force = True
+        if '-f' in argv:
+            force = True
+
+        if base.exists() and not force:
+            resp = input(
+                f"Target {base} exists. Delete it and recreate? [y/N]: ")
+            if resp.strip().lower() not in ("y", "yes"):
+                print("Aborted — target not removed.")
+                return 1
+            shutil.rmtree(base)
+
+        base.mkdir(parents=True, exist_ok=True)
+        # Use all unique TV shows from both libraries
+        all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
+        create_seasons_and_episodes(base, all_tvshows, seed=789)
+        print("Done.")
+        return 0
 
 
 if __name__ == "__main__":

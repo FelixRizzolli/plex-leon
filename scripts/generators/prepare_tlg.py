@@ -35,6 +35,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import shutil
+from .base_test_library_generator import BaseTestLibraryGenerator
 
 
 ROOT_REL = Path("data") / "library-p"
@@ -132,29 +133,39 @@ def create_library(root: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    if argv is None:
-        argv = sys.argv[1:]
-    # simple arg handling: optional dest path and optional --force / -f flag
-    force = False
-    args = [a for a in argv]
-    if '--force' in args:
-        force = True
-        args.remove('--force')
-    if '-f' in args:
-        force = True
-        args.remove('-f')
+    gen = PrepareTestLibraryGenerator()
+    return gen.run(argv)
 
-    dest = ROOT_REL if not args else Path(args[0])
 
-    if dest.exists() and not force:
-        resp = input(f"Target {dest} exists. Delete it and recreate? [y/N]: ")
-        if resp.strip().lower() not in ("y", "yes"):
-            print("Aborted — target not removed.")
-            return 1
+class PrepareTestLibraryGenerator(BaseTestLibraryGenerator):
+    """Generator for prepare test library (library-p)."""
 
-    create_library(dest)
-    print("Done generating library-p test data.")
-    return 0
+    # type: ignore[override]
+    def execute(self, argv: list[str] | None = None) -> int:
+        if argv is None:
+            argv = sys.argv[1:]
+        # simple arg handling: optional dest path and optional --force / -f flag
+        force = False
+        args = [a for a in argv]
+        if '--force' in args:
+            force = True
+            args.remove('--force')
+        if '-f' in args:
+            force = True
+            args.remove('-f')
+
+        dest = ROOT_REL if not args else Path(args[0])
+
+        if dest.exists() and not force:
+            resp = input(
+                f"Target {dest} exists. Delete it and recreate? [y/N]: ")
+            if resp.strip().lower() not in ("y", "yes"):
+                print("Aborted — target not removed.")
+                return 1
+
+        create_library(dest)
+        print("Done generating library-p test data.")
+        return 0
 
 
 if __name__ == "__main__":
