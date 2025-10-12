@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from .utils import (
+from ..shared.utils import (
     get_season_number_from_dirname,
     unique_swap_path,
     merge_directory_contents,

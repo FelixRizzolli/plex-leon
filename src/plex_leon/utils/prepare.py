@@ -49,7 +49,7 @@ import os
 import re
 from pathlib import Path
 
-from .utils import (
+from ..shared.utils import (
     strip_tvdb_suffix,
     parse_episode_tag,
     two_step_case_rename,

@@ -5,11 +5,11 @@ import sys
 import time
 from pathlib import Path
 
-from .migrate import process_libraries
-from .utils import assert_required_tools_installed
-from .season_renamer import process_library as season_process_library
-from .episode_renamer import process_library as episode_process_library
-from .prepare import process as prepare_process
+from .utils.migrate import process_libraries
+from .shared.utils import assert_required_tools_installed
+from .utils.season_renamer import process_library as season_process_library
+from .utils.episode_renamer import process_library as episode_process_library
+from .utils.prepare import process as prepare_process
 
 
 def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:

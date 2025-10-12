@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import sys
 
-from .utils import (
+from ..shared.utils import (
     strip_tvdb_suffix,
     normalize_episode_tag,
     is_season_like_dirname,

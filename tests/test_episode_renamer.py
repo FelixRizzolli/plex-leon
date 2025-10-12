@@ -4,7 +4,7 @@ from pathlib import Path
 import builtins
 import pytest
 
-from plex_leon.episode_renamer import process_library as ep_process
+from plex_leon.utils.episode_renamer import process_library as ep_process
 from utils import make_files
 
 
