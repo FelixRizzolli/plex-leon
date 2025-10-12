@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from ..shared.utils import (
+from ..shared import (
     extract_tvdb_id,
     move_file,
     file_size,
@@ -82,7 +82,7 @@ k
                     se = parse_season_episode(fn)
                     if not se:
                         # Try double-episode parsing to index both
-                        from .utils import parse_episode_tag
+                        from ..shared import parse_episode_tag
                         parsed = parse_episode_tag(fn)
                         if not parsed:
                             continue

@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 
 from .utils.migrate import process_libraries
-from .shared.utils import assert_required_tools_installed
+from .shared import assert_required_tools_installed
 from .utils.season_renamer import process_library as season_process_library
 from .utils.episode_renamer import process_library as episode_process_library
 from .utils.prepare import process as prepare_process
