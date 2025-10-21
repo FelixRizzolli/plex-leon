@@ -9,6 +9,7 @@ from ..shared import (
     merge_directory_contents,
     remove_dir_if_empty,
 )
+from .base_utility import BaseUtility
 
 
 def process_library(
@@ -174,3 +175,14 @@ def process_library(
         print(f"    — ERRORS: {e}")
 
     return (renamed,)
+
+
+class SeasonRenamerUtility(BaseUtility):
+    """Class wrapper around the procedural process_library function.
+
+    Example:
+        SeasonRenamerUtility(dry_run=True).run(library)
+    """
+
+    def process(self, library: Path | None = None) -> tuple[int]:
+        return process_library(library=library, dry_run=self.dry_run)

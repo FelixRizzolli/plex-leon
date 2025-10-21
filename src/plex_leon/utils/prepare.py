@@ -54,6 +54,7 @@ from ..shared import (
     parse_episode_tag,
     two_step_case_rename,
 )
+from .base_utility import BaseUtility
 import sys
 
 SHOW_DIR_REGEX = re.compile(r"^.+ \(\d{4}\) \{tvdb-\d+}\Z")
@@ -341,3 +342,10 @@ if __name__ == "__main__":  # pragma: no cover
     count, = process(ns.root, dry_run=ns.dry_run)
     print(f"Done. Episodes processed: {count}.")
     sys.exit(0)
+
+
+class PrepareUtility(BaseUtility):
+    """Class wrapper around the procedural process function."""
+
+    def process(self, root: Path | str | None = None) -> tuple[int]:
+        return process(root=root, dry_run=self.dry_run)

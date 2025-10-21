@@ -10,6 +10,7 @@ from ..shared import (
     is_season_like_dirname,
     two_step_case_rename,
 )
+from .base_utility import BaseUtility
 
 
 def process_library(library: Path | None = None, dry_run: bool = False) -> tuple[int]:
@@ -126,3 +127,14 @@ def process_library(library: Path | None = None, dry_run: bool = False) -> tuple
             f"❌ ERROR: {total_errors} file(s) failed to rename; see stderr for details.", file=sys.stderr)
 
     return (renamed,)
+
+
+class EpisodeRenamerUtility(BaseUtility):
+    """Class wrapper around the procedural process_library function.
+
+    Example:
+        EpisodeRenamerUtility(dry_run=True).run(library)
+    """
+
+    def process(self, library: Path | None = None) -> tuple[int]:
+        return process_library(library=library, dry_run=self.dry_run)

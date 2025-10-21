@@ -10,6 +10,7 @@ from ..shared import (
     format_bytes,
     format_resolution,
 )
+from .base_utility import BaseUtility
 
 
 def process_libraries(
@@ -278,3 +279,15 @@ k
         print(f"    — ERRORS: {e}")
 
     return moved, skipped
+
+
+class MigrateUtility(BaseUtility):
+    """Class wrapper around the procedural process_libraries function.
+
+    Usage:
+        MigrateUtility(dry_run=True).run(lib_a, lib_b, lib_c, overwrite=False)
+    """
+
+    def process(self, lib_a: Path, lib_b: Path, lib_c: Path, **kwargs) -> tuple[int, int]:
+        # accept overwrite/dry_run/prefer_resolution/threads forwarded via kwargs
+        return process_libraries(lib_a, lib_b, lib_c, **kwargs, dry_run=self.dry_run)
