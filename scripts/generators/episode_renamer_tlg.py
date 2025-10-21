@@ -27,7 +27,7 @@ from __future__ import annotations
 import random
 import re
 from pathlib import Path
-from .base_test_library_generator import BaseTestLibraryGenerator
+from base_test_library_generator import BaseTestLibraryGenerator
 from typing import Iterable
 import sys
 import shutil

@@ -35,7 +35,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 import shutil
-from .base_test_library_generator import BaseTestLibraryGenerator
+from base_test_library_generator import BaseTestLibraryGenerator
 
 
 ROOT_REL = Path("data") / "library-p"

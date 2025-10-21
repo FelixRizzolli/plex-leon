@@ -26,7 +26,7 @@ from typing import Iterable
 import shutil
 import sys
 import importlib.util
-from .base_test_library_generator import BaseTestLibraryGenerator
+from base_test_library_generator import BaseTestLibraryGenerator
 
 # --- TV show config (copied from generate_merge_test_libraries.py) ---
 library_a_tvshows = [
