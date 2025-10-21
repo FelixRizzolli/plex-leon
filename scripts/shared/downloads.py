@@ -1,416 +1,128 @@
 downloads = [
+    # AVI
+    {
+        "size": "750KB",
+        "format": "avi",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_AVI_480_750kB.avi"},
+    {
+        "size": "800KB",
+        "format": "avi",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_AVI_640_800kB.avi"},
+    {
+        "size": "1.5MB",
+        "format": "avi",
+        "resolution": "1280x720",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_AVI_1280_1_5MG.avi"},
+    {
+        "size": "2.3MB",
+        "format": "avi",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_AVI_1920_2_3MG.avi"},
+    # MOV
+    {
+        "size": "700KB",
+        "format": "mov",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_MOV_480_700kB.mov"},
+    {
+        "size": "800KB",
+        "format": "mov",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_MOV_640_800kB.mov"},
+    {
+        "size": "1.4MB",
+        "format": "mov",
+        "resolution": "1280x720",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_MOV_1280_1_4MB.mov"},
+    {
+        "size": "2.2MB",
+        "format": "mov",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_MOV_1920_2_2MB.mov"},
     # MP4
     {
-        "size": "1",
+        "size": "1.5MB",
         "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"},
+        "resolution": "640x480",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2017/04/file_example_MP4_480_1_5MG.mp4"},
     {
-        "size": "2",
-        "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_2mb.mp4"},
-    {
-        "size": "5",
-        "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_5mb.mp4"},
-    {
-        "size": "10",
-        "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_10mb.mp4"},
-    {
-        "size": "20",
-        "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_20mb.mp4"},
-    {
-        "size": "30",
-        "format": "mp4",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_30mb.mp4"},
-    {
-        "size": "1",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_1mb.mp4"},
-    {
-        "size": "2",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_2mb.mp4"},
-    {
-        "size": "5",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_5mb.mp4"},
-    {
-        "size": "10",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_10mb.mp4"},
-    {
-        "size": "20",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_20mb.mp4"},
-    {
-        "size": "30",
-        "format": "mp4",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mp4/480/big_buck_bunny_480p_30mb.mp4"},
-    {
-        "size": "1",
+        "size": "3MB",
         "format": "mp4",
         "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_1mb.mp4"},
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2017/04/file_example_MP4_640_3MG.mp4"},
     {
-        "size": "2",
+        "size": "10MB",
         "format": "mp4",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_2mb.mp4"},
+        "resolution": "1280x720",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2017/04/file_example_MP4_1280_10MG.mp4"},
     {
-        "size": "5",
+        "size": "18MB",
         "format": "mp4",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2017/04/file_example_MP4_1920_18MG.mp4"},
+    # OGG
+    {
+        "size": "1.7MB",
+        "format": "ogg",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2018/04/file_example_OGG_480_1_7mg.ogg"},
+    {
+        "size": "2.7MB",
+        "format": "ogg",
         "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_5mb.mp4"},
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2018/04/file_example_OGG_640_2_7mg.ogg"},
     {
-        "size": "10",
-        "format": "mp4",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_10mb.mp4"},
-    {
-        "size": "20",
-        "format": "mp4",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_20mb.mp4"},
-    {
-        "size": "30",
-        "format": "mp4",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mp4/360/big_buck_bunny_360p_30mb.mp4"},
-    {
-        "size": "1",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_1mb.mp4"},
-    {
-        "size": "2",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_2mb.mp4"},
-    {
-        "size": "5",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_5mb.mp4"},
-    {
-        "size": "10",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_10mb.mp4"},
-    {
-        "size": "20",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_20mb.mp4"},
-    {
-        "size": "30",
-        "format": "mp4",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mp4/240/big_buck_bunny_240p_30mb.mp4"},
-    # FLV
-    {
-        "size": "1",
-        "format": "flv",
+        "size": "11.4MB",
+        "format": "ogg",
         "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_1mb.flv"},
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2018/04/file_example_OGG_1280_11_4mg.ogg"},
     {
-        "size": "2",
-        "format": "flv",
+        "size": "13.3MB",
+        "format": "ogg",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2018/04/file_example_OGG_1920_13_3mg.ogg"},
+    # WMV
+    {
+        "size": "1.2MB",
+        "format": "wmv",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_WMV_480_1_2MB.wmv"},
+    {
+        "size": "1.6MB",
+        "format": "wmv",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_WMV_640_1_6MB.wmv"},
+    {
+        "size": "4.9MB",
+        "format": "wmv",
         "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_2mb.flv"},
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_WMV_1280_4_9MB.wmv"},
     {
-        "size": "5",
-        "format": "flv",
+        "size": "9.3MB",
+        "format": "wmv",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/wp-content/storage/2018/04/file_example_WMV_1920_9_3MB.wmv"},
+    # WEBM
+    {
+        "size": "900KB",
+        "format": "webm",
+        "resolution": "640x480",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2020/03/file_example_WEBM_480_900KB.webm"},
+    {
+        "size": "1.4MB",
+        "format": "webm",
+        "resolution": "640x360",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2020/03/file_example_WEBM_640_1_4MB.webm"},
+    {
+        "size": "3.6MB",
+        "format": "webm",
         "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_5mb.flv"},
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2020/03/file_example_WEBM_1280_3_6MB.webm"},
     {
-        "size": "10",
-        "format": "flv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_10mb.flv"},
-    {
-        "size": "20",
-        "format": "flv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_20mb.flv"},
-    {
-        "size": "30",
-        "format": "flv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/flv/720/big_buck_bunny_720p_30mb.flv"},
-    {
-        "size": "1",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_1mb.flv"},
-    {
-        "size": "2",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_2mb.flv"},
-    {
-        "size": "5",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_5mb.flv"},
-    {
-        "size": "10",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_10mb.flv"},
-    {
-        "size": "20",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_20mb.flv"},
-    {
-        "size": "30",
-        "format": "flv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/flv/480/big_buck_bunny_480p_30mb.flv"},
-    {
-        "size": "1",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_1mb.flv"},
-    {
-        "size": "2",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_2mb.flv"},
-    {
-        "size": "5",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_5mb.flv"},
-    {
-        "size": "10",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_10mb.flv"},
-    {
-        "size": "20",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_20mb.flv"},
-    {
-        "size": "30",
-        "format": "flv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/flv/360/big_buck_bunny_360p_30mb.flv"},
-    {
-        "size": "1",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_1mb.flv"},
-    {
-        "size": "2",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_2mb.flv"},
-    {
-        "size": "5",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_5mb.flv"},
-    {
-        "size": "10",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_10mb.flv"},
-    {
-        "size": "20",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_20mb.flv"},
-    {
-        "size": "30",
-        "format": "flv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/flv/240/big_buck_bunny_240p_30mb.flv"},
-    # MKV
-    {
-        "size": "1",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_1mb.mkv"},
-    {
-        "size": "2",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_2mb.mkv"},
-    {
-        "size": "5",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_5mb.mkv"},
-    {
-        "size": "10",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_10mb.mkv"},
-    {
-        "size": "20",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_20mb.mkv"},
-    {
-        "size": "30",
-        "format": "mkv",
-        "resolution": "1280x720",
-        "url": "https://www.sample-videos.com/video321/mkv/720/big_buck_bunny_720p_30mb.mkv"},
-    {
-        "size": "1",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_1mb.mkv"},
-    {
-        "size": "2",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_2mb.mkv"},
-    {
-        "size": "5",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_5mb.mkv"},
-    {
-        "size": "10",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_10mb.mkv"},
-    {
-        "size": "20",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_20mb.mkv"},
-    {
-        "size": "30",
-        "format": "mkv",
-        "resolution": "720x480",
-        "url": "https://www.sample-videos.com/video321/mkv/480/big_buck_bunny_480p_30mb.mkv"},
-    {
-        "size": "1",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_1mb.mkv"},
-    {
-        "size": "2",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_2mb.mkv"},
-    {
-        "size": "5",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_5mb.mkv"},
-    {
-        "size": "10",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_10mb.mkv"},
-    {
-        "size": "20",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_20mb.mkv"},
-    {
-        "size": "30",
-        "format": "mkv",
-        "resolution": "640x360",
-        "url": "https://www.sample-videos.com/video321/mkv/360/big_buck_bunny_360p_30mb.mkv"},
-    {
-        "size": "1",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_1mb.mkv"},
-    {
-        "size": "2",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_2mb.mkv"},
-    {
-        "size": "5",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_5mb.mkv"},
-    {
-        "size": "10",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_10mb.mkv"},
-    {
-        "size": "20",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_20mb.mkv"},
-    {
-        "size": "30",
-        "format": "mkv",
-        "resolution": "360x240",
-        "url": "https://www.sample-videos.com/video321/mkv/240/big_buck_bunny_240p_30mb.mkv"},
-    # 3GP
-    {
-        "size": "1",
-        "format": "3gp",
-        "resolution": "176x144",
-        "url": "https://www.sample-videos.com/video321/3gp/144/big_buck_bunny_144p_1mb.3gp"},
-    {
-        "size": "2",
-        "format": "3gp",
-        "resolution": "176x144",
-        "url": "https://www.sample-videos.com/video321/3gp/144/big_buck_bunny_144p_2mb.3gp"},
-    {
-        "size": "5",
-        "format": "3gp",
-        "resolution": "176x144",
-        "url": "https://www.sample-videos.com/video321/3gp/144/big_buck_bunny_144p_5mb.3gp"},
-    {
-        "size": "10",
-        "format": "3gp",
-        "resolution": "176x144",
-        "url": "https://www.sample-videos.com/video321/3gp/144/big_buck_bunny_144p_10mb.3gp"},
-    {
-        "size": "1",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_1mb.3gp"},
-    {
-        "size": "2",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_2mb.3gp"},
-    {
-        "size": "5",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_5mb.3gp"},
-    {
-        "size": "10",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_10mb.3gp"},
-    {
-        "size": "20",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_20mb.3gp"},
-    {
-        "size": "30",
-        "format": "3gp",
-        "resolution": "320x240",
-        "url": "https://www.sample-videos.com/video321/3gp/240/big_buck_bunny_240p_30mb.3gp"},
+        "size": "3.7MB",
+        "format": "webm",
+        "resolution": "1920x1080",
+        "url": "https://file-examples.com/storage/fe77ccaeb468f77bd967b4f/2020/03/file_example_WEBM_1920_3_7MB.webm"},
 ]

@@ -69,121 +69,121 @@ library_a_movies: list[dict[str, object]] = [
     {
         "filename": "John Wick (2014) {tvdb-155}.mp4",
         "resolution": "1280x720",
-        "size": "1"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "John Wick 2 (2017) {tvdb-511}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # better resolution than in library_b
     {
         "filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
         "resolution": "1280x720",
-        "size": "2"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
         "resolution": "1280x720",
-        "size": "10"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "Inception (2010) {tvdb-27205}.mp4",
         "resolution": "1280x720",
-        "size": "5"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "The Matrix (1999) {tvdb-603}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # in both libraries the same
     {
         "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "360x240",
-        "size": "2"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # in both libraries the same
     {
         "filename": "The Dark Knight (2008) {tvdb-155}.mp4",
         "resolution": "1280x720",
-        "size": "10"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "Forrest Gump (1994) {tvdb-13}.mp4",
-        "resolution": "720x480",
-        "size": "1"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # in both libraries the same
     {
         "filename": "Fight Club (1999) {tvdb-550}.mp4",
         "resolution": "640x360",
-        "size": "5"
+        "size": "3MB"
     },
     # only in library_a
     {
         "filename": "Interstellar (2014) {tvdb-157336}.mp4",
         "resolution": "640x360",
-        "size": "2"
+        "size": "3MB"
     },
     # only in library_a
     {
         "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "360x240",
-        "size": "1"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # less resolution and smaller filesize than in library_b
     {
         "filename": "Arrival (2016) {tvdb-329865}.mp4",
         "resolution": "1280x720",
-        "size": "1"
+        "size": "10MB"
     },
     # less resolution than in library_b
     {
         "filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
-        "resolution": "720x480",
-        "size": "5"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # less resolution and smaller filesize than in library_b
     {
         "filename": "Whiplash (2014) {tvdb-244786}.mp4",
         "resolution": "640x360",
-        "size": "2"
+        "size": "3MB"
     },
     # in both libraries the same
     {
         "filename": "The Lion King (1994) {tvdb-8587}.mp4",
-        "resolution": "360x240",
-        "size": "1"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # better resolution and greater filesize than in library_b
     {
         "filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
         "resolution": "1280x720",
-        "size": "10"
+        "size": "10MB"
     },
     # less resolution and smaller filesize than in library_b
     {
         "filename": "Goodfellas (1990) {tvdb-769}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # better resolution and greater filesize than in library_b
     {
         "filename": "Parasite (2019) {tvdb-496243}.mp4",
         "resolution": "640x360",
-        "size": "5"
+        "size": "3MB"
     },
     # in both libraries the same
     {
         "filename": "Spirited Away (2001) {tvdb-129}.mp4",
-        "resolution": "360x240",
-        "size": "2"
+        "resolution": "640x360",
+        "size": "3MB"
     },
 ]
 
@@ -192,145 +192,145 @@ library_b_movies: list[dict[str, object]] = [
     {
         "filename": "John Wick (2014) {tvdb-155}.mp4",
         "resolution": "1280x720",
-        "size": "1"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "John Wick 2 (2017) {tvdb-511}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # less resolution than in library_a
     {
         "filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # in both libraries the same
     {
         "filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
         "resolution": "1280x720",
-        "size": "10"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "Inception (2010) {tvdb-27205}.mp4",
         "resolution": "1280x720",
-        "size": "5"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "The Matrix (1999) {tvdb-603}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # in both libraries the same
     {
         "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "360x240",
-        "size": "2"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # in both libraries the same
     {
         "filename": "The Dark Knight (2008) {tvdb-155}.mp4",
         "resolution": "1280x720",
-        "size": "10"
+        "size": "10MB"
     },
     # in both libraries the same
     {
         "filename": "Forrest Gump (1994) {tvdb-13}.mp4",
-        "resolution": "720x480",
-        "size": "1"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # in both libraries the same
     {
         "filename": "Fight Club (1999) {tvdb-550}.mp4",
         "resolution": "640x360",
-        "size": "5"
+        "size": "3MB"
     },
     # special-char starter to exercise 0-9 bucket
     {
         "filename": "[REC] (2007) {tvdb-12345}.mp4",
         "resolution": "640x360",
-        "size": "5"
+        "size": "3MB"
     },
     # another in the series
     {
         "filename": "[REC] 2 (2009) {tvdb-12346}.mp4",
-        "resolution": "720x480",
-        "size": "2"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # only in library_b
     {
         "filename": "The Beekeeper (2024) {tvdb-349405}.mp4",
         "resolution": "1280x720",
-        "size": "1"
+        "size": "10MB"
     },
     # only in library_b
     {
         "filename": "Avatar (2009) {tvdb-19995}.mp4",
         "resolution": "640x360",
-        "size": "10"
+        "size": "3MB"
     },
     # only in library_b
     {
         "filename": "The Godfather (1972) {tvdb-238}.mp4",
-        "resolution": "360x240",
-        "size": "2"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # only in library_b
     {
         "filename": "Pulp Fiction (1994) {tvdb-680}.mp4",
-        "resolution": "720x480",
-        "size": "5"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # greater filesize than in library_a
     {
         "filename": "Interstellar (2014) {tvdb-157336}.mp4",
         "resolution": "640x360",
-        "size": "10"
+        "size": "3MB"
     },
     # better resolution and greater filesize than in library_a
     {
         "filename": "Arrival (2016) {tvdb-329865}.mp4",
         "resolution": "1920x1080",
-        "size": "5"
+        "size": "10MB"
     },
     # better resolution than in library_a
     {
         "filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
         "resolution": "640x360",
-        "size": "5"
+        "size": "3MB"
     },
     # better resolution and greater filesize than in library_a
     {
         "filename": "Whiplash (2014) {tvdb-244786}.mp4",
         "resolution": "1280x720",
-        "size": "2"
+        "size": "10MB"
     },
     # less resolution and smaller filesize than in library_a
     {
         "filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
-        "resolution": "720x480",
-        "size": "10"
+        "resolution": "640x480",
+        "size": "1.5MB"
     },
     # better resolution and greater filesize than in library_a
     {
         "filename": "Goodfellas (1990) {tvdb-769}.mp4",
         "resolution": "1280x720",
-        "size": "2"
+        "size": "10MB"
     },
     # less resolution and smaller filesize than in library_a
     {
         "filename": "Parasite (2019) {tvdb-496243}.mp4",
-        "resolution": "360x240",
-        "size": "5"
+        "resolution": "640x360",
+        "size": "3MB"
     },
     # in both libraries the same
     {
         "filename": "Spirited Away (2001) {tvdb-129}.mp4",
-        "resolution": "360x240",
-        "size": "2"
+        "resolution": "640x360",
+        "size": "3MB"
     },
 ]
 
