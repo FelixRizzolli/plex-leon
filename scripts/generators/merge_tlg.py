@@ -32,37 +32,16 @@ Re-running is safe and will skip downloads and copies that already exist.
 
 from __future__ import annotations
 
-
-from dataclasses import dataclass
 import random
 import re
 from pathlib import Path
 from typing import Iterable
 import shutil
 import sys
-import urllib.request
-from .base_test_library_generator import BaseTestLibraryGenerator
-
-# Import downloads array from downloads.py
-import importlib.util
-import os
-
-# Dynamically import downloads.py to get the downloads array
-
-
-def get_downloads():
-    script_dir = Path(__file__).parent
-    downloads_path = script_dir / "downloads.py"
-    spec = importlib.util.spec_from_file_location(
-        "downloads", str(downloads_path))
-    downloads_mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(downloads_mod)  # type: ignore
-    return downloads_mod.downloads
+from base_test_library_generator import BaseTestLibraryGenerator
 
 
 # Configuration ----------------------------------------------------------------
-
-downloads = get_downloads()
 
 library_a_movies: list[dict[str, object]] = [
     # in both libraries the same
@@ -357,52 +336,22 @@ library_b_tvshows: list[str] = [
 
 # Helpers ----------------------------------------------------------------------
 
-@dataclass(frozen=True)
-class DownloadSpec:
-    resolution: str
-    size: str
-    url: str
+def build_cache_mapping(temp_dir: Path) -> dict[tuple[str, str], Path]:
+    """Build a (resolution, size) -> Path mapping from downloaded files in temp_dir.
 
-
-def repo_root() -> Path:
-    # scripts/ is one level below repo root
-    return Path(__file__).resolve().parents[1]
-
-
-def download_to(path: Path, url: str, *, overwrite: bool = False) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() and path.stat().st_size > 0 and not overwrite:
-        print(f"skip download (exists): {path}")
-        return
-    print(f"downloading: {url} -> {path}")
-    tmp = path.with_suffix(path.suffix + ".part")
-    try:
-        with urllib.request.urlopen(url, timeout=60) as resp, open(tmp, "wb") as f:
-            while True:
-                chunk = resp.read(1024 * 256)
-                if not chunk:
-                    break
-                f.write(chunk)
-        tmp.replace(path)
-    except Exception as e:  # noqa: BLE001
-        print(f"ERROR: failed to download {url}: {e}")
-        # create a small placeholder so subsequent steps can proceed
-        if not path.exists():
-            path.write_bytes(b"")
-
-
-def ensure_download_cache(temp_dir: Path, specs: Iterable[DownloadSpec]) -> dict[tuple[str, str], Path]:
-    """Ensure sample videos are present in temp_dir, keyed by (resolution, size)."""
+    Parses filenames like 'sample_640x480_1.5MB.mp4' to extract resolution and size.
+    """
     mapping: dict[tuple[str, str], Path] = {}
-    for spec in specs:
-        # preserve extension from URL if present
-        ext = ".mp4"
-        url_path = spec.url.split("?")[0]
-        if "." in url_path.rsplit("/", 1)[-1]:
-            ext = "." + url_path.rsplit(".", 1)[-1]
-        dest = temp_dir / f"sample_{spec.resolution}_{spec.size}{ext}"
-        download_to(dest, spec.url)
-        mapping[(spec.resolution, spec.size)] = dest
+    for path in temp_dir.iterdir():
+        if not path.is_file() or not path.name.startswith("sample_"):
+            continue
+        # Parse: sample_640x480_1.5MB.mp4 -> ('640x480', '1.5MB')
+        stem = path.stem  # removes extension
+        parts = stem.split("_")
+        if len(parts) >= 3:
+            resolution = parts[1]
+            size = "_".join(parts[2:])  # handle cases like "1.5MB" or "10MB"
+            mapping[(resolution, size)] = path
     return mapping
 
 
@@ -673,7 +622,6 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
     def execute(self, argv: list[str] | None = None) -> int:
         # Base directory under repo: data/
         base = self.repo_root / "data"
-        temp = base / "temp"
         lib_a = base / "library-a"
         lib_b = base / "library-b"
         lib_c = base / "library-c"
@@ -688,7 +636,8 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
             force = True
 
         # Remove and recreate target folders to ensure deterministic generation
-        for d in (base, temp, lib_a, lib_b, lib_c):
+        # Note: temp_dir is already created by base class run() method
+        for d in (lib_a, lib_b, lib_c):
             if d.exists() and not force:
                 resp = input(
                     f"Target {d} exists. Delete it and recreate? [y/N]: ")
@@ -699,10 +648,8 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
                 shutil.rmtree(d)
             d.mkdir(parents=True, exist_ok=True)
 
-        # Prepare download specs and cache
-        specs = [DownloadSpec(str(d["resolution"]), str(d["size"]), str(d["url"]))
-                 for d in downloads]
-        cache = ensure_download_cache(temp, specs)
+        # Build cache mapping from downloaded files (already done by base class)
+        cache = build_cache_mapping(self.temp_dir)
 
         # Populate library A movies
         for entry in library_a_movies:
