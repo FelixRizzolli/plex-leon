@@ -1,5 +1,9 @@
 """Shared TV show configuration for test library generators."""
 
+import random
+import re
+from typing import List, Optional, Set, Dict
+
 # Consolidated TV show data with episode counts
 tvshows: list[dict[str, object]] = [
     {
@@ -131,3 +135,56 @@ tvshows: list[dict[str, object]] = [
         "episodes": {1: 10},
     },
 ]
+
+
+# Regular expression to extract TVDB id from the show name
+_TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
+
+
+def random_tvshows(items: int = 1, *, seed: Optional[int] = None, exclude: Optional[Set[str]] = None) -> List[dict[str, object]]:
+    """Return a list of unique random TV show entries from `tvshows`.
+
+    Parameters
+    - items: number of items to return
+    - seed: optional seed for deterministic selection
+    - exclude: optional set of strings to exclude; each value may be either
+      the full show name (e.g. "Game of Thrones (2011) {tvdb-121361}") or a
+      TVDB id string (e.g. "121361").
+
+    The function returns up to `items` unique shows. If `items` is greater
+    than the number of available (non-excluded) shows, all available shows
+    are returned in a random order.
+    """
+    rng = random.Random(seed)
+    exclude = set(exclude or set())
+
+    # Filter candidates respecting exclude (by full name or tvdb id)
+    candidates: List[dict[str, object]] = []
+    for show in tvshows:
+        name = show.get("name")
+        if not isinstance(name, str):
+            continue
+        # Extract tvdb id if present
+        m = _TVDB_RE.search(name)
+        tvdb_id = m.group(1) if m else None
+
+        if name in exclude or (tvdb_id and tvdb_id in exclude):
+            continue
+        candidates.append(show)
+
+    # If not enough candidates, return all in shuffled order
+    if items >= len(candidates):
+        rng.shuffle(candidates)
+        return candidates.copy()
+
+    # Otherwise pick a random sample of unique entries
+    picked = rng.sample(candidates, items)
+    return picked
+
+
+def filter_shows(names: list[str]) -> list[dict[str, object]]:
+    """Return TV shows matching the given names.
+
+    Backwards-compatible helper used by generator scripts.
+    """
+    return [show for show in tvshows if show["name"] in names]
