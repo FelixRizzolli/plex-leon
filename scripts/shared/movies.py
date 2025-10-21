@@ -1,6 +1,12 @@
 """Shared movie configuration: single unique `movies` list."""
+from __future__ import annotations
 
-# Consolidated, unique list of movie titles (no file extension)
+import random
+import re
+from typing import List, Optional, Set
+
+
+"""Consolidated, unique list of movie titles (no file extension)."""
 movies: list[str] = [
     "John Wick (2014) {tvdb-155}",
     "John Wick 2 (2017) {tvdb-511}",
@@ -40,9 +46,9 @@ movies: list[str] = [
     "Barbie (2023) {tvdb-16612}",
     "Battleship (2012) {tvdb-972}",
     "American Sniper (2014) {tvdb-792}",
-    "After Earth (2013) {tvdb-1990}"
+    "After Earth (2013) {tvdb-1990}",
     "Avatar (2009) {tvdb-165}",
-    "Avatar - The Way of Water {tvdb-5483}"
+    "Avatar - The Way of Water {tvdb-5483}",
     "The Matrix (1999) {tvdb-169}",
     "The Matrix Reloaded (2003) {tvdb-553}",
     "The Matrix Revolutions (2003) {tvdb-687}",
@@ -69,3 +75,45 @@ movies: list[str] = [
     "28 Weeks Later (2007) {tvdb-835}",
     "28 Years Later (2025) {tvdb-307356}",
 ]
+
+
+# Regular expression to extract TVDB id from a title like '{tvdb-12345}'
+_TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
+
+
+def random_movies(items: int = 1, *, seed: Optional[int] = None, exclude: Optional[Set[str]] = None) -> List[str]:
+    """Return up to `items` unique random movie titles from `movies`.
+
+    Parameters
+    - items: number of items to return
+    - seed: optional seed for deterministic selection
+    - exclude: optional set of strings to exclude; each value may be either
+      the full movie title (e.g. "John Wick (2014) {tvdb-155}") or a TVDB id
+      string (e.g. "155").
+
+    If `items` is greater than available candidates, all candidates are
+    returned in shuffled order.
+    """
+    rng = random.Random(seed)
+    exclude = set(exclude or set())
+
+    candidates: List[str] = []
+    for title in movies:
+        if title in exclude:
+            continue
+        m = _TVDB_RE.search(title)
+        tvdb_id = m.group(1) if m else None
+        if tvdb_id and tvdb_id in exclude:
+            continue
+        candidates.append(title)
+
+    if items >= len(candidates):
+        rng.shuffle(candidates)
+        return candidates.copy()
+
+    return rng.sample(candidates, items)
+
+
+def filter_movies(names: List[str]) -> List[str]:
+    """Return movie titles that exactly match names (backwards compatibility)."""
+    return [m for m in movies if m in names]
