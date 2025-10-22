@@ -2,7 +2,7 @@
 
 import random
 import re
-from typing import List, Optional, Set, Dict
+from typing import List, Optional, Set
 
 # Consolidated TV show data with episode counts
 tvshows: list[dict[str, object]] = [
@@ -180,6 +180,7 @@ def random_tvshows(items: int = 1, *, seed: Optional[int] = None, exclude: Optio
     # Otherwise pick a random sample of unique entries
     picked = rng.sample(candidates, items)
     return picked
+
 
 def random_episode_title(rng: random.Random, tvdb: str, season: int, ep: int) -> str:
     # Always generate a plausible synthetic title

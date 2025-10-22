@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib.util
 import logging
-import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path

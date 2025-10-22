@@ -25,7 +25,6 @@ Re-running is safe and will skip copies that already exist.
 from __future__ import annotations
 
 import random
-import re
 from pathlib import Path
 from typing import Iterable
 import sys

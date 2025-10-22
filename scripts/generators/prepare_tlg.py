@@ -33,7 +33,6 @@ generator produces multiple seasons per show where configured.
 from __future__ import annotations
 
 from pathlib import Path
-import re
 import sys
 import shutil
 from base_test_library_generator import BaseTestLibraryGenerator
