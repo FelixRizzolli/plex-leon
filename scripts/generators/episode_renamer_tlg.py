@@ -27,7 +27,6 @@ from __future__ import annotations
 import random
 import re
 from pathlib import Path
-from base_test_library_generator import BaseTestLibraryGenerator
 from typing import Iterable
 import sys
 import shutil
@@ -40,6 +39,7 @@ if __name__ == "__main__" and __package__ is None:
         sys.path.insert(0, str(_repo_root))
 
 from scripts.shared.tvshows import tvshows as shared_tvshows
+from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 
 
 def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
