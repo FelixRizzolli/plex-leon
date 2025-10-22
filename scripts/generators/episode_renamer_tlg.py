@@ -32,40 +32,30 @@ from typing import Iterable
 import sys
 import shutil
 
-# --- TV show config (copied from generate_merge_test_libraries.py) ---
-library_a_tvshows = [
-    "Classroom of the Elite (2017) {tvdb-329822}",
-    "Code Geass (2006) {tvdb-79525}",
-    "Game of Thrones (2011) {tvdb-121361}",
-    "Attack on Titan (2013) {tvdb-267440}",
-    "Death Note (2006) {tvdb-79434}",
-    "Overlord (2015) {tvdb-295068}",
-    "Breaking Bad (2008) {tvdb-81189}",
-    "The Day of the Jackal (1973) {tvdb-80379}",
-]
-library_b_tvshows = [
-    "Game of Thrones (2011) {tvdb-121361}",
-    "Attack on Titan (2013) {tvdb-267440}",
-    "My Name (2021) {tvdb-410235}",
-    "Squid Game (2021) {tvdb-407183}",
-    "One Punch Man (2015) {tvdb-299880}",
-    "Breaking Bad (2008) {tvdb-81189}",
-]
+# When executed directly, ensure repository root is on sys.path so
+# `scripts.shared.tvshows` can be imported the same way other generators do.
+if __name__ == "__main__" and __package__ is None:
+    _repo_root = Path(__file__).resolve().parents[2]
+    if str(_repo_root) not in sys.path:
+        sys.path.insert(0, str(_repo_root))
 
-# Known season/episode counts for the sample shows we generate
-EPISODE_MAP: dict[str, dict[int, int]] = {
-    "121361": {1: 10, 2: 10, 3: 10, 4: 10, 5: 10, 6: 10, 7: 7, 8: 6},
-    "79525": {1: 25, 2: 25},
-    "329822": {1: 12, 2: 13, 3: 13},
-    "267440": {1: 25, 2: 12, 3: 22, 4: 28},
-    "79434": {1: 37},
-    "295068": {1: 13, 2: 13, 3: 13, 4: 13},
-    "81189": {1: 7, 2: 13, 3: 13, 4: 13, 5: 16},
-    "80379": {1: 1},
-    "410235": {1: 8},
-    "407183": {1: 9},
-    "299880": {1: 12, 2: 12},
-}
+from scripts.shared.tvshows import tvshows as shared_tvshows
+
+
+def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
+    """Return the episodes mapping for a TVDB id by looking it up in
+    `scripts.shared.tvshows.tvshows`. Returns None if not found."""
+    _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
+    for s in shared_tvshows:
+        name = s.get("name")
+        episodes = s.get("episodes")
+        if not isinstance(name, str) or not isinstance(episodes, dict):
+            continue
+        m = _TVDB_RE.search(name)
+        if m and m.group(1) == tvdb:
+            return episodes
+    return None
+
 
 _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
 _YEAR_RE = re.compile(r"\s*\((\d{4})\)")
@@ -143,7 +133,8 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
         print(f"mkdir: {show_dir}")
-        if not tvdb or tvdb not in EPISODE_MAP:
+        seasons = _episodes_for_tvdb(tvdb) if tvdb else None
+        if not tvdb or seasons is None:
             continue
 
         # Decide per-show filename variations
@@ -155,7 +146,9 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         title_with_year = show.split(" {")[0].strip()
         title_no_year = _strip_year(title_with_year)
 
-        seasons = EPISODE_MAP[tvdb]
+        # seasons mapping for this show (dict[season_num] = episode_count)
+        # retrieved from centralized `scripts.shared.tvshows` data
+        # (already assigned above to `seasons`).
         for season_num in sorted(seasons.keys()):
             season_dir = show_dir / f"Season {season_num:02d}"
             season_dir.mkdir(parents=True, exist_ok=True)
@@ -241,7 +234,8 @@ class EpisodeRenamerTLG(BaseTestLibraryGenerator):
     BaseTestLibraryGenerator.run() template.
     """
 
-    # type: ignore[override]
+    # Will use `shared_tvshows` directly to build the list of shows.
+
     def execute(self, argv: list[str] | None = None) -> int:
         base = self.repo_root / "data" / "library-e"
         if argv is None:
@@ -261,8 +255,9 @@ class EpisodeRenamerTLG(BaseTestLibraryGenerator):
             shutil.rmtree(base)
 
         base.mkdir(parents=True, exist_ok=True)
-        # Use all unique TV shows from both libraries
-        all_tvshows = sorted(set(library_a_tvshows + library_b_tvshows))
+
+        all_tvshows = [s["name"]
+                       for s in shared_tvshows if isinstance(s.get("name"), str)]
         create_seasons_and_episodes(base, all_tvshows, seed=1337)
         print("Done.")
         return 0
