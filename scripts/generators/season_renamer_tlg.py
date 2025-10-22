@@ -124,11 +124,11 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 
 def main(argv: list[str] | None = None) -> int:
-    gen = SeasonRenamerTLG()
+    gen = SeasonRenamerTestLibraryGenerator()
     return gen.run(argv)
 
 
-class SeasonRenamerTLG(BaseTestLibraryGenerator):
+class SeasonRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
     """Generator for season renamer test library (library-s)."""
 
     # type: ignore[override]

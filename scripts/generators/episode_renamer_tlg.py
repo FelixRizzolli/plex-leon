@@ -222,12 +222,11 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
 
 def main(argv: list[str] | None = None) -> int:
-    # Delegate to the EpisodeRenamerTLG for behavior
-    gen = EpisodeRenamerTLG()
+    gen = EpisodeRenamerTestLibraryGenerator()
     return gen.run(argv)
 
 
-class EpisodeRenamerTLG(BaseTestLibraryGenerator):
+class EpisodeRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
     """Generator for episode renamer test library.
 
     This class wraps the script behavior and provides `execute()` for the
