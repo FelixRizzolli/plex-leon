@@ -10,8 +10,10 @@ data/
   library-c/
 
 For each movie listed below, a sample clip is copied from the cached downloads
-into the corresponding library, using the exact filename provided. TV shows are
-created as empty folders only.
+into the corresponding library, using the exact filename provided. TV shows
+are created with Season folders and episode files when episode counts are
+available in the centralized `scripts.shared.tvshows` data; otherwise a
+show folder will be created empty.
 
 Production-like layout note:
 - library-a keeps a flat layout (files/folders directly under library-a)
@@ -50,13 +52,6 @@ if __name__ == "__main__" and __package__ is None:
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 from scripts.shared.movies import random_movies
 from scripts.shared.tvshows import random_tvshows, tvshows as shared_tvshows
-
-
-# Configuration ----------------------------------------------------------------
-
-# Note: TV show lists and episode counts are derived from the shared
-# `scripts.shared.tvshows` module below. Per-request we do not keep the
-# previous hard-coded `library_a_tvshows` / `library_b_tvshows` lists here.
 
 
 # Helpers ----------------------------------------------------------------------
@@ -333,6 +328,8 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
 
     library_a_movies: list[dict[str, object]]
     library_b_movies: list[dict[str, object]]
+    library_a_tvshows: list[str]
+    library_b_tvshows: list[str]
 
     def _create_movie_libraries(self):
         """Populate `self.library_a_movies` and `self.library_b_movies`.
