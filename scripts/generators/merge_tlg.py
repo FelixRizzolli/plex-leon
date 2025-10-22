@@ -51,7 +51,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 from scripts.shared.movies import random_movies
-from scripts.shared.tvshows import random_tvshows, tvshows as shared_tvshows
+from scripts.shared.tvshows import random_tvshows, get_tvshow_episodes, tvshows as shared_tvshows
 
 
 # Helpers ----------------------------------------------------------------------
@@ -116,24 +116,6 @@ def _tvdb_id_from_name(name: str) -> str | None:
     return m.group(1) if m else None
 
 
-# Episode map is derived from `scripts.shared.tvshows` (see below). The
-# previous hard-coded EPISODE_MAP has been removed to avoid duplication.
-
-def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
-    """Return the episodes mapping for a TVDB id by looking it up in
-    `scripts.shared.tvshows.tvshows`. Returns None if not found.
-    """
-    for s in shared_tvshows:
-        name = s.get("name")
-        episodes = s.get("episodes")
-        if not isinstance(name, str) or not isinstance(episodes, dict):
-            continue
-        m = _TVDB_RE.search(name)
-        if m and m.group(1) == tvdb:
-            return episodes
-    return None
-
-
 def _distinct_cache_keys(cache: dict[tuple[str, str], Path]) -> list[tuple[str, str]]:
     # Return a stable-ordered list of resolution/size combos
     return sorted(cache.keys())
@@ -170,7 +152,7 @@ def create_seasons_and_episodes(
 
     for show in show_names:
         tvdb = _tvdb_id_from_name(show)
-        seasons = _episodes_for_tvdb(tvdb) if tvdb else None
+        seasons = get_tvshow_episodes(tvdb) if tvdb else None
         if not tvdb or seasons is None:
             # Create the show folder at least (and continue)
             target = (_show_dir_for_lib_b(base, show)
@@ -178,7 +160,7 @@ def create_seasons_and_episodes(
             target.mkdir(parents=True, exist_ok=True)
             print(f"mkdir: {target}")
             continue
-        # seasons was retrieved via _episodes_for_tvdb
+        # seasons was retrieved via get_tvshow_episodes
         show_dir = (_show_dir_for_lib_b(base, show)
                     if bucketed else (base / show))
         show_dir.mkdir(parents=True, exist_ok=True)

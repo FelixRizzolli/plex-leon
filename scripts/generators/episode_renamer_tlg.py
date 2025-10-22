@@ -38,23 +38,8 @@ if __name__ == "__main__" and __package__ is None:
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.shared.tvshows import tvshows as shared_tvshows
+from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
-
-
-def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
-    """Return the episodes mapping for a TVDB id by looking it up in
-    `scripts.shared.tvshows.tvshows`. Returns None if not found."""
-    _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
-    for s in shared_tvshows:
-        name = s.get("name")
-        episodes = s.get("episodes")
-        if not isinstance(name, str) or not isinstance(episodes, dict):
-            continue
-        m = _TVDB_RE.search(name)
-        if m and m.group(1) == tvdb:
-            return episodes
-    return None
 
 
 _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
@@ -133,7 +118,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
         print(f"mkdir: {show_dir}")
-        seasons = _episodes_for_tvdb(tvdb) if tvdb else None
+        seasons = get_tvshow_episodes(tvdb) if tvdb else None
         if not tvdb or seasons is None:
             continue
 

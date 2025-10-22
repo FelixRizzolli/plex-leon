@@ -35,24 +35,7 @@ if __name__ == "__main__" and __package__ is None:
         sys.path.insert(0, str(_repo_root))
 
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
-from scripts.shared.tvshows import tvshows as shared_tvshows
-
-
-def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
-    """Lookup episodes dict for a tvdb id in `scripts.shared.tvshows.tvshows`.
-
-    Returns None if not found.
-    """
-    _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
-    for s in shared_tvshows:
-        name = s.get("name")
-        episodes = s.get("episodes")
-        if not isinstance(name, str) or not isinstance(episodes, dict):
-            continue
-        m = _TVDB_RE.search(name)
-        if m and m.group(1) == tvdb:
-            return episodes
-    return None
+from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 
 
 _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
@@ -69,6 +52,7 @@ def repo_root() -> Path:
 
 def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: int | None = 42) -> None:
     rng = random.Random(seed)
+
     # Season folder name variants (with typos, casing, and language variants)
     season_variants = [
         "Season {num:02d}",
@@ -91,8 +75,9 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         "S {num:02d}",       # short
         "S-{num:02d}",       # short/alt
     ]
+
     # Assign a random variant per show, but keep it consistent for all seasons of that show
-    show_to_variant = {}
+    show_to_variant: dict[str, str] = {}
     for show in show_names:
         show_to_variant[show] = rng.choice(season_variants)
 
@@ -103,9 +88,11 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         print(f"mkdir: {show_dir}")
         if not tvdb:
             continue
-        seasons = _episodes_for_tvdb(tvdb)
+
+        seasons = get_tvshow_episodes(tvdb)
         if seasons is None:
             continue
+
         title_prefix = show.split(" {")[0].strip()
         season_fmt = show_to_variant[show]
         for season_num in sorted(seasons.keys()):

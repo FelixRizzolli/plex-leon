@@ -188,3 +188,19 @@ def filter_shows(names: list[str]) -> list[dict[str, object]]:
     Backwards-compatible helper used by generator scripts.
     """
     return [show for show in tvshows if show["name"] in names]
+
+
+def get_tvshow_episodes(tvdb: str) -> dict[int, int] | None:
+    """Return the episodes mapping for a TVDB id by looking it up in `tvshows`.
+
+    Returns None if no matching show with episodes is found.
+    """
+    for s in tvshows:
+        name = s.get("name")
+        episodes = s.get("episodes")
+        if not isinstance(name, str) or not isinstance(episodes, dict):
+            continue
+        m = _TVDB_RE.search(name)
+        if m and m.group(1) == tvdb:
+            return episodes
+    return None

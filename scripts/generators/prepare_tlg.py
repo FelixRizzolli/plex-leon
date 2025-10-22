@@ -45,7 +45,8 @@ if __name__ == "__main__" and __package__ is None:
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.shared.tvshows import tvshows as shared_tvshows
+
+from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 
 
 ROOT_REL = Path("data") / "library-p"
@@ -65,22 +66,6 @@ SHOW_GROUPS: dict[str, list[str]] = {
         "The Day of the Jackal (1973) {tvdb-426866}",
     ],
 }
-
-
-def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
-    """Return the episodes mapping for a TVDB id by looking it up in
-    `scripts.shared.tvshows.tvshows`. Returns None if not found.
-    """
-    _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
-    for s in shared_tvshows:
-        name = s.get("name")
-        episodes = s.get("episodes")
-        if not isinstance(name, str) or not isinstance(episodes, dict):
-            continue
-        m = _TVDB_RE.search(name)
-        if m and m.group(1) == tvdb:
-            return episodes
-    return None
 
 
 def _base_show_name(folder_name: str) -> str:
@@ -116,7 +101,7 @@ def create_library(root: Path) -> None:
             # Naming Pattern S01E01 (special casing Classroom)
             tvdb = show.split(
                 " {tvdb-")[-1].rstrip("}") if "{tvdb-" in show else None
-            seasons = _episodes_for_tvdb(tvdb) if tvdb else None
+            seasons = get_tvshow_episodes(tvdb) if tvdb else None
             if base_name == "Classroom of the Elite":
                 if not seasons:
                     continue
