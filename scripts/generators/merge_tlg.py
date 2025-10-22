@@ -49,29 +49,14 @@ if __name__ == "__main__" and __package__ is None:
 
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 from scripts.shared.movies import random_movies
+from scripts.shared.tvshows import random_tvshows, tvshows as shared_tvshows
 
 
 # Configuration ----------------------------------------------------------------
 
-library_a_tvshows: list[str] = [
-    "Classroom of the Elite (2017) {tvdb-329822}",  # Only in A
-    "Code Geass (2006) {tvdb-79525}",  # Only in A
-    "Game of Thrones (2011) {tvdb-121361}",  # In both
-    "Attack on Titan (2013) {tvdb-267440}",  # Only in A
-    "Death Note (2006) {tvdb-79434}",  # Only in A
-    "Overlord (2015) {tvdb-295068}",  # Only in A
-    "Breaking Bad (2008) {tvdb-81189}",  # In both, different quality
-    "The Day of the Jackal (1973) {tvdb-80379}",  # Only in A
-]
-
-library_b_tvshows: list[str] = [
-    "Game of Thrones (2011) {tvdb-121361}",  # In both
-    "Attack on Titan (2013) {tvdb-267440}",  # In both
-    "My Name (2021) {tvdb-410235}",  # Only in B
-    "Squid Game (2021) {tvdb-407183}",  # Only in B
-    "One Punch Man (2015) {tvdb-299880}",  # Only in B
-    "Breaking Bad (2008) {tvdb-81189}",  # In both, different quality
-]
+# Note: TV show lists and episode counts are derived from the shared
+# `scripts.shared.tvshows` module below. Per-request we do not keep the
+# previous hard-coded `library_a_tvshows` / `library_b_tvshows` lists here.
 
 
 # Helpers ----------------------------------------------------------------------
@@ -136,75 +121,22 @@ def _tvdb_id_from_name(name: str) -> str | None:
     return m.group(1) if m else None
 
 
-# Known season/episode counts for the sample shows we generate
-# Keys are TVDB IDs as strings
-EPISODE_MAP: dict[str, dict[int, int]] = {
-    # Game of Thrones (2011)
-    "121361": {
-        1: 10,
-        2: 10,
-        3: 10,
-        4: 10,
-        5: 10,
-        6: 10,
-        7: 7,
-        8: 6,
-    },
-    # Code Geass: Lelouch of the Rebellion (2006) — two 25-episode seasons
-    "79525": {
-        1: 25,
-        2: 25,
-    },
-    # Classroom of the Elite — S1:12, S2:13, S3:13
-    "329822": {
-        1: 12,
-        2: 13,
-        3: 13,
-    },
-    # Attack on Titan (2013)
-    "267440": {
-        1: 25,
-        2: 12,
-        3: 22,
-        4: 28,
-    },
-    # Death Note (2006)
-    "79434": {
-        1: 37,
-    },
-    # Overlord (2015)
-    "295068": {
-        1: 13,
-        2: 13,
-        3: 13,
-        4: 13,
-    },
-    # Breaking Bad (2008)
-    "81189": {
-        1: 7,
-        2: 13,
-        3: 13,
-        4: 13,
-        5: 16,
-    },
-    # The Day of the Jackal (1973) - treat as 1 season, 1 episode (movie as show)
-    "80379": {
-        1: 1,
-    },
-    # My Name (2021)
-    "410235": {
-        1: 8,
-    },
-    # Squid Game (2021)
-    "407183": {
-        1: 9,
-    },
-    # One Punch Man (2015)
-    "299880": {
-        1: 12,
-        2: 12,
-    },
-}
+# Episode map is derived from `scripts.shared.tvshows` (see below). The
+# previous hard-coded EPISODE_MAP has been removed to avoid duplication.
+
+def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
+    """Return the episodes mapping for a TVDB id by looking it up in
+    `scripts.shared.tvshows.tvshows`. Returns None if not found.
+    """
+    for s in shared_tvshows:
+        name = s.get("name")
+        episodes = s.get("episodes")
+        if not isinstance(name, str) or not isinstance(episodes, dict):
+            continue
+        m = _TVDB_RE.search(name)
+        if m and m.group(1) == tvdb:
+            return episodes
+    return None
 
 
 def _distinct_cache_keys(cache: dict[tuple[str, str], Path]) -> list[tuple[str, str]]:
@@ -243,15 +175,15 @@ def create_seasons_and_episodes(
 
     for show in show_names:
         tvdb = _tvdb_id_from_name(show)
-        if not tvdb or tvdb not in EPISODE_MAP:
+        seasons = _episodes_for_tvdb(tvdb) if tvdb else None
+        if not tvdb or seasons is None:
             # Create the show folder at least (and continue)
             target = (_show_dir_for_lib_b(base, show)
                       if bucketed else (base / show))
             target.mkdir(parents=True, exist_ok=True)
             print(f"mkdir: {target}")
             continue
-
-        seasons = EPISODE_MAP[tvdb]
+        # seasons was retrieved via _episodes_for_tvdb
         show_dir = (_show_dir_for_lib_b(base, show)
                     if bucketed else (base / show))
         show_dir.mkdir(parents=True, exist_ok=True)
@@ -380,7 +312,16 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
     The generator creates deterministic movie selections using the
     `random_movies` helper (seeded) and builds consistent movie dicts via
     `movie_dict`. TV show folders (with seasons/episodes) are created using
-    `create_seasons_and_episodes`.
+    `create_seasons_and_episodes`; episode counts are looked up from the
+    centralized `scripts.shared.tvshows` data (not from a local EPISODE_MAP).
+
+    Attributes
+    ----------
+    library_a_movies, library_b_movies : list[dict]
+            Populated by `_create_movie_libraries` before `execute` copies files.
+    library_a_tvshows, library_b_tvshows : list[str]
+            Populated by `_create_tvshow_libraries` and used by `execute` to
+            determine which TV show folders to create for each library.
 
     Attributes
     ----------
@@ -392,8 +333,6 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
 
     library_a_movies: list[dict[str, object]]
     library_b_movies: list[dict[str, object]]
-    library_a_tvshows
-    library_b_tvshows
 
     def _create_movie_libraries(self):
         """Populate `self.library_a_movies` and `self.library_b_movies`.
@@ -476,6 +415,56 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
             self.library_b_movies.append(movie_dict(
                 title, resolution="640x480", fmt="mp4", size="1.5MB"))
 
+    def _create_tvshow_libraries(self, *, seed: int | None = None) -> None:
+        """Populate `self.library_a_tvshows` and `self.library_b_tvshows`.
+
+        Build disjoint TV-show categories mirroring the movie categories and
+        store folder-name strings on the instance:
+
+        - `both`: shows present in both libraries (identical)
+        - `better_in_a`: shows where A has better quality than B
+        - `better_in_b`: shows where B has better quality than A
+        - `filesize_a` / `filesize_b`: shows with filesize mismatches
+        - `only_a` / `only_b`: shows unique to each library
+
+        Selections are deterministic when a `seed` is provided. The method
+        uses `random_tvshows(...)` and an `exclude` set to ensure categories
+        do not overlap.
+        """
+        exclude: set[str] = set()
+
+        # both libraries
+        both = random_tvshows(4, seed=(seed or 200))
+        exclude.update([s["name"] for s in both])
+
+        # quality/size variants
+        better_in_a = random_tvshows(3, seed=(seed or 201), exclude=exclude)
+        exclude.update([s["name"] for s in better_in_a])
+        better_in_b = random_tvshows(3, seed=(seed or 202), exclude=exclude)
+        exclude.update([s["name"] for s in better_in_b])
+
+        filesize_a = random_tvshows(2, seed=(seed or 203), exclude=exclude)
+        exclude.update([s["name"] for s in filesize_a])
+        filesize_b = random_tvshows(2, seed=(seed or 204), exclude=exclude)
+        exclude.update([s["name"] for s in filesize_b])
+
+        # unique-to-each
+        only_a = random_tvshows(3, seed=(seed or 205), exclude=exclude)
+        exclude.update([s["name"] for s in only_a])
+        only_b = random_tvshows(3, seed=(seed or 206), exclude=exclude)
+        exclude.update([s["name"] for s in only_b])
+
+        # Compose instance lists: combine 'both' + appropriate variants
+        self.library_a_tvshows = [s["name"] for s in both]
+        self.library_a_tvshows += [s["name"] for s in better_in_a]
+        self.library_a_tvshows += [s["name"] for s in filesize_a]
+        self.library_a_tvshows += [s["name"] for s in only_a]
+
+        self.library_b_tvshows = [s["name"] for s in both]
+        self.library_b_tvshows += [s["name"] for s in better_in_b]
+        self.library_b_tvshows += [s["name"] for s in filesize_b]
+        self.library_b_tvshows += [s["name"] for s in only_b]
+
     def execute(self, argv: list[str] | None = None) -> int:
         """Generate the `data/` libraries and return an exit code.
 
@@ -535,6 +524,8 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
 
         # Populate library A movies (generate lists deterministically)
         self._create_movie_libraries()
+        # Populate tvshow lists deterministically as well
+        self._create_tvshow_libraries(seed=1234)
         for entry in self.library_a_movies:
             # e.g., "John Wick (2014) {tvdb-155}.mp4"
             fname = str(entry["filename"])
@@ -562,13 +553,13 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
 
         # Create TV show folders and populate with seasons/episodes
         create_seasons_and_episodes(
-            lib_a, library_a_tvshows, cache, bucketed=False, seed=123)
+            lib_a, self.library_a_tvshows, cache, bucketed=False, seed=123)
         # For library-b, TV shows are flat (no buckets). Migrate any legacy
         # bucketed folders back to flat, then create seasons/episodes.
-        for show in library_b_tvshows:
+        for show in self.library_b_tvshows:
             ensure_tv_folder_flat(lib_b, show)
         create_seasons_and_episodes(
-            lib_b, library_b_tvshows, cache, bucketed=False, seed=456)
+            lib_b, self.library_b_tvshows, cache, bucketed=False, seed=456)
 
         print("Done.")
         return 0
