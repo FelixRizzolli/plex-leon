@@ -38,24 +38,13 @@ if __name__ == "__main__" and __package__ is None:
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.shared import get_tvdb_id_from_name, strip_year_from_name
+from scripts.shared import get_tvdb_id_from_name, strip_year_from_name, random_episode_title
 from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 
 
 def repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
-
-
-def _random_title(rng: random.Random, tvdb: str, season: int, ep: int) -> str:
-    # Always generate a plausible synthetic title
-    words1 = ["Dark", "New", "Last", "First", "Broken",
-              "Lost", "Silent", "Hidden", "Fallen", "Rising"]
-    words2 = ["Path", "Secret", "Empire", "Deal", "Code",
-              "Game", "Name", "Power", "Throne", "Note"]
-    words3 = ["Begins", "Returns", "Awakening", "Legacy", "Gambit",
-              "Oath", "Trial", "Reckoning", "Echoes", "Horizon"]
-    return f"{rng.choice(words1)} {rng.choice(words2)} {rng.choice(words3)}"
 
 
 def _introduce_typos(text: str, rng: random.Random, intensity: float = 0.15) -> str:
@@ -138,7 +127,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
                     ep_end = ep_num + 1
                     # Choose per-file whether to add a title and whether to add a tiny typo
                     add_title = include_titles and rng.random() < 0.85
-                    episode_title = _random_title(
+                    episode_title = random_episode_title(
                         rng, tvdb, season_num, ep_start) if add_title else ""
                     if episode_title and rng.random() < 0.35:
                         episode_title = _introduce_typos(episode_title, rng)
@@ -168,7 +157,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
                 else:
                     # Single episode file as before
                     add_title = include_titles and rng.random() < 0.85
-                    episode_title = _random_title(
+                    episode_title = random_episode_title(
                         rng, tvdb, season_num, ep_num) if add_title else ""
                     if episode_title and rng.random() < 0.35:
                         episode_title = _introduce_typos(episode_title, rng)

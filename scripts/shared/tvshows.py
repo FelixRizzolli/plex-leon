@@ -181,6 +181,16 @@ def random_tvshows(items: int = 1, *, seed: Optional[int] = None, exclude: Optio
     picked = rng.sample(candidates, items)
     return picked
 
+def random_episode_title(rng: random.Random, tvdb: str, season: int, ep: int) -> str:
+    # Always generate a plausible synthetic title
+    words1 = ["Dark", "New", "Last", "First", "Broken",
+              "Lost", "Silent", "Hidden", "Fallen", "Rising"]
+    words2 = ["Path", "Secret", "Empire", "Deal", "Code",
+              "Game", "Name", "Power", "Throne", "Note"]
+    words3 = ["Begins", "Returns", "Awakening", "Legacy", "Gambit",
+              "Oath", "Trial", "Reckoning", "Echoes", "Horizon"]
+    return f"{rng.choice(words1)} {rng.choice(words2)} {rng.choice(words3)}"
+
 
 def filter_shows(names: list[str]) -> list[dict[str, object]]:
     """Return TV shows matching the given names.
