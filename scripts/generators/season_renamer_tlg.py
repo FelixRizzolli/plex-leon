@@ -35,15 +35,8 @@ if __name__ == "__main__" and __package__ is None:
         sys.path.insert(0, str(_repo_root))
 
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
+from scripts.shared import get_tvdb_id_from_name
 from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
-
-
-_TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
-
-
-def _tvdb_id_from_name(name: str) -> str | None:
-    m = _TVDB_RE.search(name)
-    return m.group(1) if m else None
 
 
 def repo_root() -> Path:
@@ -82,7 +75,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         show_to_variant[show] = rng.choice(season_variants)
 
     for show in show_names:
-        tvdb = _tvdb_id_from_name(show)
+        tvdb = get_tvdb_id_from_name(show)
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
         print(f"mkdir: {show_dir}")

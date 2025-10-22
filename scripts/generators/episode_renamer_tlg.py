@@ -38,21 +38,9 @@ if __name__ == "__main__" and __package__ is None:
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
+from scripts.shared import get_tvdb_id_from_name, strip_year_from_name
 from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
-
-
-_TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
-_YEAR_RE = re.compile(r"\s*\((\d{4})\)")
-
-
-def _tvdb_id_from_name(name: str) -> str | None:
-    m = _TVDB_RE.search(name)
-    return m.group(1) if m else None
-
-
-def _strip_year(title_with_year: str) -> str:
-    return _YEAR_RE.sub("", title_with_year).strip()
 
 
 def repo_root() -> Path:
@@ -114,7 +102,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
     rng = random.Random(seed)
 
     for show in show_names:
-        tvdb = _tvdb_id_from_name(show)
+        tvdb = get_tvdb_id_from_name(show)
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
         print(f"mkdir: {show_dir}")
@@ -129,7 +117,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
 
         # e.g., "Code Geass (2006)"
         title_with_year = show.split(" {")[0].strip()
-        title_no_year = _strip_year(title_with_year)
+        title_no_year = strip_year_from_name(title_with_year)
 
         # seasons mapping for this show (dict[season_num] = episode_count)
         # retrieved from centralized `scripts.shared.tvshows` data

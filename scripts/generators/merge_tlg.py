@@ -50,6 +50,7 @@ if __name__ == "__main__" and __package__ is None:
         sys.path.insert(0, str(_repo_root))
 
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
+from scripts.shared import get_tvdb_id_from_name
 from scripts.shared.movies import random_movies
 from scripts.shared.tvshows import random_tvshows, get_tvshow_episodes, tvshows as shared_tvshows
 
@@ -106,16 +107,6 @@ def make_tv_folders(base: Path, names: Iterable[str]) -> None:
 
 
 # --- TV episodes generation ---------------------------------------------------
-
-# Minimal TVDB id extractor (local copy to keep this script self-contained)
-_TVDB_RE = re.compile(r"\{tvdb-(\d+)\}", re.IGNORECASE)
-
-
-def _tvdb_id_from_name(name: str) -> str | None:
-    m = _TVDB_RE.search(name)
-    return m.group(1) if m else None
-
-
 def _distinct_cache_keys(cache: dict[tuple[str, str], Path]) -> list[tuple[str, str]]:
     # Return a stable-ordered list of resolution/size combos
     return sorted(cache.keys())
@@ -151,7 +142,7 @@ def create_seasons_and_episodes(
         keys = [("640x360", "1")]
 
     for show in show_names:
-        tvdb = _tvdb_id_from_name(show)
+        tvdb = get_tvdb_id_from_name(show)
         seasons = get_tvshow_episodes(tvdb) if tvdb else None
         if not tvdb or seasons is None:
             # Create the show folder at least (and continue)
