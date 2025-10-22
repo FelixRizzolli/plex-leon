@@ -370,7 +370,25 @@ def main(argv: list[str] | None = None) -> int:
 
 
 class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
-    """Generator for merge test libraries (library-a/library-b/library-c)."""
+    """Generator for merge test libraries (library-a/library-b/library-c).
+
+    This class builds three libraries under `data/` for merge testing:
+    - `library-a` and `library-b` contain movie files (with intentional
+      resolution/format/size mismatches to exercise merge logic).
+    - `library-c` is reserved for any downstream tests (not populated here).
+
+    The generator creates deterministic movie selections using the
+    `random_movies` helper (seeded) and builds consistent movie dicts via
+    `movie_dict`. TV show folders (with seasons/episodes) are created using
+    `create_seasons_and_episodes`.
+
+    Attributes
+    ----------
+    library_a_movies, library_b_movies : list[dict]
+        Populated by `_create_movie_libraries` before `execute` copies files.
+    library_a_tvshows, library_b_tvshows : list[str]
+        Predefined lists of TV show folder names used by `execute`.
+    """
 
     library_a_movies: list[dict[str, object]]
     library_b_movies: list[dict[str, object]]
@@ -378,8 +396,17 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
     library_b_tvshows
 
     def _create_movie_libraries(self):
-        # Build disjoint sets of movie titles deterministically using seed offsets.
-        # Use a set for excludes so lookups are O(1) and we can update it after each pick.
+        """Populate `self.library_a_movies` and `self.library_b_movies`.
+
+        Uses deterministic, seeded calls to `random_movies` to build disjoint
+        title categories (identical in both libraries, better-in-A, better-in-B,
+        filesize mismatches, unique-to-A/B). A local `exclude` set is updated
+        after each pick to avoid title reuse across categories.
+
+        Each resulting movie entry is built with `movie_dict(...)` so the
+        structure matches what `execute` expects: keys `filename`,
+        `resolution`, `format`, and `size`.
+        """
         exclude: set[str] = set()
 
         # movies which are present in both libraries (identical)
@@ -450,6 +477,31 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
                 title, resolution="640x480", fmt="mp4", size="1.5MB"))
 
     def execute(self, argv: list[str] | None = None) -> int:
+        """Generate the `data/` libraries and return an exit code.
+
+        Steps performed:
+        1. Create/clean the `data/library-a`, `data/library-b`, and
+           `data/library-c` directories (asks before deleting unless
+           `--force`/`-f` is passed).
+        2. Build a cache mapping from already-downloaded sample clips.
+        3. Call `_create_movie_libraries()` to deterministically choose movie
+           lists for library-a and library-b.
+        4. Copy or move movie files into `library-a` and `library-b` using the
+           cache mapping.
+        5. Create TV show folders and populate seasons/episodes.
+
+        Parameters
+        ----------
+        argv : list[str] | None
+            Command-line style arguments (supports `--force` / `-f`). When
+            None, `sys.argv[1:]` is used.
+
+        Returns
+        -------
+        int
+            0 on success, 1 if the user aborts when asked to delete existing
+            targets.
+        """
         # Base directory under repo: data/
         base = self.repo_root / "data"
         lib_a = base / "library-a"
