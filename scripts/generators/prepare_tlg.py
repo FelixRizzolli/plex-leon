@@ -33,9 +33,19 @@ generator produces multiple seasons per show where configured.
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import sys
 import shutil
 from base_test_library_generator import BaseTestLibraryGenerator
+
+# When executed directly, ensure repo root is on sys.path so we can import
+# `scripts.shared.tvshows` like other generators.
+if __name__ == "__main__" and __package__ is None:
+    _repo_root = Path(__file__).resolve().parents[2]
+    if str(_repo_root) not in sys.path:
+        sys.path.insert(0, str(_repo_root))
+
+from scripts.shared.tvshows import tvshows as shared_tvshows
 
 
 ROOT_REL = Path("data") / "library-p"
@@ -56,15 +66,21 @@ SHOW_GROUPS: dict[str, list[str]] = {
     ],
 }
 
-SEASON_EP_COUNTS: dict[str, list[tuple[int, int]]] = {
-    "Attack on Titan": [(1, 25), (2, 12), (3, 22), (4, 30)],
-    "Classroom of the Elite": [(1, 12), (2, 13), (3, 13)],
-    "Overlord": [(1, 13), (2, 13), (3, 13), (4, 13)],
-    "Death Note": [(1, 37)],
-    "Game of Thrones": [(1, 10), (2, 10), (3, 10), (4, 10), (5, 10), (6, 10), (7, 7), (8, 6)],
-    "My Name": [(1, 8)],
-    "The Day of the Jackal": [(1, 10)],
-}
+
+def _episodes_for_tvdb(tvdb: str) -> dict[int, int] | None:
+    """Return the episodes mapping for a TVDB id by looking it up in
+    `scripts.shared.tvshows.tvshows`. Returns None if not found.
+    """
+    _TVDB_RE = re.compile(r"\{tvdb-(\d+)}", re.IGNORECASE)
+    for s in shared_tvshows:
+        name = s.get("name")
+        episodes = s.get("episodes")
+        if not isinstance(name, str) or not isinstance(episodes, dict):
+            continue
+        m = _TVDB_RE.search(name)
+        if m and m.group(1) == tvdb:
+            return episodes
+    return None
 
 
 def _base_show_name(folder_name: str) -> str:
@@ -97,12 +113,18 @@ def create_library(root: Path) -> None:
             print(f"mkdir: {show_dir}")
             base_name = _base_show_name(show)
 
-            # Naming Pattern S01E01
+            # Naming Pattern S01E01 (special casing Classroom)
+            tvdb = show.split(
+                " {tvdb-")[-1].rstrip("}") if "{tvdb-" in show else None
+            seasons = _episodes_for_tvdb(tvdb) if tvdb else None
             if base_name == "Classroom of the Elite":
-                for season, ep_count in SEASON_EP_COUNTS.get(base_name, []):
+                if not seasons:
+                    continue
+                for season_num in sorted(seasons.keys()):
+                    ep_count = seasons[season_num]
                     for ep in range(1, ep_count + 1):
                         filename = (
-                            f"Watch Classroom of the Elite S{season:02d}E{ep:02d} "
+                            f"Watch Classroom of the Elite S{season_num:02d}E{ep:02d} "
                             "German 720p WEB h264-WvF - OWE Content.mp4"
                         )
                         fp = show_dir / filename
@@ -114,9 +136,12 @@ def create_library(root: Path) -> None:
                 continue
 
             # Naming Pattern Episode 1 Staffel 1
-            for season, ep_count in SEASON_EP_COUNTS.get(base_name, []):
+            if not seasons:
+                continue
+            for season_num in sorted(seasons.keys()):
+                ep_count = seasons[season_num]
                 for ep in range(1, ep_count + 1):
-                    filename = f"Episode {ep} Staffel {season} von {base_name} K to - Serien Online.mp4"
+                    filename = f"Episode {ep} Staffel {season_num} von {base_name} K to - Serien Online.mp4"
                     fp = show_dir / filename
                     if fp.exists():
                         print(f"skip (exists): {fp}")
@@ -125,7 +150,7 @@ def create_library(root: Path) -> None:
                     print(f"touch: {fp}")
 
                     # Create a '-01' variant only for Game of Thrones season 1 episode 5
-                    if base_name == "Game of Thrones" and season == 1 and ep == 5:
+                    if base_name == "Game of Thrones" and season_num == 1 and ep == 5:
                         dup = fp.with_name(fp.stem + "-01" + fp.suffix)
                         if not dup.exists():
                             dup.write_bytes(b"")
