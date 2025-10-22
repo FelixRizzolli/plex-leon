@@ -38,280 +38,20 @@ from pathlib import Path
 from typing import Iterable
 import shutil
 import sys
-from base_test_library_generator import BaseTestLibraryGenerator
+
+# When executed directly (python scripts/generators/merge_tlg.py) the package
+# imports like `scripts.shared` may not be resolvable. Ensure the repo root is
+# on sys.path so `import scripts...` works.
+if __name__ == "__main__" and __package__ is None:
+    _repo_root = Path(__file__).resolve().parents[2]
+    if str(_repo_root) not in sys.path:
+        sys.path.insert(0, str(_repo_root))
+
+from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
+from scripts.shared.movies import random_movies
 
 
 # Configuration ----------------------------------------------------------------
-
-library_a_movies: list[dict[str, object]] = [
-    # in both libraries the same
-    {
-        "filename": "John Wick (2014) {tvdb-155}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "John Wick 2 (2017) {tvdb-511}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # better resolution than in library_b
-    {
-        "filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Inception (2010) {tvdb-27205}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Matrix (1999) {tvdb-603}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Dark Knight (2008) {tvdb-155}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Forrest Gump (1994) {tvdb-13}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Fight Club (1999) {tvdb-550}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # only in library_a
-    {
-        "filename": "Interstellar (2014) {tvdb-157336}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # only in library_a
-    {
-        "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # less resolution and smaller filesize than in library_b
-    {
-        "filename": "Arrival (2016) {tvdb-329865}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # less resolution than in library_b
-    {
-        "filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # less resolution and smaller filesize than in library_b
-    {
-        "filename": "Whiplash (2014) {tvdb-244786}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Lion King (1994) {tvdb-8587}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # better resolution and greater filesize than in library_b
-    {
-        "filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # less resolution and smaller filesize than in library_b
-    {
-        "filename": "Goodfellas (1990) {tvdb-769}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # better resolution and greater filesize than in library_b
-    {
-        "filename": "Parasite (2019) {tvdb-496243}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Spirited Away (2001) {tvdb-129}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-]
-
-library_b_movies: list[dict[str, object]] = [
-    # in both libraries the same
-    {
-        "filename": "John Wick (2014) {tvdb-155}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "John Wick 2 (2017) {tvdb-511}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # less resolution than in library_a
-    {
-        "filename": "John Wick 3 (2019) {tvdb-6494}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "John Wick 4 (2023) {tvdb-131523}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Inception (2010) {tvdb-27205}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Matrix (1999) {tvdb-603}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Prestige (2006) {tvdb-1124}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "The Dark Knight (2008) {tvdb-155}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Forrest Gump (1994) {tvdb-13}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Fight Club (1999) {tvdb-550}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # special-char starter to exercise 0-9 bucket
-    {
-        "filename": "[REC] (2007) {tvdb-12345}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # another in the series
-    {
-        "filename": "[REC] 2 (2009) {tvdb-12346}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # only in library_b
-    {
-        "filename": "The Beekeeper (2024) {tvdb-349405}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # only in library_b
-    {
-        "filename": "Avatar (2009) {tvdb-19995}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # only in library_b
-    {
-        "filename": "The Godfather (1972) {tvdb-238}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # only in library_b
-    {
-        "filename": "Pulp Fiction (1994) {tvdb-680}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # greater filesize than in library_a
-    {
-        "filename": "Interstellar (2014) {tvdb-157336}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # better resolution and greater filesize than in library_a
-    {
-        "filename": "Arrival (2016) {tvdb-329865}.mp4",
-        "resolution": "1920x1080",
-        "size": "10MB"
-    },
-    # better resolution than in library_a
-    {
-        "filename": "Blade Runner 2049 (2017) {tvdb-335984}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # better resolution and greater filesize than in library_a
-    {
-        "filename": "Whiplash (2014) {tvdb-244786}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # less resolution and smaller filesize than in library_a
-    {
-        "filename": "The Shawshank Redemption (1994) {tvdb-278}.mp4",
-        "resolution": "640x480",
-        "size": "1.5MB"
-    },
-    # better resolution and greater filesize than in library_a
-    {
-        "filename": "Goodfellas (1990) {tvdb-769}.mp4",
-        "resolution": "1280x720",
-        "size": "10MB"
-    },
-    # less resolution and smaller filesize than in library_a
-    {
-        "filename": "Parasite (2019) {tvdb-496243}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-    # in both libraries the same
-    {
-        "filename": "Spirited Away (2001) {tvdb-129}.mp4",
-        "resolution": "640x360",
-        "size": "3MB"
-    },
-]
 
 library_a_tvshows: list[str] = [
     "Classroom of the Elite (2017) {tvdb-329822}",  # Only in A
@@ -362,6 +102,20 @@ def copy_movie(dst: Path, src: Path) -> None:
         return
     print(f"copy: {src.name} -> {dst}")
     shutil.copy2(src, dst)
+
+
+def movie_dict(title: str, *, resolution: str = "1920x1080", fmt: str = "mp4", size: str = "18MB") -> dict[str, str]:
+    """Return a movie dict suitable for the generators.
+
+    `title` should be the plain movie title (no extension). The function
+    appends the file extension and returns a dict with the expected keys.
+    """
+    return {
+        "filename": f"{title}.{fmt}",
+        "resolution": resolution,
+        "format": fmt,
+        "size": size,
+    }
 
 
 def make_tv_folders(base: Path, names: Iterable[str]) -> None:
@@ -618,7 +372,83 @@ def main(argv: list[str] | None = None) -> int:
 class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
     """Generator for merge test libraries (library-a/library-b/library-c)."""
 
-    # type: ignore[override]
+    library_a_movies: list[dict[str, object]]
+    library_b_movies: list[dict[str, object]]
+    library_a_tvshows
+    library_b_tvshows
+
+    def _create_movie_libraries(self):
+        # Build disjoint sets of movie titles deterministically using seed offsets.
+        # Use a set for excludes so lookups are O(1) and we can update it after each pick.
+        exclude: set[str] = set()
+
+        # movies which are present in both libraries (identical)
+        movies_in_both = random_movies(5, seed=100)
+        exclude.update(movies_in_both)
+
+        # movies where A has better quality than B (better quality in A)
+        movies_better_in_a = random_movies(5, seed=101, exclude=exclude)
+        exclude.update(movies_better_in_a)
+
+        # movies where B has better quality than A (better quality in B)
+        movies_better_in_b = random_movies(5, seed=102, exclude=exclude)
+        exclude.update(movies_better_in_b)
+
+        # movies where A has greater filesize but same resolution (or vice versa)
+        movies_filesize_a = random_movies(5, seed=103, exclude=exclude)
+        exclude.update(movies_filesize_a)
+        movies_filesize_b = random_movies(5, seed=104, exclude=exclude)
+        exclude.update(movies_filesize_b)
+
+        # movies unique to each library
+        movies_only_a = random_movies(5, seed=105, exclude=exclude)
+        exclude.update(movies_only_a)
+        movies_only_b = random_movies(5, seed=106, exclude=exclude)
+        exclude.update(movies_only_b)
+
+        # Build library A
+        self.library_a_movies = []
+        for title in movies_in_both:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_only_a:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_better_in_a:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_better_in_b:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1280x720", fmt="mp4", size="18MB"))
+        for title in movies_filesize_a:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="10MB"))
+        for title in movies_filesize_b:
+            self.library_a_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="avi", size="2.3MB"))
+
+        # Build library B
+        self.library_b_movies = []
+        for title in movies_in_both:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_only_b:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_better_in_b:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        # mirrored lower-res entries for A's better_in_b
+        for title in movies_better_in_a:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="1280x720", fmt="mp4", size="18MB"))
+        for title in movies_filesize_b:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="1920x1080", fmt="mp4", size="18MB"))
+        for title in movies_filesize_a:
+            self.library_b_movies.append(movie_dict(
+                title, resolution="640x480", fmt="mp4", size="1.5MB"))
+
     def execute(self, argv: list[str] | None = None) -> int:
         # Base directory under repo: data/
         base = self.repo_root / "data"
@@ -651,8 +481,9 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
         # Build cache mapping from downloaded files (already done by base class)
         cache = build_cache_mapping(self.temp_dir)
 
-        # Populate library A movies
-        for entry in library_a_movies:
+        # Populate library A movies (generate lists deterministically)
+        self._create_movie_libraries()
+        for entry in self.library_a_movies:
             # e.g., "John Wick (2014) {tvdb-155}.mp4"
             fname = str(entry["filename"])
             res = str(entry["resolution"])
@@ -665,7 +496,7 @@ class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
             copy_movie(lib_a / fname, src)
 
         # Populate library B movies (bucketed under A/B/C/... like production)
-        for entry in library_b_movies:
+        for entry in self.library_b_movies:
             # e.g., "John Wick 2 (2017) {tvdb-511}.mp4"
             fname = str(entry["filename"])
             res = str(entry["resolution"])
