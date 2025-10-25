@@ -1,17 +1,11 @@
 
-from .shared import TVDB_REGEX, collect_tvdb_ids, extract_tvdb_id, move_file, file_size, read_video_resolution
-from .utils.migrate import process_libraries
+"""Top-level package for plex_leon.
 
-# Maintain backward compatibility: expose a CLI-compatible main that delegates to cli.main
-from .cli import main
+Keep the package __init__ intentionally minimal to avoid circular import
+issues when submodules (like ``plex_leon.shared``) are imported. Heavy
+imports should be performed by callers from submodules directly, e.g.
+``from plex_leon.shared import parse_episode_tag`` or
+``from plex_leon.cli import main``.
+"""
 
-__all__ = [
-    "TVDB_REGEX",
-    "extract_tvdb_id",
-    "collect_tvdb_ids",
-    "move_file",
-    "file_size",
-    "read_video_resolution",
-    "process_libraries",
-    "main",
-]
+__all__ = []
