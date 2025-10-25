@@ -5,11 +5,11 @@ import sys
 import time
 from pathlib import Path
 
-from .utils.migrate import process_libraries
-from .shared import assert_required_tools_installed
-from .utils.season_renamer import process_library as season_process_library
-from .utils.episode_renamer import process_library as episode_process_library
-from .utils.prepare import process as prepare_process
+from plex_leon.utils.migrate import MigrateUtility
+from plex_leon.shared import assert_required_tools_installed
+from plex_leon.utils.season_renamer import process_library as season_process_library
+from plex_leon.utils.episode_renamer import process_library as episode_process_library
+from plex_leon.utils.prepare import PrepareUtility
 
 
 def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -154,7 +154,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
         t0 = time.perf_counter()
-        moved, skipped = process_libraries(
+        util = MigrateUtility(dry_run=args.dry_run)
+        moved, skipped = util.process(
             lib_a=args.lib_a,
             lib_b=args.lib_b,
             lib_c=args.lib_c,
@@ -180,7 +181,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "prepare":
         t0 = time.perf_counter()
-        renamed_count, = prepare_process(args.lib, args.dry_run)
+        util = PrepareUtility(dry_run=args.dry_run)
+        renamed_count, = util.process(args.lib)
         dt = time.perf_counter() - t0
         print(f"Done. Episodes processed: {renamed_count}. Took {dt:.2f}s.")
         return 0
