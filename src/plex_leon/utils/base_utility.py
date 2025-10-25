@@ -35,7 +35,14 @@ class BaseUtility(ABC):
             logger.remove()
             # normalize the level (accept strings like "debug", "INFO", or numeric values)
             level = self._normalize_level(self.log_level)
-            logger.add(sys.stderr, level=level)
+            # Use a compact format that omits module/function/line to keep logs
+            # focused on timestamp, level and the message. Messages already
+            # include the visual emoji prefixes from the helpers (ℹ️, ⚠️, ❌).
+            fmt = (
+                "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+                "<level>{level: <8}</level> | {message}"
+            )
+            logger.add(sys.stderr, level=level, format=fmt)
             setattr(logger, "_plex_leon_configured", True)
 
     # Convenience properties
