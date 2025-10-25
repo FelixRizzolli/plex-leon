@@ -37,8 +37,8 @@ if __name__ == "__main__" and __package__ is None:
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.shared import get_tvdb_id_from_name, strip_year_from_name, random_episode_title
-from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
+from scripts.shared import get_tvdb_id_from_name, strip_year_from_name
+from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes, random_episode_title
 from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
 
 
