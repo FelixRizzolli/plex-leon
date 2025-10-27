@@ -1,6 +1,4 @@
-
-"""Top-level package for plex_leon."""
-
+"""Utilities subpackage for plex_leon."""
 import importlib
 import pkgutil
 
