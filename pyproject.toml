@@ -9,11 +9,13 @@ readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
     "loguru (>=0.7.3,<0.8.0)",
-    "pytest (>=8.4.2,<9.0.0)"
+    "pytest (>=8.4.2,<9.0.0)",
+    "coverage (>=7.11.0,<8.0.0)"
 ]
 
 [project.scripts]
 plex-leon = "plex_leon.cli:main"
+coverage = "scripts.coverage_script:main"
 
 [tool.poetry]
 packages = [{include = "plex_leon", from = "src"}]
