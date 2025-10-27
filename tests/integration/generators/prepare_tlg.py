@@ -81,7 +81,7 @@ def _base_show_name(folder_name: str) -> str:
     return m.group(1) if m else no_tvdb
 
 
-def create_library(root: Path) -> None:
+def create_library(root: Path, generator: BaseTestLibraryGenerator) -> None:
     if root.exists():
         shutil.rmtree(root)
 
@@ -90,11 +90,11 @@ def create_library(root: Path) -> None:
     for group, shows in SHOW_GROUPS.items():
         group_dir = root / group
         group_dir.mkdir(parents=True, exist_ok=True)
-        print(f"mkdir: {group_dir}")
+        generator.log_info(f"mkdir: {group_dir}")
         for show in shows:
             show_dir = group_dir / show
             show_dir.mkdir(parents=True, exist_ok=True)
-            print(f"mkdir: {show_dir}")
+            generator.log_info(f"mkdir: {show_dir}")
             base_name = _base_show_name(show)
 
             # Naming Pattern S01E01 (special casing Classroom)
@@ -113,10 +113,10 @@ def create_library(root: Path) -> None:
                         )
                         fp = show_dir / filename
                         if fp.exists():
-                            print(f"skip (exists): {fp}")
+                            generator.log_info(f"skip (exists): {fp}")
                             continue
                         fp.write_bytes(b"")
-                        print(f"touch: {fp}")
+                        generator.log_info(f"touch: {fp}")
                 continue
 
             # Naming Pattern Episode 1 Staffel 1
@@ -128,17 +128,17 @@ def create_library(root: Path) -> None:
                     filename = f"Episode {ep} Staffel {season_num} von {base_name} K to - Serien Online.mp4"
                     fp = show_dir / filename
                     if fp.exists():
-                        print(f"skip (exists): {fp}")
+                        generator.log_info(f"skip (exists): {fp}")
                         continue
                     fp.write_bytes(b"")
-                    print(f"touch: {fp}")
+                    generator.log_info(f"touch: {fp}")
 
                     # Create a '-01' variant only for Game of Thrones season 1 episode 5
                     if base_name == "Game of Thrones" and season_num == 1 and ep == 5:
                         dup = fp.with_name(fp.stem + "-01" + fp.suffix)
                         if not dup.exists():
                             dup.write_bytes(b"")
-                            print(f"touch: {dup}")
+                            generator.log_info(f"touch: {dup}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -169,11 +169,11 @@ class PrepareTestLibraryGenerator(BaseTestLibraryGenerator):
             resp = input(
                 f"Target {dest} exists. Delete it and recreate? [y/N]: ")
             if resp.strip().lower() not in ("y", "yes"):
-                print("Aborted — target not removed.")
+                self.log_info("Aborted — target not removed.")
                 return 1
 
-        create_library(dest)
-        print("Done generating library-p test data.")
+        create_library(dest, self)
+        self.log_info("Done generating library-p test data.")
         return 0
 
 
