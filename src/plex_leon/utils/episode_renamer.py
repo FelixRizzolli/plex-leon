@@ -34,11 +34,6 @@ class EpisodeRenamerUtility(BaseUtility):
         if not isinstance(library, Path):
             library = Path(library)
 
-        renamed = 0
-        renamed_per_show: dict[str, int] = {}
-        skipped_per_show: dict[str, int] = {}
-        error_per_show: dict[str, int] = {}
-
         for dirpath, _, filenames in os.walk(library):
             parent = Path(dirpath)
             for fn in filenames:
@@ -69,9 +64,7 @@ class EpisodeRenamerUtility(BaseUtility):
                     ok = two_step_case_rename(
                         old_path, new_path, dry_run=self.dry_run)
                     if ok:
-                        renamed += 1
-                        renamed_per_show.setdefault(show_title, 0)
-                        renamed_per_show[show_title] += 1
+                        self.increment_stat(show_title, "RENAMED")
                         suffix = " (dry-run)" if self.dry_run else ""
                         self.log_info(
                             f"✅ RENAMED (case-only): {old_path} -> {new_path}{suffix}")
@@ -79,56 +72,37 @@ class EpisodeRenamerUtility(BaseUtility):
 
                 # Non-case change: direct rename if destination doesn't exist
                 if new_path.exists():
-                    skipped_per_show.setdefault(show_title, 0)
-                    skipped_per_show[show_title] += 1
+                    self.increment_stat(show_title, "SKIPPED")
                     self.log_warning(f"SKIP exists: {old_path} -> {new_path}")
                     continue
 
                 if self.dry_run:
-                    renamed += 1
-                    renamed_per_show.setdefault(show_title, 0)
-                    renamed_per_show[show_title] += 1
+                    self.increment_stat(show_title, "RENAMED")
                     self.log_info(
                         f"RENAME (dry-run): {old_path} -> {new_path}")
                     continue
 
                 try:
                     old_path.rename(new_path)
-                    renamed += 1
-                    renamed_per_show.setdefault(show_title, 0)
-                    renamed_per_show[show_title] += 1
+                    self.increment_stat(show_title, "RENAMED")
                     self.log_info(f"✅ RENAMED: {old_path} -> {new_path}")
                 except OSError as e:
                     # log and count per-show
                     self.log_error(
                         f"failed to rename {old_path} -> {new_path}: {e}")
-                    error_per_show.setdefault(show_title, 0)
-                    error_per_show[show_title] += 1
+                    self.increment_stat(show_title, "ERRORS")
 
-        # Print per-show summaries (RENAMED / SKIPPED / ERRORS)
-        shows = set()
-        shows.update(renamed_per_show.keys())
-        shows.update(skipped_per_show.keys())
-        shows.update(error_per_show.keys())
-        for show in sorted(shows, key=lambda x: x.lower()):
-            r = renamed_per_show.get(show, 0)
-            s = skipped_per_show.get(show, 0)
-            e = error_per_show.get(show, 0)
+        self.log_statistics("table")
 
-            suffix = "✅"
-            if e > 0:
-                suffix = "❌"
-            elif s > 0:
-                suffix = "⚠️"
-
-            self.log_info(f"📺 {show} {suffix}")
-            self.log_info(f"    — RENAMED: {r}")
-            self.log_info(f"    - SKIPPED: {s}")
-            self.log_info(f"    — ERRORS: {e}")
-
-        total_errors = sum(error_per_show.values())
+        total_errors = sum(
+            stats.get("ERRORS", 0) for stats in self.statistics.values()
+        )
         if total_errors:
             self.log_error(
                 f"{total_errors} file(s) failed to rename; see above for details.")
 
-        return (renamed,)
+        total_renamed = sum(
+            stats.get("RENAMED", 0) for stats in self.statistics.values()
+        )
+
+        return (total_renamed,)
