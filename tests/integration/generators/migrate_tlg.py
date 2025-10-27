@@ -40,7 +40,7 @@ from typing import Iterable
 import shutil
 import sys
 
-# When executed directly (python tests/integration/generators/merge_tlg.py) the package
+# When executed directly (python tests/integration/generators/migrate_tlg.py) the package
 # imports like `tests.integration.shared` may not be resolvable. Ensure the repo root is
 # on sys.path so `import tests.integration...` works.
 if __name__ == "__main__" and __package__ is None:
@@ -264,16 +264,16 @@ def ensure_tv_folder_flat(base: Path, name: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    gen = MergeTestLibraryGenerator()
+    gen = MigrateTestLibraryGenerator()
     return gen.run(argv)
 
 
-class MergeTestLibraryGenerator(BaseTestLibraryGenerator):
-    """Generator for merge test libraries (library-a/library-b/library-c).
+class MigrateTestLibraryGenerator(BaseTestLibraryGenerator):
+    """Generator for migration test libraries (library-a/library-b/library-c).
 
-    This class builds three libraries under `data/` for merge testing:
+    This class builds three libraries under `data/` for migration testing:
     - `library-a` and `library-b` contain movie files (with intentional
-      resolution/format/size mismatches to exercise merge logic).
+        resolution/format/size mismatches to exercise migration logic).
     - `library-c` is reserved for any downstream tests (not populated here).
 
     The generator creates deterministic movie selections using the
