@@ -8,7 +8,7 @@ from pathlib import Path
 from plex_leon.utils.migrate import MigrateUtility
 from plex_leon.shared import assert_required_tools_installed
 from plex_leon.utils.season_renamer import process_library as season_process_library
-from plex_leon.utils.episode_renamer import process_library as episode_process_library
+from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
 from plex_leon.utils.prepare import PrepareUtility
 
 
@@ -189,7 +189,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "episode-renamer":
         t0 = time.perf_counter()
-        renamed_count, = episode_process_library(args.lib, args.dry_run)
+        util = EpisodeRenamerUtility(dry_run=args.dry_run)
+        renamed_count, = util.process(args.lib)
         dt = time.perf_counter() - t0
         print(f"Done. Episode files renamed: {renamed_count}. Took {dt:.2f}s.")
         return 0

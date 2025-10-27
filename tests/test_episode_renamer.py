@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-import builtins
-import pytest
 
-from plex_leon.utils.episode_renamer import process_library as ep_process
+from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
 from utils import make_files
 
 
-def test_episode_renamer_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_episode_renamer_basic(tmp_path: Path):
     base = tmp_path / "library-e" / \
         "Code Geass (2006) {tvdb-79525}" / "Season 01"
     base.mkdir(parents=True)
@@ -20,21 +18,18 @@ def test_episode_renamer_basic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     ]
     make_files(base, files)
 
-    outputs: list[str] = []
-
-    def fake_print(*args, **kwargs):
-        outputs.append(" ".join(map(str, args)))
-
-    monkeypatch.setattr(builtins, "print", fake_print)
+    original_names = sorted(p.name for p in base.iterdir())
 
     # dry run should show planned renames
-    renamed_count, = ep_process(tmp_path / "library-e", dry_run=True)
+    util = EpisodeRenamerUtility(dry_run=True)
+    renamed_count, = util.process(tmp_path / "library-e")
     assert renamed_count == 4
-    assert any("RENAME:" in ln for ln in outputs)
+    # No filesystem changes during dry run
+    assert sorted(p.name for p in base.iterdir()) == original_names
 
     # do it for real
-    outputs.clear()
-    renamed_count, = ep_process(tmp_path / "library-e", dry_run=False)
+    util = EpisodeRenamerUtility(dry_run=False)
+    renamed_count, = util.process(tmp_path / "library-e")
     assert renamed_count == 4
 
     # Check resulting filenames

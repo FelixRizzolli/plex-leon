@@ -12,14 +12,6 @@ from plex_leon.shared import (
 from plex_leon.utils.base_utility import BaseUtility
 
 
-def process_library(library: Path | None = None, dry_run: bool = False) -> tuple[int]:
-    """Compatibility shim that delegates to EpisodeRenamerUtility.process so
-    callers (including the CLI) can continue to call `process_library(...)`.
-    """
-    util = EpisodeRenamerUtility(dry_run=dry_run)
-    return util.process(library)
-
-
 class EpisodeRenamerUtility(BaseUtility):
     """Class wrapper for episode renaming that exposes `process()` using the
     BaseUtility logging helpers.
