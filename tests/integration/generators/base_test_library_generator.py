@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import importlib.util
-import logging
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List
 import urllib.request
+
+from loguru import logger as loguru_logger
 
 
 @dataclass(frozen=True)
@@ -14,6 +16,11 @@ class DownloadSpec:
     resolution: str
     size: str
     url: str
+
+
+@dataclass
+class GeneratorOptions:
+    log_level: int | str = 20
 
 
 class BaseTestLibraryGenerator(ABC):
@@ -24,12 +31,72 @@ class BaseTestLibraryGenerator(ABC):
     before delegating to `execute`.
     """
 
-    def __init__(self, *, repo_root: Path | None = None, temp_dir: Path | None = None, logger: logging.Logger | None = None):
-        self.repo_root = Path(repo_root) if repo_root is not None else Path(
-            __file__).resolve().parents[2]
+    def __init__(
+        self,
+        *,
+        repo_root: Path | None = None,
+        temp_dir: Path | None = None,
+        logger=None,
+        log_level: int | str = 20,
+    ):
+        default_root = Path(__file__).resolve().parents[3]
+        self.repo_root = Path(
+            repo_root) if repo_root is not None else default_root
         self.temp_dir = Path(temp_dir) if temp_dir is not None else (
             self.repo_root / "data" / "temp")
-        self.logger = logger or logging.getLogger(self.__class__.__name__)
+        self.opts = GeneratorOptions(log_level=log_level)
+
+        if logger is not None:
+            self.logger = logger
+        else:
+            self.logger = loguru_logger
+            if not getattr(self.logger, "_plex_leon_configured", False):
+                self.logger.remove()
+                level = self._normalize_level(self.log_level)
+                fmt = (
+                    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+                    "<level>{level: <8}</level> | {message}"
+                )
+                self.logger.add(sys.stderr, level=level, format=fmt)
+                setattr(self.logger, "_plex_leon_configured", True)
+
+    @property
+    def log_level(self) -> int | str:
+        return self.opts.log_level
+
+    def _normalize_level(self, level: int | str) -> int | str:
+        if isinstance(level, int):
+            return level
+        if not isinstance(level, str):
+            raise TypeError("log_level must be int or str")
+        name = level.strip().upper()
+        mapping = {
+            "TRACE": "TRACE",
+            "DEBUG": "DEBUG",
+            "INFO": "INFO",
+            "SUCCESS": "SUCCESS",
+            "WARNING": "WARNING",
+            "WARN": "WARNING",
+            "ERROR": "ERROR",
+            "CRITICAL": "CRITICAL",
+            "FATAL": "CRITICAL",
+        }
+        return mapping.get(name, name)
+
+    def log_error(self, msg: str, /) -> None:
+        self.logger.error(f"❌ ERROR: {msg}")
+
+    def log_warning(self, msg: str, /) -> None:
+        self.logger.warning(f"⚠️ WARN: {msg}")
+
+    def log_info(self, msg: str, /) -> None:
+        self.logger.info(f"ℹ️ {msg}")
+
+    def log_debug(self, msg: str, /) -> None:
+        self.logger.debug(f"🐛 DEBUG: {msg}")
+
+    def log_verbose(self, msg: str, /) -> None:
+        self.logger.trace(f"🔍 VERBOSE: {msg}")
 
     def run(self, *args, **kwargs):
         """Top-level runner.
@@ -41,10 +108,10 @@ class BaseTestLibraryGenerator(ABC):
         try:
             self.download_sample_videos()
         except Exception:
-            # Log the exception but proceed to execute so callers can still
-            # create directories/placeholders as needed.
+            # Log the exception but proceed so callers can still create
+            # directories/placeholders as needed.
             self.logger.exception(
-                "download_sample_videos failed; continuing to execute")
+                "❌ ERROR: download_sample_videos failed; continuing to execute")
 
         return self.execute(*args, **kwargs)
 
@@ -65,18 +132,18 @@ class BaseTestLibraryGenerator(ABC):
     def _load_downloads(self) -> list[DownloadSpec]:
         p = self._downloads_py_path()
         if not p.exists():
-            self.logger.warning("downloads.py not found at %s", p)
+            self.log_warning(f"downloads.py not found at {p}")
             return []
 
         spec = importlib.util.spec_from_file_location("_gen_downloads", str(p))
         if spec is None:
-            self.logger.error("Unable to create spec for downloads.py")
+            self.log_error("Unable to create spec for downloads.py")
             return []
         mod = importlib.util.module_from_spec(spec)
         # spec.loader may be None in static checkers, guard accordingly
         loader = getattr(spec, "loader", None)
         if loader is None:
-            self.logger.error("Unable to load downloads.py (no loader)")
+            self.log_error("Unable to load downloads.py (no loader)")
             return []
         loader.exec_module(mod)  # type: ignore[attr-defined]
         raw = getattr(mod, "downloads", [])
@@ -87,7 +154,7 @@ class BaseTestLibraryGenerator(ABC):
                            str(entry.get("size")), str(entry.get("url"))))
             except Exception:
                 self.logger.exception(
-                    "invalid download entry in downloads.py: %r", entry)
+                    f"❌ ERROR: invalid download entry in downloads.py: {entry!r}")
         return out
 
     def download_sample_videos(self, specs: Iterable[DownloadSpec] | None = None, *, overwrite: bool = False) -> List[Path]:
@@ -103,8 +170,8 @@ class BaseTestLibraryGenerator(ABC):
 
         existing = [p for p in self.temp_dir.iterdir() if p.is_file()]
         if existing and not overwrite:
-            self.logger.debug(
-                "temp dir exists and contains files; skipping downloads: %s", self.temp_dir)
+            self.log_debug(
+                f"temp dir exists and contains files; skipping downloads: {self.temp_dir}")
             return existing
 
         if specs is None:
@@ -119,13 +186,13 @@ class BaseTestLibraryGenerator(ABC):
                 ext = "." + url_path.rsplit('.', 1)[-1]
             dest = self.temp_dir / f"sample_{spec.resolution}_{spec.size}{ext}"
             if dest.exists() and dest.stat().st_size > 0 and not overwrite:
-                self.logger.info("skip download (exists): %s", dest)
+                self.log_info(f"skip download (exists): {dest}")
                 downloaded.append(dest)
                 continue
 
             tmp = dest.with_suffix(dest.suffix + ".part")
             try:
-                self.logger.info("downloading: %s -> %s", spec.url, dest)
+                self.log_info(f"downloading: {spec.url} -> {dest}")
                 with urllib.request.urlopen(spec.url, timeout=60) as resp, open(tmp, "wb") as f:
                     while True:
                         chunk = resp.read(8192)
@@ -135,7 +202,8 @@ class BaseTestLibraryGenerator(ABC):
                 tmp.replace(dest)
                 downloaded.append(dest)
             except Exception:
-                self.logger.exception("failed to download %s", spec.url)
+                self.logger.exception(
+                    f"❌ ERROR: failed to download {spec.url}")
                 # create a small placeholder so subsequent steps can proceed
                 if not dest.exists():
                     try:
@@ -143,6 +211,6 @@ class BaseTestLibraryGenerator(ABC):
                         downloaded.append(dest)
                     except Exception:
                         self.logger.exception(
-                            "failed to write placeholder for %s", dest)
+                            f"❌ ERROR: failed to write placeholder for {dest}")
 
         return downloaded
