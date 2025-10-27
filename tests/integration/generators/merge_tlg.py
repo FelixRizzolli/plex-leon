@@ -40,18 +40,18 @@ from typing import Iterable
 import shutil
 import sys
 
-# When executed directly (python scripts/generators/merge_tlg.py) the package
-# imports like `scripts.shared` may not be resolvable. Ensure the repo root is
-# on sys.path so `import scripts...` works.
+# When executed directly (python tests/integration/generators/merge_tlg.py) the package
+# imports like `tests.integration.shared` may not be resolvable. Ensure the repo root is
+# on sys.path so `import tests.integration...` works.
 if __name__ == "__main__" and __package__ is None:
     _repo_root = Path(__file__).resolve().parents[2]
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
-from scripts.shared import get_tvdb_id_from_name
-from scripts.shared.movies import random_movies
-from scripts.shared.tvshows import random_tvshows, get_tvshow_episodes, tvshows as shared_tvshows
+from tests.integration.generators.base_test_library_generator import BaseTestLibraryGenerator
+from tests.integration.shared import get_tvdb_id_from_name
+from tests.integration.shared.movies import random_movies
+from tests.integration.shared.tvshows import random_tvshows, get_tvshow_episodes, tvshows as shared_tvshows
 
 
 # Helpers ----------------------------------------------------------------------

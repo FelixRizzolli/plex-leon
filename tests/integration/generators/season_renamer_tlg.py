@@ -26,15 +26,15 @@ import shutil
 import sys
 
 # When executed directly, ensure repository root is on sys.path so
-# `scripts.shared.tvshows` can be imported the same way other generators do.
+# `tests.integration.shared.tvshows` can be imported the same way other generators do.
 if __name__ == "__main__" and __package__ is None:
     _repo_root = Path(__file__).resolve().parents[2]
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
-from scripts.generators.base_test_library_generator import BaseTestLibraryGenerator
-from scripts.shared import get_tvdb_id_from_name
-from scripts.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
+from tests.integration.generators.base_test_library_generator import BaseTestLibraryGenerator
+from tests.integration.shared import get_tvdb_id_from_name
+from tests.integration.shared.tvshows import tvshows as shared_tvshows, get_tvshow_episodes
 
 
 def repo_root() -> Path:
