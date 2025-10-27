@@ -41,7 +41,13 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
-def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: int | None = 42) -> None:
+def create_seasons_and_episodes(
+    base: Path,
+    show_names: Iterable[str],
+    *,
+    generator: BaseTestLibraryGenerator,
+    seed: int | None = 42,
+) -> None:
     rng = random.Random(seed)
 
     # Season folder name variants (with typos, casing, and language variants)
@@ -76,7 +82,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         tvdb = get_tvdb_id_from_name(show)
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
-        print(f"mkdir: {show_dir}")
+        generator.log_info(f"mkdir: {show_dir}")
         if not tvdb:
             continue
 
@@ -90,15 +96,15 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
             season_folder = season_fmt.format(num=season_num)
             season_dir = show_dir / season_folder
             season_dir.mkdir(parents=True, exist_ok=True)
-            print(f"mkdir: {season_dir}")
+            generator.log_info(f"mkdir: {season_dir}")
             for ep_num in range(1, seasons[season_num] + 1):
                 dst = season_dir / \
                     f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
                 if dst.exists():
-                    print(f"skip (exists): {dst}")
+                    generator.log_info(f"skip (exists): {dst}")
                     continue
                 dst.write_bytes(b"")
-                print(f"touch: {dst}")
+                generator.log_info(f"touch: {dst}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -124,7 +130,7 @@ class SeasonRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
             resp = input(
                 f"Target {base} exists. Delete it and recreate? [y/N]: ")
             if resp.strip().lower() not in ("y", "yes"):
-                print("Aborted — target not removed.")
+                self.log_info("Aborted — target not removed.")
                 return 1
             shutil.rmtree(base)
 
@@ -133,8 +139,9 @@ class SeasonRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
         # Use the centralized list of shows
         all_tvshows = [s["name"]
                        for s in shared_tvshows if isinstance(s.get("name"), str)]
-        create_seasons_and_episodes(base, all_tvshows, seed=789)
-        print("Done.")
+        create_seasons_and_episodes(base, all_tvshows,
+                                    generator=self, seed=789)
+        self.log_info("Done.")
         return 0
 
 
