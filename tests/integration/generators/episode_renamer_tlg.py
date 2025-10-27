@@ -86,14 +86,20 @@ def _introduce_typos(text: str, rng: random.Random, intensity: float = 0.15) -> 
     return "".join(s)
 
 
-def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: int | None = 987) -> None:
+def create_seasons_and_episodes(
+    base: Path,
+    show_names: Iterable[str],
+    *,
+    generator: BaseTestLibraryGenerator,
+    seed: int | None = 987,
+) -> None:
     rng = random.Random(seed)
 
     for show in show_names:
         tvdb = get_tvdb_id_from_name(show)
         show_dir = base / show
         show_dir.mkdir(parents=True, exist_ok=True)
-        print(f"mkdir: {show_dir}")
+        generator.log_info(f"mkdir: {show_dir}")
         seasons = get_tvshow_episodes(tvdb) if tvdb else None
         if not tvdb or seasons is None:
             continue
@@ -113,7 +119,7 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
         for season_num in sorted(seasons.keys()):
             season_dir = show_dir / f"Season {season_num:02d}"
             season_dir.mkdir(parents=True, exist_ok=True)
-            print(f"mkdir: {season_dir}")
+            generator.log_info(f"mkdir: {season_dir}")
 
             ep_total = seasons[season_num]
             ep_num = 1
@@ -147,11 +153,11 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
                     dst = season_dir / filename
 
                     if dst.exists():
-                        print(f"skip (exists): {dst}")
+                        generator.log_info(f"skip (exists): {dst}")
                         ep_num += 2
                         continue
                     dst.write_bytes(b"")
-                    print(f"touch: {dst}")
+                    generator.log_info(f"touch: {dst}")
                     ep_num += 2
                 else:
                     # Single episode file as before
@@ -174,11 +180,11 @@ def create_seasons_and_episodes(base: Path, show_names: Iterable[str], *, seed: 
                     dst = season_dir / filename
 
                     if dst.exists():
-                        print(f"skip (exists): {dst}")
+                        generator.log_info(f"skip (exists): {dst}")
                         ep_num += 1
                         continue
                     dst.write_bytes(b"")
-                    print(f"touch: {dst}")
+                    generator.log_info(f"touch: {dst}")
                     ep_num += 1
 
 
@@ -210,7 +216,7 @@ class EpisodeRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
             resp = input(
                 f"Target {base} exists. Delete it and recreate? [y/N]: ")
             if resp.strip().lower() not in ("y", "yes"):
-                print("Aborted — target not removed.")
+                self.log_info("Aborted — target not removed.")
                 return 1
             shutil.rmtree(base)
 
@@ -218,8 +224,9 @@ class EpisodeRenamerTestLibraryGenerator(BaseTestLibraryGenerator):
 
         all_tvshows = [s["name"]
                        for s in shared_tvshows if isinstance(s.get("name"), str)]
-        create_seasons_and_episodes(base, all_tvshows, seed=1337)
-        print("Done.")
+        create_seasons_and_episodes(
+            base, all_tvshows, generator=self, seed=1337)
+        self.log_info("Done.")
         return 0
 
 
