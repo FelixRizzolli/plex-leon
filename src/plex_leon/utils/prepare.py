@@ -41,6 +41,21 @@ Any validation messages are printed. If validation reports any ERROR-level
 problems for a show, the renaming and season-folder creation are skipped for
 that show; WARN-level issues (unparseable filenames) are reported but are not
 fatal by default.
+
+Statistics
+----------
+This module records per-show statistics on the utility instance using the
+`self.statistics` attribute (a mapping: Dict[str, Dict[str, int]]). Each key
+is a show/category name (e.g. "Attack on Titan (2013)") and the inner mapping
+contains step counts such as:
+
+- "RENAMED": number of files moved/renamed for the show
+- "SKIPPED": number of files skipped because the destination exists
+- "ERRORS": number of errors encountered for the show
+
+Recording is performed via `self.increment_stat(category, step, value)` and
+summaries can be printed with `self.log_statistics(format)` where `format` is
+either "table" or "steps".
 """
 from __future__ import annotations
 
@@ -154,7 +169,7 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
     """
     msgs: list[str] = []
     name = show_dir.name
-    # TVDB id check
+
     if __import__("re").search(r"\{tvdb-\d+\}", name) is None:
         msgs.append(f"❌ ERROR: missing tvdb id in show folder name: '{name}'")
 
@@ -168,8 +183,6 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
             continue
         parsed = _parse_season_episode_from_name(entry.name)
         if not parsed:
-            # unparseable files are not considered fatal for validation here,
-            # but we log a warning so the user can inspect them.
             msgs.append(
                 f"WARN: could not parse season/episode from filename: {entry.name}")
             continue
@@ -195,16 +208,19 @@ class PrepareUtility(BaseUtility):
     def process(self, root: Path | str | None = None) -> tuple[int]:
         """Process a root folder and normalise loose episode files using the
         instance logging helpers from BaseUtility.
+
+        Returns
+        -------
+        tuple[int]
+            A 1-tuple containing the total number of episode files renamed
+            (sum of per-show "RENAMED" counts). Per-show statistics are
+            recorded on the utility instance in `self.statistics` and a
+            summary is logged via `self.log_statistics("table")`.
         """
         if root is None:
             root = Path("data/library-p")
         if not isinstance(root, Path):
             root = Path(root)
-
-        processed = 0
-        renamed_per_show: dict[str, int] = {}
-        skipped_per_show: dict[str, int] = {}
-        error_per_show: dict[str, int] = {}
 
         for show_dir in _iter_show_dirs(root):
             show_title = strip_tvdb_suffix(show_dir.name)  # 'Name (YYYY)'
@@ -223,17 +239,14 @@ class PrepareUtility(BaseUtility):
                     self.log_info(m)
 
             if not valid:
-                # Count any validation ERROR messages for the show
                 err_count = sum(
                     1 for m in messages if m.startswith("❌ ERROR:"))
                 if err_count:
-                    error_per_show.setdefault(show_title, 0)
-                    error_per_show[show_title] += err_count
+                    self.increment_stat(show_title, "ERRORS", err_count)
                 self.log_warning(
                     f"SKIP show due to validation errors: {show_dir}")
                 continue
 
-            # Collect candidate files directly in the show directory (ignore existing Season folders)
             for entry in sorted(show_dir.iterdir()):
                 if entry.is_dir():
                     # Skip directories (existing Season NN / other folders)
@@ -267,12 +280,10 @@ class PrepareUtility(BaseUtility):
                     ok = two_step_case_rename(
                         entry, target_path, dry_run=self.dry_run)
                     if ok:
-                        processed += 1
-                        renamed_per_show.setdefault(show_title, 0)
-                        renamed_per_show[show_title] += 1
+                        # record as a successful rename for this show
+                        self.increment_stat(show_title, "RENAMED")
                     else:
-                        error_per_show.setdefault(show_title, 0)
-                        error_per_show[show_title] += 1
+                        self.increment_stat(show_title, "ERRORS")
                         self.log_error(
                             f"two-step case rename failed: {entry} -> {target_path}")
                     continue
@@ -280,59 +291,35 @@ class PrepareUtility(BaseUtility):
                 # If destination exists (different file), skip.
                 if target_path.exists() and target_path != entry:
                     self.log_warning(f"SKIP exists: {target_path}")
-                    skipped_per_show.setdefault(show_title, 0)
-                    skipped_per_show[show_title] += 1
+                    self.increment_stat(show_title, "SKIPPED")
                     continue
 
                 if self.dry_run:
                     self.log_info(
                         f"MOVE+RENAME (dry-run): {entry} -> {target_path}")
-                    processed += 1
-                    renamed_per_show.setdefault(show_title, 0)
-                    renamed_per_show[show_title] += 1
+                    self.increment_stat(show_title, "RENAMED")
                     continue
 
                 try:
-                    # If moving across directories we can just rename with new path
                     entry.rename(target_path)
-                    processed += 1
-                    renamed_per_show.setdefault(show_title, 0)
-                    renamed_per_show[show_title] += 1
+                    self.increment_stat(show_title, "RENAMED")
                     self.log_info(f"MOVED: {entry} -> {target_path}")
                 except OSError as e:
                     self.log_error(
                         f"failed to move {entry} -> {target_path}: {e}")
-                    error_per_show.setdefault(show_title, 0)
-                    error_per_show[show_title] += 1
+                    self.increment_stat(show_title, "ERRORS")
 
-        # Print per-show summaries (RENAMED / SKIPPED / ERRORS)
-        shows = set()
-        shows.update(renamed_per_show.keys())
-        shows.update(skipped_per_show.keys())
-        shows.update(error_per_show.keys())
-        for show in sorted(shows, key=lambda x: x.lower()):
-            r = renamed_per_show.get(show, 0)
-            s = skipped_per_show.get(show, 0)
-            e = error_per_show.get(show, 0)
+        self.log_statistics("table")
 
-            # Use info for summary lines; include a visual suffix for quick scanning
-            suffix = "✅"
-            if e > 0:
-                suffix = "❌"
-            elif s > 0:
-                suffix = "⚠️"
-
-            self.log_info(f"{show} {suffix}")
-            self.log_info(f"    — RENAMED: {r}")
-            self.log_info(f"    - SKIPPED: {s}")
-            self.log_info(f"    — ERRORS: {e}")
-
-        total_errors = sum(error_per_show.values())
+        total_errors = sum(self.statistics.get(
+            s, {}).get("ERRORS", 0) for s in self.statistics.keys())
         if total_errors:
             self.log_error(
                 f"{total_errors} file(s) failed during prepare; see above for details.")
 
-        return (processed,)
+        total_processed = sum(self.statistics.get(
+            s, {}).get("RENAMED", 0) for s in self.statistics.keys())
+        return (total_processed,)
 
 
 if __name__ == "__main__":  # pragma: no cover
