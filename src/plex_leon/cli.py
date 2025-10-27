@@ -7,7 +7,7 @@ from pathlib import Path
 
 from plex_leon.utils.migrate import MigrateUtility
 from plex_leon.shared import assert_required_tools_installed
-from plex_leon.utils.season_renamer import process_library as season_process_library
+from plex_leon.utils.season_renamer import SeasonRenamerUtility
 from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
 from plex_leon.utils.prepare import PrepareUtility
 
@@ -173,7 +173,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "season-renamer":
         t0 = time.perf_counter()
-        renamed_count, = season_process_library(args.lib, args.dry_run)
+        util = SeasonRenamerUtility(dry_run=args.dry_run)
+        renamed_count, = util.process(args.lib)
         dt = time.perf_counter() - t0
         print(
             f"Done. Season folders renamed: {renamed_count}. Took {dt:.2f}s.")

@@ -12,34 +12,8 @@ from plex_leon.shared import (
 from plex_leon.utils.base_utility import BaseUtility
 
 
-def process_library(
-    library: Path | None = None,
-    dry_run: bool = False,
-) -> tuple[int]:
-    """Rename season folders under a single library path.
-
-    Rules:
-    - Any subfolder (not the top-level show folders) whose name contains exactly one series of digits is
-      considered a season folder, renamed to 'Season NN' (NN zero-padded).
-    - For case-only renames (e.g., 'season 01' -> 'Season 01') always perform a
-      two-step rename via '.plexleon_swap_Season NN' then to 'Season NN'. If a
-      canonical 'Season NN' already exists, merge contents from the swap folder
-      into it without overwriting; conflicts are moved into
-      'Season NN/.plexleon_conflicts'.
-    - Dry-run prints planned operations and makes no changes.
-    Returns a 1-tuple with the number of season folders processed (renamed/merged).
-    """
-    # Delegate to class-based utility for logging consistency and easier testing
-    util = SeasonRenamerUtility(dry_run=dry_run)
-    return util.process(library)
-
-
 class SeasonRenamerUtility(BaseUtility):
-    """Class wrapper around the procedural process_library function.
-
-    Example:
-        SeasonRenamerUtility(dry_run=True).run(library)
-    """
+    """Utility that normalises season folder names under a given library."""
 
     def process(self, library: Path | None = None) -> tuple[int]:
         if library is None:
