@@ -40,7 +40,7 @@ from base_test_library_generator import BaseTestLibraryGenerator
 # When executed directly, ensure repo root is on sys.path so we can import
 # `tests.integration.shared.tvshows` like other generators.
 if __name__ == "__main__" and __package__ is None:
-    _repo_root = Path(__file__).resolve().parents[2]
+    _repo_root = Path(__file__).resolve().parents[3]
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 

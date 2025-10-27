@@ -28,7 +28,7 @@ import sys
 # When executed directly, ensure repository root is on sys.path so
 # `tests.integration.shared.tvshows` can be imported the same way other generators do.
 if __name__ == "__main__" and __package__ is None:
-    _repo_root = Path(__file__).resolve().parents[2]
+    _repo_root = Path(__file__).resolve().parents[3]
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 

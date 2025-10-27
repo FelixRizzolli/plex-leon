@@ -44,7 +44,7 @@ import sys
 # imports like `tests.integration.shared` may not be resolvable. Ensure the repo root is
 # on sys.path so `import tests.integration...` works.
 if __name__ == "__main__" and __package__ is None:
-    _repo_root = Path(__file__).resolve().parents[2]
+    _repo_root = Path(__file__).resolve().parents[3]
     if str(_repo_root) not in sys.path:
         sys.path.insert(0, str(_repo_root))
 
