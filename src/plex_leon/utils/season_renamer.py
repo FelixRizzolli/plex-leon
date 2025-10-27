@@ -47,11 +47,6 @@ class SeasonRenamerUtility(BaseUtility):
         if not isinstance(library, Path):
             library = Path(library)
 
-        renamed = 0
-        renamed_per_show: dict[str, int] = {}
-        skipped_per_show: dict[str, int] = {}
-        error_per_show: dict[str, int] = {}
-
         for dirpath, dirnames, _ in os.walk(library):
             # Work on a copy so we can safely update dirnames for os.walk
             for d in list(dirnames):
@@ -76,6 +71,7 @@ class SeasonRenamerUtility(BaseUtility):
                 if d.lower() == new_name.lower():
                     # Find a unique swap path
                     swap_path = unique_swap_path(Path(dirpath), new_name)
+                    show = Path(dirpath).name
 
                     if self.dry_run:
                         self.log_info(f"RENAME: {old_path} -> {swap_path}")
@@ -83,10 +79,7 @@ class SeasonRenamerUtility(BaseUtility):
                             self.log_info(f"MERGE: {swap_path} -> {new_path}")
                         else:
                             self.log_info(f"RENAME: {swap_path} -> {new_path}")
-                        renamed += 1
-                        show = Path(dirpath).name
-                        renamed_per_show.setdefault(show, 0)
-                        renamed_per_show[show] += 1
+                        self.increment_stat(show, "RENAMED")
                         # Reflect rename so os.walk doesn't traverse old name
                         try:
                             idx = dirnames.index(d)
@@ -116,32 +109,24 @@ class SeasonRenamerUtility(BaseUtility):
                             dirnames[idx] = new_name
                         except ValueError:
                             pass
-                        renamed += 1
-                        show = Path(dirpath).name
-                        renamed_per_show.setdefault(show, 0)
-                        renamed_per_show[show] += 1
+                        self.increment_stat(show, "RENAMED")
                     except OSError as e:
                         self.log_error(
                             f"two-step rename failed {old_path} -> {new_path}: {e}")
-                        show = Path(dirpath).name
-                        error_per_show.setdefault(show, 0)
-                        error_per_show[show] += 1
+                        self.increment_stat(show, "ERRORS")
                     continue
 
                 # Non-case-only path: direct rename when target doesn't exist; else skip.
                 if new_path.exists():
                     self.log_warning(f"SKIP exists: {new_path}")
                     show = Path(dirpath).name
-                    skipped_per_show.setdefault(show, 0)
-                    skipped_per_show[show] += 1
+                    self.increment_stat(show, "SKIPPED")
                     continue
 
                 if self.dry_run:
                     self.log_info(f"RENAME: {old_path} -> {new_path}")
-                    renamed += 1
                     show = Path(dirpath).name
-                    renamed_per_show.setdefault(show, 0)
-                    renamed_per_show[show] += 1
+                    self.increment_stat(show, "RENAMED")
                     try:
                         idx = dirnames.index(d)
                         dirnames[idx] = new_name
@@ -156,36 +141,25 @@ class SeasonRenamerUtility(BaseUtility):
                         dirnames[idx] = new_name
                     except ValueError:
                         pass
-                    renamed += 1
                     show = Path(dirpath).name
-                    renamed_per_show.setdefault(show, 0)
-                    renamed_per_show[show] += 1
+                    self.increment_stat(show, "RENAMED")
                 except OSError as e:
                     self.log_error(
                         f"failed to rename {old_path} -> {new_path}: {e}")
                     show = Path(dirpath).name
-                    error_per_show.setdefault(show, 0)
-                    error_per_show[show] += 1
+                    self.increment_stat(show, "ERRORS")
 
-        # Print per-show summaries
-        shows = set()
-        shows.update(renamed_per_show.keys())
-        shows.update(skipped_per_show.keys())
-        shows.update(error_per_show.keys())
-        for show in sorted(shows, key=lambda x: x.lower()):
-            r = renamed_per_show.get(show, 0)
-            s = skipped_per_show.get(show, 0)
-            e = error_per_show.get(show, 0)
+        self.log_statistics("table")
 
-            suffix = "✅"
-            if e > 0:
-                suffix = "❌"
-            elif s > 0:
-                suffix = "⚠️"
+        total_errors = sum(
+            stats.get("ERRORS", 0) for stats in self.statistics.values()
+        )
+        if total_errors:
+            self.log_error(
+                f"{total_errors} season folder(s) failed to rename; see above for details.")
 
-            self.log_info(f"📺 {show} {suffix}")
-            self.log_info(f"    — RENAMED: {r}")
-            self.log_info(f"    - SKIPPED: {s}")
-            self.log_info(f"    — ERRORS: {e}")
+        total_renamed = sum(
+            stats.get("RENAMED", 0) for stats in self.statistics.values()
+        )
 
-        return (renamed,)
+        return (total_renamed,)
