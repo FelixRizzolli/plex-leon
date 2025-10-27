@@ -2,12 +2,17 @@
 
 A tiny CLI to manage media libraries: migrate by TVDB IDs, rename seasons and episodes.
 
-Given three folders:
-- library-a: source library (files/folders to consider)
-- library-b: reference library (whose TVDB IDs authorize moves). This library can be bucketed under A–Z and a single non-letter bucket `0-9`.
-- library-c: destination library
+The CLI is subcommand-based with the following utilities:
 
-The tool will move any entry in library-a whose name contains a TVDB tag like `{tvdb-12345}` when the same ID also appears anywhere under library-b (recursively scanned, including within A–Z/`0-9` buckets).
+- `migrate` — move items from library-a to library-c when the TVDB ID exists in library-b
+- `season-renamer` — renames season folders in a library to the canonical 'Season NN' form
+- `episode-renamer` — renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`
+- `episode-check` — placeholder
+- `prepare` — organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`
+
+For backward compatibility, running without a subcommand defaults to `migrate`.
+
+Returns `0` on normal completion, `2` if required external tools are missing (preflight check fails). Prints detailed DECISION lines for eligible items (including resolution and size comparisons) and a final summary with total duration.
 
 ## How it works (migrate)
 
