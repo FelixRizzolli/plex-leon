@@ -75,12 +75,12 @@ def build_cache_mapping(temp_dir: Path) -> dict[tuple[str, str], Path]:
     return mapping
 
 
-def copy_movie(dst: Path, src: Path) -> None:
+def copy_movie(dst: Path, src: Path, *, generator: BaseTestLibraryGenerator) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():
-        print(f"skip copy (exists): {dst}")
+        generator.log_info(f"skip copy (exists): {dst}")
         return
-    print(f"copy: {src.name} -> {dst}")
+    generator.log_info(f"copy: {src.name} -> {dst}")
     shutil.copy2(src, dst)
 
 
@@ -98,11 +98,11 @@ def movie_dict(title: str, *, resolution: str = "1920x1080", fmt: str = "mp4", s
     }
 
 
-def make_tv_folders(base: Path, names: Iterable[str]) -> None:
+def make_tv_folders(base: Path, names: Iterable[str], *, generator: BaseTestLibraryGenerator) -> None:
     for name in names:
         p = base / name
         p.mkdir(parents=True, exist_ok=True)
-        print(f"mkdir: {p}")
+        generator.log_info(f"mkdir: {p}")
 
 
 # --- TV episodes generation ---------------------------------------------------
@@ -121,6 +121,7 @@ def create_seasons_and_episodes(
     show_names: Iterable[str],
     cache: dict[tuple[str, str], Path],
     *,
+    generator: BaseTestLibraryGenerator,
     bucketed: bool = False,
     seed: int | None = 42,
 ) -> None:
@@ -129,6 +130,7 @@ def create_seasons_and_episodes(
     - base: library root (e.g., data/library-a or data/library-b)
     - show_names: iterable of show folder names (must include the TVDB tag)
     - cache: mapping from (resolution, size) -> sample clip Path
+    - generator: logger-bearing generator used for status output
         - bucketed: when True, place shows under A–Z/0-9 buckets (legacy behavior).
             For library-b in production, this should be False (flat layout for shows).
     - seed: optional RNG seed for reproducible random picks
@@ -136,7 +138,8 @@ def create_seasons_and_episodes(
     rng = random.Random(seed)
     keys = _distinct_cache_keys(cache)
     if not keys:
-        print("WARN: no cached sample videos available; skipping episode files")
+        generator.log_warning(
+            "no cached sample videos available; skipping episode files")
         # dummy fallback; files will be empty if missing
         keys = [("640x360", "1")]
 
@@ -148,13 +151,13 @@ def create_seasons_and_episodes(
             target = (_show_dir_for_lib_b(base, show)
                       if bucketed else (base / show))
             target.mkdir(parents=True, exist_ok=True)
-            print(f"mkdir: {target}")
+            generator.log_info(f"mkdir: {target}")
             continue
         # seasons was retrieved via get_tvshow_episodes
         show_dir = (_show_dir_for_lib_b(base, show)
                     if bucketed else (base / show))
         show_dir.mkdir(parents=True, exist_ok=True)
-        print(f"mkdir: {show_dir}")
+        generator.log_info(f"mkdir: {show_dir}")
 
         # Build a canonical series title prefix for episode filenames
         # Keep the folder name prefix before the tvdb tag
@@ -163,7 +166,7 @@ def create_seasons_and_episodes(
         for season_num in sorted(seasons.keys()):
             season_dir = show_dir / f"Season {season_num:02d}"
             season_dir.mkdir(parents=True, exist_ok=True)
-            print(f"mkdir: {season_dir}")
+            generator.log_info(f"mkdir: {season_dir}")
 
             for ep_num in range(1, seasons[season_num] + 1):
                 # Randomly pick a resolution/size combo and get the cached file
@@ -171,8 +174,8 @@ def create_seasons_and_episodes(
                 src = cache.get((res, size))
                 if src is None:
                     # Shouldn't happen, but guard anyway
-                    print(
-                        f"WARN: cache miss for {res} {size} while creating {title_prefix} s{season_num:02d}e{ep_num:02d}"
+                    generator.log_warning(
+                        f"cache miss for {res} {size} while creating {title_prefix} s{season_num:02d}e{ep_num:02d}"
                     )
                     # Create an empty placeholder
                     dst = season_dir / \
@@ -183,7 +186,7 @@ def create_seasons_and_episodes(
 
                 dst = season_dir / \
                     f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
-                copy_movie(dst, src)
+                copy_movie(dst, src, generator=generator)
 
 
 # Bucketing helpers for library-b --------------------------------------------
@@ -197,7 +200,13 @@ def letter_bucket(name: str) -> str:
     return ch.upper() if ch.isalpha() else "0-9"
 
 
-def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
+def copy_or_move_into_bucket(
+    base: Path,
+    name: str,
+    src: Path,
+    *,
+    generator: BaseTestLibraryGenerator,
+) -> None:
     """Place movie file under base/<Bucket>/<name>.
 
     If a flat or differently-bucketed item exists, migrate it via move to keep
@@ -216,26 +225,26 @@ def copy_or_move_into_bucket(base: Path, name: str, src: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
 
     if dst.exists():
-        print(f"skip copy (exists): {dst}")
+        generator.log_info(f"skip copy (exists): {dst}")
         return
 
     flat = base / name
     if flat.exists():
-        print(f"move (re-bucket): {flat} -> {dst}")
+        generator.log_info(f"move (re-bucket): {flat} -> {dst}")
         shutil.move(str(flat), str(dst))
         return
 
     other = find_bucketed_item(base, name)
     if other and other != dst:
-        print(f"move (re-bucket): {other} -> {dst}")
+        generator.log_info(f"move (re-bucket): {other} -> {dst}")
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(other), str(dst))
         return
 
-    copy_movie(dst, src)
+    copy_movie(dst, src, generator=generator)
 
 
-def ensure_tv_folder_flat(base: Path, name: str) -> None:
+def ensure_tv_folder_flat(base: Path, name: str, *, generator: BaseTestLibraryGenerator) -> None:
     """Create/migrate TV show folder directly under base/<name> (no buckets).
 
     If the show exists in any bucket (legacy), move it back to flat.
@@ -249,18 +258,18 @@ def ensure_tv_folder_flat(base: Path, name: str) -> None:
 
     dst = base / name
     if dst.exists():
-        print(f"skip mkdir (exists): {dst}")
+        generator.log_info(f"skip mkdir (exists): {dst}")
         return
 
     bucketed = find_bucketed_item(base, name)
     if bucketed and bucketed != dst:
-        print(f"move (unbucket): {bucketed} -> {dst}")
+        generator.log_info(f"move (unbucket): {bucketed} -> {dst}")
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(bucketed), str(dst))
         return
 
     dst.mkdir(parents=True, exist_ok=True)
-    print(f"mkdir: {dst}")
+    generator.log_info(f"mkdir: {dst}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -482,7 +491,7 @@ class MigrateTestLibraryGenerator(BaseTestLibraryGenerator):
                 resp = input(
                     f"Target {d} exists. Delete it and recreate? [y/N]: ")
                 if resp.strip().lower() not in ("y", "yes"):
-                    print("Aborted — target not removed.")
+                    self.log_info("Aborted — target not removed.")
                     return 1
             if d.exists():
                 shutil.rmtree(d)
@@ -502,10 +511,10 @@ class MigrateTestLibraryGenerator(BaseTestLibraryGenerator):
             size = str(entry["size"])
             src = cache.get((res, size))
             if src is None:
-                print(
-                    f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
+                self.log_warning(
+                    f"no cached clip for resolution {res} size {size}, skipping {fname}")
                 continue
-            copy_movie(lib_a / fname, src)
+            copy_movie(lib_a / fname, src, generator=self)
 
         # Populate library B movies (bucketed under A/B/C/... like production)
         for entry in self.library_b_movies:
@@ -515,22 +524,24 @@ class MigrateTestLibraryGenerator(BaseTestLibraryGenerator):
             size = str(entry["size"])
             src = cache.get((res, size))
             if src is None:
-                print(
-                    f"WARN: no cached clip for resolution {res} size {size}, skipping {fname}")
+                self.log_warning(
+                    f"no cached clip for resolution {res} size {size}, skipping {fname}")
                 continue
-            copy_or_move_into_bucket(lib_b, fname, src)
+            copy_or_move_into_bucket(lib_b, fname, src, generator=self)
 
         # Create TV show folders and populate with seasons/episodes
         create_seasons_and_episodes(
-            lib_a, self.library_a_tvshows, cache, bucketed=False, seed=123)
+            lib_a, self.library_a_tvshows, cache,
+            generator=self, bucketed=False, seed=123)
         # For library-b, TV shows are flat (no buckets). Migrate any legacy
         # bucketed folders back to flat, then create seasons/episodes.
         for show in self.library_b_tvshows:
-            ensure_tv_folder_flat(lib_b, show)
+            ensure_tv_folder_flat(lib_b, show, generator=self)
         create_seasons_and_episodes(
-            lib_b, self.library_b_tvshows, cache, bucketed=False, seed=456)
+            lib_b, self.library_b_tvshows, cache,
+            generator=self, bucketed=False, seed=456)
 
-        print("Done.")
+        self.log_info("Done.")
         return 0
 
 
