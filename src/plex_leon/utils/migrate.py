@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import List
 from plex_leon.shared import (
     extract_tvdb_id,
     move_file,
@@ -10,7 +11,7 @@ from plex_leon.shared import (
     format_bytes,
     format_resolution,
 )
-from plex_leon.utils.base_utility import BaseUtility
+from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
 
 class MigrateUtility(BaseUtility):
@@ -20,6 +21,61 @@ class MigrateUtility(BaseUtility):
     Usage:
         MigrateUtility(dry_run=True).process(lib_a, lib_b, lib_c, overwrite=False)
     """
+
+    @property
+    def command(self) -> str:
+        return "migrate"
+
+    @property
+    def brief_description(self) -> str:
+        return "Move items from library-a to library-c when their TVDB ID exists in library-b."
+
+    @property
+    def parameters(self) -> List[ParameterInfo]:
+        return [
+            ParameterInfo(
+                name="--lib-a",
+                required=False,
+                description="Path to library-a",
+                default="./data/library-a"
+            ),
+            ParameterInfo(
+                name="--lib-b",
+                required=False,
+                description="Path to library-b",
+                default="./data/library-b"
+            ),
+            ParameterInfo(
+                name="--lib-c",
+                required=False,
+                description="Path to library-c",
+                default="./data/library-c"
+            ),
+            ParameterInfo(
+                name="--overwrite",
+                required=False,
+                description="Overwrite existing files in library-c",
+                default=False
+            ),
+            ParameterInfo(
+                name="--dry-run",
+                required=False,
+                description="Show what would be moved, but do not actually move files",
+                default=False
+            ),
+            ParameterInfo(
+                name="--threads",
+                required=False,
+                description="Optional thread count for metadata reads (I/O bound)",
+                default=None
+            ),
+            ParameterInfo(
+                name="--no-resolution",
+                required=False,
+                description="Skip resolution comparisons to speed up large runs",
+                default=False
+            ),
+        ]
 
     def process(self, lib_a: Path, lib_b: Path, lib_c: Path, **kwargs) -> tuple[int, int]:
         # accept overwrite/dry_run/prefer_resolution/threads forwarded via kwargs
