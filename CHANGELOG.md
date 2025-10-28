@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
-## [3.0.0] - 2025-10-XX
+## [3.0.0] - 2025-10-28
 ### Added
 - Detailed statistics reporting to each utility: utilities now collect and display operation counts (e.g., RENAMED, SKIPPED, ERRORS) per show/category in table or steps format via `log_statistics()`.
 - `BaseUtility` class: abstract base class providing shared functionality for all utilities including logging helpers, dry-run/forced options, and statistics tracking via `increment_stat()`.
