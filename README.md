@@ -10,8 +10,6 @@ The CLI is subcommand-based with the following utilities:
 - `episode-check` — placeholder
 - `prepare` — organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`
 
-For backward compatibility, running without a subcommand defaults to `migrate`.
-
 Returns `0` on normal completion, `2` if required external tools are missing (preflight check fails). Prints detailed DECISION lines for eligible items (including resolution and size comparisons) and a final summary with total duration.
 
 ## How it works

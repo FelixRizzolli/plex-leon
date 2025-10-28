@@ -120,9 +120,7 @@ def main(argv: list[str] | None = None) -> int:
     _add_stub_parser(subparsers, "episode-check",
                      "Check episodes (not implemented yet)")
 
-    # Prepare argv with backward compatibility:
-    # - If argv is provided and its first element is a program name, drop it.
-    # - If no subcommand is provided (first token starts with '-'), default to 'migrate'.
+    # Prepare argv: if argv is provided and its first element is a program name, drop it.
     if argv is None:
         parsed_argv = sys.argv[1:]
     else:
@@ -137,10 +135,6 @@ def main(argv: list[str] | None = None) -> int:
     }:
         # Drop program name
         parsed_argv = parsed_argv[1:]
-
-    if not parsed_argv or parsed_argv[0].startswith("-"):
-        # Default to migrate subcommand for backward compatibility
-        parsed_argv = ["migrate", *parsed_argv]
 
     args = parser.parse_args(parsed_argv)
 
@@ -200,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"'{args.command}' is not implemented yet.")
         return 0
 
-    # Unknown or missing command (shouldn't happen due to defaulting)
+    # No command provided
     parser.print_help()
     return 1
 
