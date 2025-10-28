@@ -13,6 +13,8 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - New `help` subcommand: `plex-leon help <command>` prints a detailed, human-friendly description and parameter list for a specific utility.
 - Each subcommand now exposes detailed usage via the familiar argparse flag (e.g. `plex-leon migrate --help`).
 - Dynamic command discovery: utilities are auto-discovered from their classes (no hardcoded command registry). Utility metadata (command name, brief description, parameters, result label and preflight/tool requirements) is provided by the utility classes themselves.
+- New interactive `menu` subcommand: `plex-leon menu` launches a prompt-driven interface to pick a discovered utility and supply its arguments interactively.
+- CLI default behavior: calling `plex-leon` with no subcommand now launches the interactive `menu` automatically.
 
 ### Changed
 - **Logging system**: migrated from Python's standard `logging` to `loguru` for enhanced logging capabilities with colored output and structured formatting. All utilities now use consistent log levels (TRACE, DEBUG, INFO, WARNING, ERROR) with emoji prefixes (ℹ️, ⚠️, ❌, 🐛, 🔍).
