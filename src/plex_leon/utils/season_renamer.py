@@ -25,6 +25,10 @@ class SeasonRenamerUtility(BaseUtility):
         return "Rename season folders like 'season 01' or 'Staffel 01' to 'Season 01'"
 
     @property
+    def result_label(self) -> str:
+        return "Season folders renamed"
+
+    @property
     def parameters(self) -> List[ParameterInfo]:
         return [
             ParameterInfo(

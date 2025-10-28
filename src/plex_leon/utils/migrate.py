@@ -31,6 +31,14 @@ class MigrateUtility(BaseUtility):
         return "Move items from library-a to library-c when their TVDB ID exists in library-b."
 
     @property
+    def result_label(self) -> str:
+        return "Eligible files/folders moved"
+
+    @property
+    def requires_tools_check(self) -> bool:
+        return True
+
+    @property
     def parameters(self) -> List[ParameterInfo]:
         return [
             ParameterInfo(

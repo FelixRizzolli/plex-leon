@@ -30,6 +30,10 @@ class EpisodeRenamerUtility(BaseUtility):
         return "Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name."
 
     @property
+    def result_label(self) -> str:
+        return "Episode files renamed"
+
+    @property
     def parameters(self) -> List[ParameterInfo]:
         return [
             ParameterInfo(

@@ -215,6 +215,10 @@ class PrepareUtility(BaseUtility):
         return "Prepare a library by moving loose episode files into Season folders and renaming them"
 
     @property
+    def result_label(self) -> str:
+        return "Episodes processed"
+
+    @property
     def parameters(self) -> List[ParameterInfo]:
         return [
             ParameterInfo(

@@ -74,7 +74,22 @@ class BaseUtility(ABC):
         """List of command-line parameters this utility accepts."""
         pass
 
-    # statistics is a mapping of category -> (mapping of step -> count)
+    @property
+    def result_label(self) -> str:
+        """Label for the result count (e.g., 'Items processed', 'Files moved').
+
+        Subclasses can override this to provide a more specific label.
+        """
+        return "Items processed"
+
+    @property
+    def requires_tools_check(self) -> bool:
+        """Whether this utility requires external tools to be installed.
+
+        If True, the main function will call assert_required_tools_installed()
+        before running the utility. Defaults to False.
+        """
+        return False
     statistics: Dict[str, Dict[str, int]]
 
     def __init__(self, *, dry_run: bool = False, forced: bool = False, log_level: Union[int, str] = 20) -> None:
