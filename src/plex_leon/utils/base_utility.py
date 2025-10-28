@@ -36,7 +36,7 @@ class BaseUtility(ABC):
     Provides simple logging helpers and a run() entrypoint that calls the
     concrete implementation's process() method.
 
-    Subclasses must implement these class-level metadata properties:
+    Subclasses must define these class-level attributes:
     - command: str - The CLI command name (e.g., "migrate", "season-renamer")
     - brief_description: str - Short one-line description of what the utility does
     - parameters: List[ParameterInfo] - List of command-line parameters
@@ -57,48 +57,21 @@ class BaseUtility(ABC):
         compact table ("table") or per-category step list ("steps").
     """
 
-    # Class-level metadata that subclasses must implement
-    @property
-    @abstractmethod
-    def command(self) -> str:
-        """The CLI command name (e.g., 'migrate', 'season-renamer')."""
-        pass
+    # Class-level metadata that subclasses must define
+    command: str
+    brief_description: str
+    parameters: List[ParameterInfo]
 
-    @property
-    @abstractmethod
-    def brief_description(self) -> str:
-        """Short one-line description of what this utility does."""
-        pass
-
-    @property
-    @abstractmethod
-    def parameters(self) -> List[ParameterInfo]:
-        """List of command-line parameters this utility accepts."""
-        pass
-
-    @property
-    def result_label(self) -> str:
-        """Label for the result count (e.g., 'Items processed', 'Files moved').
-
-        Subclasses can override this to provide a more specific label.
-        """
-        return "Items processed"
-
-    @property
-    def requires_tools_check(self) -> bool:
-        """Whether this utility requires external tools to be installed.
-
-        If True, the main function will call assert_required_tools_installed()
-        before running the utility. Defaults to False.
-        """
-        return False
+    # Optional class-level metadata with defaults
+    result_label: str = "Items processed"
+    requires_tools_check: bool = False
 
     @classmethod
     def add_parser(cls, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
         """Create and add an argparse subparser for this utility.
 
         This method generates the parser configuration from the class metadata
-        (command, brief_description, and parameters properties).
+        (command, brief_description, and parameters attributes).
 
         Args:
             subparsers: The argparse _SubParsersAction to add this parser to
@@ -106,18 +79,14 @@ class BaseUtility(ABC):
         Returns:
             The created ArgumentParser for this utility
         """
-        # Create a temporary instance to access the properties
-        # We need an instance because the properties are abstract and defined on instances
-        temp_instance = cls.__new__(cls)
-
         parser = subparsers.add_parser(
-            temp_instance.command,
-            help=temp_instance.brief_description,
-            description=temp_instance.brief_description,
+            cls.command,
+            help=cls.brief_description,
+            description=cls.brief_description,
         )
 
         # Add parameters from the metadata
-        for param in temp_instance.parameters:
+        for param in cls.parameters:
             kwargs = {}
 
             # Set the type based on default value

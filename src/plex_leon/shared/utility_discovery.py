@@ -50,13 +50,12 @@ def discover_utilities() -> dict[str, type[BaseUtility]]:
                     issubclass(attr, BaseUtility) and
                         attr is not BaseUtility):
 
-                    # Create a temporary instance to get the command name
+                    # Get the command name from the class attribute
                     try:
-                        temp_instance = attr.__new__(attr)
-                        command_name = temp_instance.command
+                        command_name = attr.command
                         utilities[command_name] = attr
-                    except Exception:
-                        # Skip utilities that can't be instantiated
+                    except AttributeError:
+                        # Skip utilities that don't have a command attribute defined
                         pass
 
         except (ImportError, AttributeError):

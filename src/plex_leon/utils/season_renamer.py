@@ -16,34 +16,23 @@ from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 class SeasonRenamerUtility(BaseUtility):
     """Utility that normalises season folder names under a given library."""
 
-    @property
-    def command(self) -> str:
-        return "season-renamer"
-
-    @property
-    def brief_description(self) -> str:
-        return "Rename season folders like 'season 01' or 'Staffel 01' to 'Season 01'"
-
-    @property
-    def result_label(self) -> str:
-        return "Season folders renamed"
-
-    @property
-    def parameters(self) -> List[ParameterInfo]:
-        return [
-            ParameterInfo(
-                name="--lib",
-                required=False,
-                description="Path to the library to process",
-                default="./data/library-s"
-            ),
-            ParameterInfo(
-                name="--dry-run",
-                required=False,
-                description="Show planned renames without changing the filesystem",
-                default=False
-            ),
-        ]
+    command = "season-renamer"
+    brief_description = "Rename season folders like 'season 01' or 'Staffel 01' to 'Season 01'"
+    result_label = "Season folders renamed"
+    parameters = [
+        ParameterInfo(
+            name="--lib",
+            required=False,
+            description="Path to the library to process",
+            default="./data/library-s"
+        ),
+        ParameterInfo(
+            name="--dry-run",
+            required=False,
+            description="Show planned renames without changing the filesystem",
+            default=False
+        ),
+    ]
 
     def process(self, library: Path | None = None) -> tuple[int]:
         if library is None:

@@ -207,34 +207,23 @@ __all__ = ["PrepareUtility"]
 class PrepareUtility(BaseUtility):
     """Class wrapper around the procedural process function."""
 
-    @property
-    def command(self) -> str:
-        return "prepare"
-
-    @property
-    def brief_description(self) -> str:
-        return "Prepare a library by moving loose episode files into Season folders and renaming them"
-
-    @property
-    def result_label(self) -> str:
-        return "Episodes processed"
-
-    @property
-    def parameters(self) -> List[ParameterInfo]:
-        return [
-            ParameterInfo(
-                name="--lib",
-                required=False,
-                description="Path to the library to process",
-                default="./data/library-p"
-            ),
-            ParameterInfo(
-                name="--dry-run",
-                required=False,
-                description="Show planned moves/renames without changing the filesystem",
-                default=False
-            ),
-        ]
+    command = "prepare"
+    brief_description = "Prepare a library by moving loose episode files into Season folders and renaming them"
+    result_label = "Episodes processed"
+    parameters = [
+        ParameterInfo(
+            name="--lib",
+            required=False,
+            description="Path to the library to process",
+            default="./data/library-p"
+        ),
+        ParameterInfo(
+            name="--dry-run",
+            required=False,
+            description="Show planned moves/renames without changing the filesystem",
+            default=False
+        ),
+    ]
 
     def process(self, root: Path | str | None = None) -> tuple[int]:
         """Process a root folder and normalise loose episode files using the

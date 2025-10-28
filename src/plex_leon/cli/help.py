@@ -22,9 +22,7 @@ def print_general_help() -> None:
     print("Available commands:\n")
 
     for cmd_name, utility_class in utilities.items():
-        # Instantiate to access properties (with dummy values for dry_run)
-        util = utility_class(dry_run=True)
-        print(f"  {cmd_name:20s} {util.brief_description}")
+        print(f"  {cmd_name:20s} {utility_class.brief_description}")
 
     print("\nUse 'plex-leon help <command>' for detailed information about a specific command.")
     print("Use 'plex-leon <command> --help' to see argparse-generated help.")
@@ -44,15 +42,12 @@ def print_command_help(command: str) -> None:
         print(f"\nAvailable commands: {', '.join(utilities.keys())}")
         return
 
-    # Instantiate to access properties
-    util = utility_class(dry_run=True)
+    print(f"Command: {utility_class.command}")
+    print(f"\n{utility_class.brief_description}\n")
 
-    print(f"Command: {util.command}")
-    print(f"\n{util.brief_description}\n")
-
-    if util.parameters:
+    if utility_class.parameters:
         print("Parameters:")
-        for param in util.parameters:
+        for param in utility_class.parameters:
             required_marker = " (required)" if param.required else ""
             default_info = f" [default: {param.default}]" if param.default is not None and not param.required else ""
             print(f"  {param.name}{required_marker}")

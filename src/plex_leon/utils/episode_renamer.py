@@ -21,34 +21,23 @@ class EpisodeRenamerUtility(BaseUtility):
         EpisodeRenamerUtility(dry_run=True).run(library)
     """
 
-    @property
-    def command(self) -> str:
-        return "episode-renamer"
-
-    @property
-    def brief_description(self) -> str:
-        return "Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name."
-
-    @property
-    def result_label(self) -> str:
-        return "Episode files renamed"
-
-    @property
-    def parameters(self) -> List[ParameterInfo]:
-        return [
-            ParameterInfo(
-                name="--lib",
-                required=False,
-                description="Path to the library to process",
-                default="./data/library-e"
-            ),
-            ParameterInfo(
-                name="--dry-run",
-                required=False,
-                description="Show planned renames without changing the filesystem",
-                default=False
-            ),
-        ]
+    command = "episode-renamer"
+    brief_description = "Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name."
+    result_label = "Episode files renamed"
+    parameters = [
+        ParameterInfo(
+            name="--lib",
+            required=False,
+            description="Path to the library to process",
+            default="./data/library-e"
+        ),
+        ParameterInfo(
+            name="--dry-run",
+            required=False,
+            description="Show planned renames without changing the filesystem",
+            default=False
+        ),
+    ]
 
     def process(self, library: Path | None = None) -> tuple[int]:
         if library is None:

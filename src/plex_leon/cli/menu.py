@@ -96,12 +96,9 @@ def _collect_arguments_for_utility(utility_class: type["BaseUtility"]) -> Simple
     Returns an argparse-like Namespace (SimpleNamespace) with attributes named
     according to argparse's conversion (dashes -> underscores).
     """
-    # Create a temporary instance to access parameters metadata
-    temp = utility_class(dry_run=True)
-
     answers: dict[str, Any] = {}
 
-    for param in temp.parameters:
+    for param in utility_class.parameters:
         attr = _friendly_attr_name(param.name)
         val = _prompt_for_param(param)
         answers[attr] = val
@@ -126,10 +123,9 @@ def main() -> int:
     items = sorted(utilities.items())
     for idx, (cmd_name, ucls) in enumerate(items, start=1):
         try:
-            inst = ucls(dry_run=True)
-            brief = inst.brief_description
-        except Exception:
-            brief = "(failed to instantiate)"
+            brief = ucls.brief_description
+        except AttributeError:
+            brief = "(missing brief_description)"
         print(f"{idx:2d}) {cmd_name:20s} {brief}")
 
     print("\nEnter the number or command name to run, or 'q' to quit.")

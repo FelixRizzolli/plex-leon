@@ -118,11 +118,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in command_map:
         utility_class = command_map[args.command]
 
-        # Create a temporary instance to check if tools are required
-        temp_instance = utility_class.__new__(utility_class)
-
         # Check required tools if needed
-        if temp_instance.requires_tools_check:
+        if utility_class.requires_tools_check:
             try:
                 assert_required_tools_installed()
             except RuntimeError as exc:

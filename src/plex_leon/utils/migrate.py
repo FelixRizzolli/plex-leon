@@ -23,68 +23,54 @@ class MigrateUtility(BaseUtility):
         MigrateUtility(dry_run=True).process(lib_a, lib_b, lib_c, overwrite=False)
     """
 
-    @property
-    def command(self) -> str:
-        return "migrate"
-
-    @property
-    def brief_description(self) -> str:
-        return "Move items from library-a to library-c when their TVDB ID exists in library-b."
-
-    @property
-    def result_label(self) -> str:
-        return "Eligible files/folders moved"
-
-    @property
-    def requires_tools_check(self) -> bool:
-        return True
-
-    @property
-    def parameters(self) -> List[ParameterInfo]:
-        return [
-            ParameterInfo(
-                name="--lib-a",
-                required=False,
-                description="Path to library-a",
-                default="./data/library-a"
-            ),
-            ParameterInfo(
-                name="--lib-b",
-                required=False,
-                description="Path to library-b",
-                default="./data/library-b"
-            ),
-            ParameterInfo(
-                name="--lib-c",
-                required=False,
-                description="Path to library-c",
-                default="./data/library-c"
-            ),
-            ParameterInfo(
-                name="--overwrite",
-                required=False,
-                description="Overwrite existing files in library-c",
-                default=False
-            ),
-            ParameterInfo(
-                name="--dry-run",
-                required=False,
-                description="Show what would be moved, but do not actually move files",
-                default=False
-            ),
-            ParameterInfo(
-                name="--threads",
-                required=False,
-                description="Optional thread count for metadata reads (I/O bound)",
-                default=None
-            ),
-            ParameterInfo(
-                name="--no-resolution",
-                required=False,
-                description="Skip resolution comparisons to speed up large runs",
-                default=False
-            ),
-        ]
+    command = "migrate"
+    brief_description = "Move items from library-a to library-c when their TVDB ID exists in library-b."
+    result_label = "Eligible files/folders moved"
+    requires_tools_check = True
+    parameters = [
+        ParameterInfo(
+            name="--lib-a",
+            required=False,
+            description="Path to library-a",
+            default="./data/library-a"
+        ),
+        ParameterInfo(
+            name="--lib-b",
+            required=False,
+            description="Path to library-b",
+            default="./data/library-b"
+        ),
+        ParameterInfo(
+            name="--lib-c",
+            required=False,
+            description="Path to library-c",
+            default="./data/library-c"
+        ),
+        ParameterInfo(
+            name="--overwrite",
+            required=False,
+            description="Overwrite existing files in library-c",
+            default=False
+        ),
+        ParameterInfo(
+            name="--dry-run",
+            required=False,
+            description="Show what would be moved, but do not actually move files",
+            default=False
+        ),
+        ParameterInfo(
+            name="--threads",
+            required=False,
+            description="Optional thread count for metadata reads (I/O bound)",
+            default=None
+        ),
+        ParameterInfo(
+            name="--no-resolution",
+            required=False,
+            description="Skip resolution comparisons to speed up large runs",
+            default=False
+        ),
+    ]
 
     @classmethod
     def prepare_process_args(cls, args: argparse.Namespace) -> tuple[tuple, dict]:
