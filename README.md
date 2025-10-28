@@ -206,27 +206,86 @@ plex-leon --help
 - The CLI validates that `ffprobe` and `mediainfo` are present on PATH at startup and will exit with code `2` if they are missing.
 - If you use Poetry the project is already configured; otherwise the `pip install -e .` route will install the package in editable/development mode.
 
+
 ## Development
 
-Run tests (optional):
+### Guidelines
+
+Follow these lightweight conventions when contributing and releasing:
+
+- Semantic versioning: use tags like `v2.4.0` for releases and increment MAJOR.MINOR.PATCH appropriately.
+- Commit messages: prefer a conventional commit style (e.g., `feat:`, `fix:`, `chore:`, `test:`). This keeps the changelog tidy.
+	- When a change is scoped to a specific utility, prefer scoped commits, e.g. `feat(prepare):` or `test(season-renamer):` so the changed area is immediately obvious in the changelog.
+- Releases: update `README.md` and `CHANGELOG.md` before tagging a release. Keep changelog entries under headings: `Added`, `Changed`, `Fixed`, `Tests`.
+
+### Devcontainer
+
+This repo can be used inside a development container (devcontainer) for a reproducible development environment. The devcontainer provides:
+
+- a consistent Python 3.13 environment
+- preinstalled development tools (linting, pytest, optional editors integration)
+
+To use the devcontainer:
+
+1. Open the repository in VS Code with the Remote - Containers extension installed.
+2. Choose "Reopen in Container" from the Command Palette. VS Code will build the devcontainer image and open a workspace with all tools installed.
+
+### Testing
+
+This project contains unit and integration tests under `tests/`.
+
+Run all tests locally using Poetry (recommended):
 
 ```bash
 poetry run pytest -q
 ```
 
-Key modules:
-- `plex_leon/migrate.py` — extraction, scanning, and move logic
-- `plex_leon/season_renamer.py` — season folder renaming utility
-- `plex_leon/episode_renamer.py` — episode file renaming utility
-- `plex_leon/utils.py` — shared helpers (regex, parsing, formatting, safe renames)
-- `plex_leon/cli.py` — subcommands and argument parsing
-- `plex_leon/prepare.py` — prepares a library by organising loose TV episode files into canonical `Season NN` folders and renaming them to `<Show (Year)> - eEE sSS.ext` (episode before season).
+Run only unit tests:
 
-### Build standalone executables (CI)
+```bash
+poetry run pytest -q tests/unittests
+```
 
-A GitHub Actions workflow builds single-file executables for Linux, macOS, and Windows using PyInstaller. It runs on tag pushes matching `v*` and on manual dispatch.
+#### Test library generator
 
-- Workflow: `.github/workflows/build-binaries.yml`
-- Artifacts uploaded per-OS as `plex-leon-<OS>` (or `.exe` on Windows)
+The integration tests include helper generators that can create sample library data under `data/` for local testing. See `tests/integration/generators` for scripts and examples.
 
-To trigger manually, use the Actions tab → build-binaries → Run workflow.
+Note: in this project the "integration tests" are not standard pytest cases — they are generator scripts that create a test environment under `data/` and let you run `plex-leon` against that environment to validate behavior.
+
+How to use the integration generators locally:
+
+1. Create or activate your virtualenv and install the package (Poetry recommended):
+
+```bash
+poetry install
+poetry run python tests/integration/generators/migrate_tlg.py
+poetry run python tests/integration/generators/episode_renamer_tlg.py
+poetry run python tests/integration/generators/season_renamer_tlg.py
+poetry run python tests/integration/generators/prepare_tlg.py
+```
+
+2. Inspect the generated folder (e.g., `./data/library-a`, `./data/library-b`, ...) to confirm files are present.
+
+3. Run plex-leon against the generated data (dry-run first):
+
+```bash
+poetry run plex-leon migrate --dry-run
+poetry run plex-leon episode-renamer --dry-run
+poetry run plex-leon season-renamer --dry-run
+poetry run plex-leon prepare --dry-run
+```
+
+4. Validate the decisions printed by the tool (DECISION lines and final summary). 
+
+Note: when you use the provided test generators the utilities already default to the test library paths (for example `prepare` defaults to `data/library-p`). You therefore don't need to pass `--lib` flags when running the utilities against the generated data unless you put the generated data in a non-standard location.
+
+#### Coverage
+
+Generate coverage reports (HTML + lcov + xml + json) with the project's Poetry script:
+
+```bash
+poetry run coverage
+# results will be available under data/coverage/
+```
+
+You can open `data/coverage/html/index.html` to view the HTML report in a browser.
