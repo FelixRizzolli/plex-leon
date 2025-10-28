@@ -146,13 +146,13 @@ poetry run plex-leon episode-renamer --lib ./data/library-e
 
 ### prepare
 
-Organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`.
+Organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - s01e01.ext`.
 
 **How it works:**
 
 - Validates show folders (TVDB id must be present, duplicate detection).
 - Organises loose TV episode files into canonical `Season NN` folders.
-- Renames episodes to `<Show (Year)> - eEE sSS.ext` (episode before season).
+- Renames episodes to `<Show (Year)> - s01e01.ext` (season before episode).
 - Only processes files that pass validation checks.
 
 **Options:**
