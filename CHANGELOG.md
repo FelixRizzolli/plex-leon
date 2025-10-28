@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [3.0.0] - 2025-10-XX
+### Added
+- Detailed statistics reporting to each utility: utilities now collect and display operation counts (e.g., RENAMED, SKIPPED, ERRORS) per show/category in table or steps format via `log_statistics()`.
+- `BaseUtility` class: abstract base class providing shared functionality for all utilities including logging helpers, dry-run/forced options, and statistics tracking via `increment_stat()`.
+- `BaseTestLibraryGenerator` class: abstract base class for test data generators with shared download logic and consistent structure.
+- Coverage script accessible via `poetry run coverage`: generates HTML, lcov, xml, and json coverage reports in `data/coverage/`.
+
+### Changed
+- **Logging system**: migrated from Python's standard `logging` to `loguru` for enhanced logging capabilities with colored output and structured formatting. All utilities now use consistent log levels (TRACE, DEBUG, INFO, WARNING, ERROR) with emoji prefixes (ℹ️, ⚠️, ❌, 🐛, 🔍).
+- **Architecture refactoring**: all utility scripts (`migrate`, `season-renamer`, `episode-renamer`, `prepare`) converted to class-based approach inheriting from `BaseUtility`, sharing common code and reducing duplication.
+- **README.md**: comprehensive update with better utility descriptions, improved structure, detailed development guidelines (commit conventions, semantic versioning), devcontainer documentation, and expanded Requirements & Installation instructions.
+- **Test structure**: reorganized test directories into `/tests/integration` (for generators) and `/tests/unittests` (for unit tests of helper functions).
+
+### Tests
+- Removed old/obsolete tests and reorganized test structure with clear separation between unit and integration tests.
+- Moved test library generator scripts to `/tests/integration/generators/` with standardized naming (`*_tlg.py`).
+- Added comprehensive unit tests for helper functions in `/tests/unittests/shared/` covering:
+  - Episode parsing and normalization
+  - TVDB ID extraction and collection
+  - Season detection and validation
+  - File operations (move, merge, rename)
+  - Resolution and filesize formatting
+  - Video metadata reading
+- Refactored generator scripts using `BaseTestLibraryGenerator` class for consistent structure and shared video download functionality.
+
 ## [2.4.0] - 2025-10-10
 ### Added
 - New `prepare` utility: scans a library for TV show folders, validates shows (ensures `{tvdb-...}` suffix and detects duplicate episode files), creates canonical `Season NN` folders, and moves/renames loose episode files to the `Show (Year) - eEE sSS.ext` format. If validation reports ERROR-level issues for a show, processing for that show is skipped.
