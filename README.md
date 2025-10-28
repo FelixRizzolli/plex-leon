@@ -12,6 +12,8 @@ The CLI is subcommand-based with the following utilities:
 
 Additionally, there is a `help` subcommand that prints a short, human-friendly summary of available commands and their one-line descriptions.
 
+Note: calling `plex-leon` with no subcommand will now launch the interactive `menu` by default. The `menu` lets you select a discovered utility and provides prompts for its arguments.
+
 You can get detailed, command-specific help two ways:
 
 - Using the `help` subcommand:
