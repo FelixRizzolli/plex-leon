@@ -10,6 +10,26 @@ The CLI is subcommand-based with the following utilities:
 - `episode-check` — placeholder
 - `prepare` — organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`
 
+Additionally, there is a `help` subcommand that prints a short, human-friendly summary of available commands and their one-line descriptions.
+
+You can get detailed, command-specific help two ways:
+
+- Using the `help` subcommand:
+
+```bash
+plex-leon help migrate
+```
+
+- Or using the built-in argparse help for any subcommand:
+
+```bash
+plex-leon migrate --help
+```
+
+Both will print detailed usage and options for the selected utility.
+
+Note: commands are discovered automatically from the utility classes, so adding a new utility will make it appear in the CLI and `help` output without manual changes to this README.
+
 Returns `0` on normal completion, `2` if required external tools are missing (preflight check fails). Prints detailed DECISION lines for eligible items (including resolution and size comparisons) and a final summary with total duration.
 
 ## How it works
