@@ -10,12 +10,16 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - `BaseUtility` class: abstract base class providing shared functionality for all utilities including logging helpers, dry-run/forced options, and statistics tracking via `increment_stat()`.
 - `BaseTestLibraryGenerator` class: abstract base class for test data generators with shared download logic and consistent structure.
 - Coverage script accessible via `poetry run coverage`: generates HTML, lcov, xml, and json coverage reports in `data/coverage/`.
+- New `help` subcommand: `plex-leon help <command>` prints a detailed, human-friendly description and parameter list for a specific utility.
+- Each subcommand now exposes detailed usage via the familiar argparse flag (e.g. `plex-leon migrate --help`).
+- Dynamic command discovery: utilities are auto-discovered from their classes (no hardcoded command registry). Utility metadata (command name, brief description, parameters, result label and preflight/tool requirements) is provided by the utility classes themselves.
 
 ### Changed
 - **Logging system**: migrated from Python's standard `logging` to `loguru` for enhanced logging capabilities with colored output and structured formatting. All utilities now use consistent log levels (TRACE, DEBUG, INFO, WARNING, ERROR) with emoji prefixes (ℹ️, ⚠️, ❌, 🐛, 🔍).
 - **Architecture refactoring**: all utility scripts (`migrate`, `season-renamer`, `episode-renamer`, `prepare`) converted to class-based approach inheriting from `BaseUtility`, sharing common code and reducing duplication.
 - **README.md**: comprehensive update with better utility descriptions, improved structure, detailed development guidelines (commit conventions, semantic versioning), devcontainer documentation, and expanded Requirements & Installation instructions.
 - **Test structure**: reorganized test directories into `/tests/integration` (for generators) and `/tests/unittests` (for unit tests of helper functions).
+- **CLI entrypoint**: the main CLI entrypoint moved from `cli.py` to `main.py`. The new `main.py` no longer uses a hardcoded command registry — commands are discovered dynamically from utility classes at runtime.
 
 ### Tests
 - Removed old/obsolete tests and reorganized test structure with clear separation between unit and integration tests.
