@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import List
 
 from plex_leon.shared import (
     strip_tvdb_suffix,
@@ -9,7 +10,7 @@ from plex_leon.shared import (
     is_season_like_dirname,
     two_step_case_rename,
 )
-from plex_leon.utils.base_utility import BaseUtility
+from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
 
 class EpisodeRenamerUtility(BaseUtility):
@@ -19,6 +20,31 @@ class EpisodeRenamerUtility(BaseUtility):
     Example:
         EpisodeRenamerUtility(dry_run=True).run(library)
     """
+
+    @property
+    def command(self) -> str:
+        return "episode-renamer"
+
+    @property
+    def brief_description(self) -> str:
+        return "Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name."
+
+    @property
+    def parameters(self) -> List[ParameterInfo]:
+        return [
+            ParameterInfo(
+                name="--lib",
+                required=False,
+                description="Path to the library to process",
+                default="./data/library-e"
+            ),
+            ParameterInfo(
+                name="--dry-run",
+                required=False,
+                description="Show planned renames without changing the filesystem",
+                default=False
+            ),
+        ]
 
     def process(self, library: Path | None = None) -> tuple[int]:
         if library is None:
