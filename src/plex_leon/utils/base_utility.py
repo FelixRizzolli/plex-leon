@@ -6,6 +6,7 @@ import sys
 from typing import Any
 from typing import Union
 from typing import Dict
+from typing import List
 
 from loguru import logger
 
@@ -18,11 +19,25 @@ class BaseOptions:
     log_level: Union[int, str] = 20  # similar to logging.INFO
 
 
+@dataclass
+class ParameterInfo:
+    """Metadata for a command-line parameter."""
+    name: str
+    required: bool
+    description: str
+    default: Any = None
+
+
 class BaseUtility(ABC):
     """Base class for utilities.
 
     Provides simple logging helpers and a run() entrypoint that calls the
     concrete implementation's process() method.
+
+    Subclasses must implement these class-level metadata properties:
+    - command: str - The CLI command name (e.g., "migrate", "season-renamer")
+    - brief_description: str - Short one-line description of what the utility does
+    - parameters: List[ParameterInfo] - List of command-line parameters
 
     Subclasses and instances may collect operation statistics in the
     `statistics` attribute. Its shape is:
@@ -39,6 +54,25 @@ class BaseUtility(ABC):
     - log_statistics(format): pretty-print collected statistics in either a
         compact table ("table") or per-category step list ("steps").
     """
+
+    # Class-level metadata that subclasses must implement
+    @property
+    @abstractmethod
+    def command(self) -> str:
+        """The CLI command name (e.g., 'migrate', 'season-renamer')."""
+        pass
+
+    @property
+    @abstractmethod
+    def brief_description(self) -> str:
+        """Short one-line description of what this utility does."""
+        pass
+
+    @property
+    @abstractmethod
+    def parameters(self) -> List[ParameterInfo]:
+        """List of command-line parameters this utility accepts."""
+        pass
 
     # statistics is a mapping of category -> (mapping of step -> count)
     statistics: Dict[str, Dict[str, int]]
