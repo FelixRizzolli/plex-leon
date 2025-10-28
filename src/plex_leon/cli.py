@@ -10,6 +10,7 @@ from plex_leon.shared import assert_required_tools_installed
 from plex_leon.utils.season_renamer import SeasonRenamerUtility
 from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
 from plex_leon.utils.prepare import PrepareUtility
+from plex_leon.cli import help as help_module
 
 
 def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -104,6 +105,20 @@ def _add_prepare_parser(subparsers: argparse._SubParsersAction) -> argparse.Argu
     return p
 
 
+def _add_help_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    p = subparsers.add_parser(
+        "help",
+        help="Show detailed help for a specific command",
+        description="Display detailed information about available commands.",
+    )
+    p.add_argument(
+        "subcommand",
+        nargs="?",
+        help="Command to show help for (e.g., 'migrate', 'season-renamer')",
+    )
+    return p
+
+
 def main(argv: list[str] | None = None) -> int:
     # Build top-level parser with subcommands
     parser = argparse.ArgumentParser(
@@ -117,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     _add_season_renamer_parser(subparsers)
     _add_episode_renamer_parser(subparsers)
     _add_prepare_parser(subparsers)
+    _add_help_parser(subparsers)
     _add_stub_parser(subparsers, "episode-check",
                      "Check episodes (not implemented yet)")
 
@@ -131,6 +147,7 @@ def main(argv: list[str] | None = None) -> int:
         "season-renamer",
         "episode-renamer",
         "prepare",
+        "help",
         "episode-check",
     }:
         # Drop program name
@@ -189,6 +206,9 @@ def main(argv: list[str] | None = None) -> int:
         dt = time.perf_counter() - t0
         print(f"Done. Episode files renamed: {renamed_count}. Took {dt:.2f}s.")
         return 0
+
+    if args.command == "help":
+        return help_module.main(args.subcommand)
 
     if args.command in {"episode-check"}:
         print(f"'{args.command}' is not implemented yet.")
