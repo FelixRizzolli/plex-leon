@@ -5,13 +5,19 @@ import sys
 import time
 from pathlib import Path
 
+from typing import TYPE_CHECKING
+
 from plex_leon.shared import assert_required_tools_installed
 from plex_leon.shared.utility_discovery import discover_utilities
 from plex_leon.cli import help as help_module
-from plex_leon.utils.base_utility import BaseUtility
+from plex_leon.cli import menu as menu_module
+
+if TYPE_CHECKING:
+    # Import for type checking only; avoids importing runtime deps like loguru
+    from plex_leon.utils.base_utility import BaseUtility
 
 
-def _run_utility_with_timing(utility: BaseUtility, result_label: str, *args, **kwargs) -> int:
+def _run_utility_with_timing(utility: 'BaseUtility', result_label: str, *args, **kwargs) -> int:
     """Run a utility with timing and print results.
 
     Args:
@@ -58,6 +64,15 @@ def _add_help_parser(subparsers: argparse._SubParsersAction) -> argparse.Argumen
     return p
 
 
+def _add_menu_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    p = subparsers.add_parser(
+        "menu",
+        help="Interactive menu to pick and run a subcommand",
+        description="Interactive menu to select a command and provide its arguments.",
+    )
+    return p
+
+
 def main(argv: list[str] | None = None) -> int:
     # Discover all available utilities dynamically
     utilities = discover_utilities()
@@ -77,6 +92,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Add non-utility commands
     _add_help_parser(subparsers)
+    _add_menu_parser(subparsers)
 
     # Prepare argv: if argv is provided and its first element is a program name, drop it.
     if argv is None:
@@ -85,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         parsed_argv = list(argv)
 
     # Get valid command names (dynamically from discovered utilities plus help)
-    valid_commands = set(command_map.keys()) | {"help"}
+    valid_commands = set(command_map.keys()) | {"help", "menu"}
 
     if parsed_argv and not parsed_argv[0].startswith("-") and parsed_argv[0] not in valid_commands:
         # Drop program name
@@ -122,6 +138,10 @@ def main(argv: list[str] | None = None) -> int:
     # Handle non-utility commands
     if args.command == "help":
         return help_module.main(args.subcommand)
+
+    if args.command == "menu":
+        # Launch the interactive menu which handles prompting and execution.
+        return menu_module.main()
 
     # No command provided
     parser.print_help()
