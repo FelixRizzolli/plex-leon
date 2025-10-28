@@ -109,6 +109,11 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(parsed_argv)
 
+    # If no subcommand was provided, default to the interactive menu
+    # This makes calling `plex-leon` without a subcommand open the menu.
+    if getattr(args, "command", None) is None:
+        args.command = "menu"
+
     # Handle utility commands dynamically
     if args.command in command_map:
         utility_class = command_map[args.command]
