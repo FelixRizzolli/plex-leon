@@ -150,19 +150,61 @@ poetry run plex-leon prepare --lib ./data/library-p --dry-run
 poetry run plex-leon prepare --lib ./data/library-p
 ```
 
-## Requirements
+## Requirements & Installation
 
 - Python 3.13+
-- External tools on PATH (validated at startup): ffprobe (from FFmpeg) and mediainfo
+- External tools on PATH (validated at startup): `ffprobe` (from FFmpeg) and `mediainfo`
 
-On Debian/Ubuntu you can install them with:
+Below are a few supported ways to install the external tools and the Python package itself.
+
+### System packages
+
+Debian / Ubuntu:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y ffmpeg mediainfo
 ```
 
-If you use Poetry, the project is already configured. Otherwise you can install it as a regular package in editable mode.
+macOS (Homebrew):
+
+```bash
+brew update
+brew install ffmpeg mediainfo
+```
+
+Windows using winget (Windows Package Manager):
+
+```powershell
+winget install Gyan.FFmpeg
+winget install MediaArea.MediaInfo
+```
+
+### Install the Python package
+
+Recommended (Poetry):
+
+```bash
+# create virtualenv and install deps defined in pyproject.toml
+poetry install
+# run commands inside the virtualenv
+poetry run plex-leon --help
+```
+
+Alternative (pip editable):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+plex-leon --help
+```
+
+### Notes
+
+- The CLI validates that `ffprobe` and `mediainfo` are present on PATH at startup and will exit with code `2` if they are missing.
+- If you use Poetry the project is already configured; otherwise the `pip install -e .` route will install the package in editable/development mode.
 
 ## Development
 
