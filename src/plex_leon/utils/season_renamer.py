@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import List
 
 from plex_leon.shared import (
     get_season_number_from_dirname,
@@ -9,11 +10,36 @@ from plex_leon.shared import (
     merge_directory_contents,
     remove_dir_if_empty,
 )
-from plex_leon.utils.base_utility import BaseUtility
+from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
 
 class SeasonRenamerUtility(BaseUtility):
     """Utility that normalises season folder names under a given library."""
+
+    @property
+    def command(self) -> str:
+        return "season-renamer"
+
+    @property
+    def brief_description(self) -> str:
+        return "Rename season folders like 'season 01' or 'Staffel 01' to 'Season 01'"
+
+    @property
+    def parameters(self) -> List[ParameterInfo]:
+        return [
+            ParameterInfo(
+                name="--lib",
+                required=False,
+                description="Path to the library to process",
+                default="./data/library-s"
+            ),
+            ParameterInfo(
+                name="--dry-run",
+                required=False,
+                description="Show planned renames without changing the filesystem",
+                default=False
+            ),
+        ]
 
     def process(self, library: Path | None = None) -> tuple[int]:
         if library is None:
