@@ -16,10 +16,11 @@ TV show folders and normalises episode placement & naming:
    If none match, the file is skipped silently.
 4. Create the target season directory named `Season NN` (NN zero-padded) if it
    does not already exist.
-5. Move & rename the file to:
-	  <Show Name (YYYY)> - eEE sSS.ext   (per spec: 'e01s01')
-   NOTE: The user explicitly requested the format `e01s01` (episode then
-   season) even though the more common convention is `s01e01`.
+        5. Move & rename the file to:
+            <Show Name (YYYY)> - sSSeEE.ext   (per spec: 's01e01')
+     NOTE: The user requested the format `s01e01` (season then episode), which
+     is the more common convention. The code uses this pattern for target
+     filenames.
 6. Case-only changes are applied via a two-step rename using the existing
    `two_step_case_rename` helper.
 
@@ -127,7 +128,7 @@ def _iter_show_dirs(root: Path):
 def _parse_season_episode_from_name(name: str) -> tuple[int, int] | None:
     """Extract (season, episode) from filename.
 
-    Order in target filename is episode then season per spec, but we return
+    Order in target filename is season then episode per spec, and we return
     (season, episode) for internal consistency with other helpers.
     """
     # 1. Standard SxxExx pattern via existing helper
@@ -282,7 +283,7 @@ class PrepareUtility(BaseUtility):
                     continue
                 season, episode = parsed
                 season_dir = show_dir / f"Season {season:02d}"
-                target_name = f"{show_title} - e{episode:02d}s{season:02d}{entry.suffix.lower()}"
+                target_name = f"{show_title} - s{season:02d}e{episode:02d}{entry.suffix.lower()}"
                 target_path = season_dir / target_name
 
                 # Skip if already correct location/name
