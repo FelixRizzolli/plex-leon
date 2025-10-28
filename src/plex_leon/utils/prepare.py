@@ -63,13 +63,14 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import List
 
 from plex_leon.shared import (
     strip_tvdb_suffix,
     parse_episode_tag,
     two_step_case_rename,
 )
-from plex_leon.utils.base_utility import BaseUtility
+from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
 SHOW_DIR_REGEX = re.compile(r"^.+ \(\d{4}\) \{tvdb-\d+}\Z")
 
@@ -204,6 +205,31 @@ __all__ = ["PrepareUtility"]
 
 class PrepareUtility(BaseUtility):
     """Class wrapper around the procedural process function."""
+
+    @property
+    def command(self) -> str:
+        return "prepare"
+
+    @property
+    def brief_description(self) -> str:
+        return "Prepare a library by moving loose episode files into Season folders and renaming them"
+
+    @property
+    def parameters(self) -> List[ParameterInfo]:
+        return [
+            ParameterInfo(
+                name="--lib",
+                required=False,
+                description="Path to the library to process",
+                default="./data/library-p"
+            ),
+            ParameterInfo(
+                name="--dry-run",
+                required=False,
+                description="Show planned moves/renames without changing the filesystem",
+                default=False
+            ),
+        ]
 
     def process(self, root: Path | str | None = None) -> tuple[int]:
         """Process a root folder and normalise loose episode files using the
