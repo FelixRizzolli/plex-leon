@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
 import sys
 from typing import Any
 from typing import Union
@@ -90,6 +92,91 @@ class BaseUtility(ABC):
         before running the utility. Defaults to False.
         """
         return False
+
+    @classmethod
+    def add_parser(cls, subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+        """Create and add an argparse subparser for this utility.
+
+        This method generates the parser configuration from the class metadata
+        (command, brief_description, and parameters properties).
+
+        Args:
+            subparsers: The argparse _SubParsersAction to add this parser to
+
+        Returns:
+            The created ArgumentParser for this utility
+        """
+        # Create a temporary instance to access the properties
+        # We need an instance because the properties are abstract and defined on instances
+        temp_instance = cls.__new__(cls)
+
+        parser = subparsers.add_parser(
+            temp_instance.command,
+            help=temp_instance.brief_description,
+            description=temp_instance.brief_description,
+        )
+
+        # Add parameters from the metadata
+        for param in temp_instance.parameters:
+            kwargs = {}
+
+            # Set the type based on default value
+            if param.default is not None:
+                if isinstance(param.default, bool):
+                    kwargs["action"] = "store_true"
+                elif isinstance(param.default, Path):
+                    kwargs["type"] = Path
+                    kwargs["default"] = param.default
+                elif isinstance(param.default, int):
+                    kwargs["type"] = int
+                    kwargs["default"] = param.default
+                else:
+                    kwargs["default"] = param.default
+
+            # Add help text
+            help_text = param.description
+            if param.default is not None and not isinstance(param.default, bool):
+                help_text += f" (default: {param.default})"
+            kwargs["help"] = help_text
+
+            parser.add_argument(param.name, **kwargs)
+
+        return parser
+
+    @classmethod
+    def prepare_process_args(cls, args: argparse.Namespace) -> tuple[tuple, dict]:
+        """Convert argparse Namespace to arguments for process() method.
+
+        Subclasses can override this method to customize how argparse arguments
+        are mapped to process() method parameters.
+
+        The default implementation handles common patterns:
+        - If 'lib' is present, it's passed as the first positional argument
+        - Arguments like 'command' and 'dry_run' are excluded (dry_run is handled by constructor)
+        - All other arguments are passed as kwargs
+
+        Args:
+            args: The argparse Namespace containing parsed command-line arguments
+
+        Returns:
+            A tuple of (positional_args, keyword_args) to pass to process()
+        """
+        args_dict = vars(args)
+        excluded_keys = {'command', 'dry_run'}
+
+        # Check if 'lib' is present and should be a positional argument
+        if 'lib' in args_dict:
+            positional = (args_dict['lib'],)
+            kwargs = {k: v for k, v in args_dict.items()
+                      if k not in (excluded_keys | {'lib'}) and v is not None}
+        else:
+            # Pass all non-None arguments as kwargs (except excluded ones)
+            positional = ()
+            kwargs = {k: v for k, v in args_dict.items()
+                      if k not in excluded_keys and v is not None}
+
+        # statistics is a mapping of category -> (mapping of step -> count)
+        return positional, kwargs
     statistics: Dict[str, Dict[str, int]]
 
     def __init__(self, *, dry_run: bool = False, forced: bool = False, log_level: Union[int, str] = 20) -> None:

@@ -5,104 +5,43 @@ import sys
 import time
 from pathlib import Path
 
-from plex_leon.utils.migrate import MigrateUtility
 from plex_leon.shared import assert_required_tools_installed
-from plex_leon.utils.season_renamer import SeasonRenamerUtility
-from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
-from plex_leon.utils.prepare import PrepareUtility
+from plex_leon.shared.utility_discovery import discover_utilities
 from plex_leon.cli import help as help_module
+from plex_leon.utils.base_utility import BaseUtility
 
 
-def _add_migrate_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    p = subparsers.add_parser(
-        "migrate",
-        help="Move items from library-a to library-c when their TVDB ID exists in library-b.",
-        description="Move files and folders from library-a to library-c if their tvdb-id exists in library-b.",
-    )
-    p.add_argument(
-        "--lib-a", type=Path, default=Path("./data/library-a"), help="Path to library-a (default: ./data/library-a)"
-    )
-    p.add_argument(
-        "--lib-b", type=Path, default=Path("./data/library-b"), help="Path to library-b (default: ./data/library-b)"
-    )
-    p.add_argument(
-        "--lib-c", type=Path, default=Path("./data/library-c"), help="Path to library-c (default: ./data/library-c)"
-    )
-    p.add_argument("--overwrite", action="store_true",
-                   help="Overwrite existing files in library-c")
-    p.add_argument(
-        "--dry-run", action="store_true", help="Show what would be moved, but do not actually move files."
-    )
-    p.add_argument(
-        "--threads", type=int, default=None, help="Optional thread count for metadata reads (I/O bound)."
-    )
-    p.add_argument(
-        "--no-resolution", action="store_true", help="Skip resolution comparisons to speed up large runs."
-    )
-    return p
+def _run_utility_with_timing(utility: BaseUtility, result_label: str, *args, **kwargs) -> int:
+    """Run a utility with timing and print results.
 
+    Args:
+        utility: The utility instance to run
+        result_label: Label for the result count (e.g., "Season folders renamed", "Episodes processed")
+        *args: Positional arguments to pass to utility.process()
+        **kwargs: Keyword arguments to pass to utility.process()
 
-def _add_stub_parser(subparsers: argparse._SubParsersAction, name: str, help_text: str) -> None:
-    subparsers.add_parser(name, help=help_text, description=help_text)
+    Returns:
+        Exit code (0 for success)
+    """
+    t0 = time.perf_counter()
+    result = utility.process(*args, **kwargs)
+    dt = time.perf_counter() - t0
 
+    # Handle different return types (tuple or single value)
+    if isinstance(result, tuple):
+        if len(result) == 1:
+            count = result[0]
+            print(f"Done. {result_label}: {count}. Took {dt:.2f}s.")
+        elif len(result) == 2:
+            # Special case for migrate which returns (moved, skipped)
+            moved, skipped = result
+            if moved or skipped:
+                print(
+                    f"Done. Eligible files/folders moved: {moved}; skipped: {skipped}. Took {dt:.2f}s.")
+    else:
+        print(f"Done. {result_label}: {result}. Took {dt:.2f}s.")
 
-def _add_season_renamer_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    p = subparsers.add_parser(
-        "season-renamer",
-        help="Rename season folders like 'season 01' or 'Staffel 01' to 'Season 01'",
-        description=(
-            "Rename season folders in a library to the canonical 'Season NN' form. "
-            "Matches any folder name with exactly one number (e.g., typos like 'Satffel 01')."
-        ),
-    )
-    p.add_argument(
-        "--lib", type=Path, default=Path("./data/library-s"), help="Path to the library to process (default: ./data/library-s)"
-    )
-    p.add_argument(
-        "--dry-run", action="store_true", help="Show planned renames without changing the filesystem."
-    )
-    return p
-
-
-def _add_episode_renamer_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    p = subparsers.add_parser(
-        "episode-renamer",
-        help="Rename episode files to '<Show (Year)> - sNNeMM[ -ePP].ext' using the show folder name.",
-        description=(
-            "Rename episode files under a library so the basename is derived from the show folder title "
-            "and the episode id extracted from the file (supports SxxExx and double episodes)."
-        ),
-    )
-    p.add_argument(
-        "--lib", type=Path, default=Path("./data/library-e"), help="Path to the library to process (default: ./data/library-e)"
-    )
-    p.add_argument(
-        "--dry-run", action="store_true", help="Show planned renames without changing the filesystem."
-    )
-    return p
-
-
-def _add_prepare_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
-    p = subparsers.add_parser(
-        "prepare",
-        help="Prepare a library by moving loose episode files into Season folders and renaming them",
-        description=(
-            "Scan a root folder for TV show folders named 'Title (YYYY) {tvdb-#}' and "
-            "move/rename loose episode files into 'Season NN' folders."
-        ),
-    )
-    p.add_argument(
-        "--lib",
-        type=Path,
-        default=Path("./data/library-p"),
-        help="Path to the library to process (default: ./data/library-p)",
-    )
-    p.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show planned moves/renames without changing the filesystem.",
-    )
-    return p
+    return 0
 
 
 def _add_help_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
@@ -120,6 +59,9 @@ def _add_help_parser(subparsers: argparse._SubParsersAction) -> argparse.Argumen
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Discover all available utilities dynamically
+    utilities = discover_utilities()
+
     # Build top-level parser with subcommands
     parser = argparse.ArgumentParser(
         prog="plex-leon",
@@ -127,14 +69,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    # Subcommands
-    _add_migrate_parser(subparsers)
-    _add_season_renamer_parser(subparsers)
-    _add_episode_renamer_parser(subparsers)
-    _add_prepare_parser(subparsers)
+    # Build a mapping of command names to utility classes
+    command_map = {}
+    for command_name, utility_class in utilities.items():
+        utility_class.add_parser(subparsers)
+        command_map[command_name] = utility_class
+
+    # Add non-utility commands
     _add_help_parser(subparsers)
-    _add_stub_parser(subparsers, "episode-check",
-                     "Check episodes (not implemented yet)")
 
     # Prepare argv: if argv is provided and its first element is a program name, drop it.
     if argv is None:
@@ -142,77 +84,44 @@ def main(argv: list[str] | None = None) -> int:
     else:
         parsed_argv = list(argv)
 
-    if parsed_argv and not parsed_argv[0].startswith("-") and parsed_argv[0] not in {
-        "migrate",
-        "season-renamer",
-        "episode-renamer",
-        "prepare",
-        "help",
-        "episode-check",
-    }:
+    # Get valid command names (dynamically from discovered utilities plus help)
+    valid_commands = set(command_map.keys()) | {"help"}
+
+    if parsed_argv and not parsed_argv[0].startswith("-") and parsed_argv[0] not in valid_commands:
         # Drop program name
         parsed_argv = parsed_argv[1:]
 
     args = parser.parse_args(parsed_argv)
 
-    # Route to subcommands
-    if args.command == "migrate":
-        # Preflight: ensure required external tools are available
-        try:
-            assert_required_tools_installed()
-        except RuntimeError as exc:
-            print(f"❌ ERROR: {exc}")
-            return 2
+    # Handle utility commands dynamically
+    if args.command in command_map:
+        utility_class = command_map[args.command]
 
-        t0 = time.perf_counter()
-        util = MigrateUtility(dry_run=args.dry_run)
-        moved, skipped = util.process(
-            lib_a=args.lib_a,
-            lib_b=args.lib_b,
-            lib_c=args.lib_c,
-            overwrite=args.overwrite,
-            dry_run=args.dry_run,
-            prefer_resolution=not args.no_resolution,
-            threads=args.threads,
-        )
-        dt = time.perf_counter() - t0
-        if moved or skipped:
-            print(
-                f"Done. Eligible files/folders moved: {moved}; skipped: {skipped}. Took {dt:.2f}s."
-            )
-        return 0
+        # Create a temporary instance to check if tools are required
+        temp_instance = utility_class.__new__(utility_class)
 
-    if args.command == "season-renamer":
-        t0 = time.perf_counter()
-        util = SeasonRenamerUtility(dry_run=args.dry_run)
-        renamed_count, = util.process(args.lib)
-        dt = time.perf_counter() - t0
-        print(
-            f"Done. Season folders renamed: {renamed_count}. Took {dt:.2f}s.")
-        return 0
+        # Check required tools if needed
+        if temp_instance.requires_tools_check:
+            try:
+                assert_required_tools_installed()
+            except RuntimeError as exc:
+                print(f"❌ ERROR: {exc}")
+                return 2
 
-    if args.command == "prepare":
-        t0 = time.perf_counter()
-        util = PrepareUtility(dry_run=args.dry_run)
-        renamed_count, = util.process(args.lib)
-        dt = time.perf_counter() - t0
-        print(f"Done. Episodes processed: {renamed_count}. Took {dt:.2f}s.")
-        return 0
+        # Create utility instance
+        util = utility_class(dry_run=getattr(args, 'dry_run', False))
 
-    if args.command == "episode-renamer":
-        t0 = time.perf_counter()
-        util = EpisodeRenamerUtility(dry_run=args.dry_run)
-        renamed_count, = util.process(args.lib)
-        dt = time.perf_counter() - t0
-        print(f"Done. Episode files renamed: {renamed_count}. Took {dt:.2f}s.")
-        return 0
+        # Get the result label from the utility instance
+        result_label = util.result_label
 
+        # Get process arguments from the utility class
+        pos_args, kwargs = utility_class.prepare_process_args(args)
+
+        return _run_utility_with_timing(util, result_label, *pos_args, **kwargs)
+
+    # Handle non-utility commands
     if args.command == "help":
         return help_module.main(args.subcommand)
-
-    if args.command in {"episode-check"}:
-        print(f"'{args.command}' is not implemented yet.")
-        return 0
 
     # No command provided
     parser.print_help()

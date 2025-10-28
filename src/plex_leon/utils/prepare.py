@@ -59,6 +59,7 @@ either "table" or "steps".
 """
 from __future__ import annotations
 
+import argparse
 import os
 import re
 import sys
@@ -66,9 +67,9 @@ from pathlib import Path
 from typing import List
 
 from plex_leon.shared import (
-    strip_tvdb_suffix,
-    parse_episode_tag,
     two_step_case_rename,
+    parse_episode_tag,
+    strip_tvdb_suffix,
 )
 from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 

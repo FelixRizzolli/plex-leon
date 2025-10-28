@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List
+import argparse
 from plex_leon.shared import (
     extract_tvdb_id,
     move_file,
@@ -84,6 +85,22 @@ class MigrateUtility(BaseUtility):
                 default=False
             ),
         ]
+
+    @classmethod
+    def prepare_process_args(cls, args: argparse.Namespace) -> tuple[tuple, dict]:
+        """Convert argparse args to process() parameters."""
+        # Extract positional arguments
+        positional = (args.lib_a, args.lib_b, args.lib_c)
+
+        # Build kwargs with the remaining parameters
+        kwargs = {
+            'overwrite': args.overwrite,
+            'dry_run': args.dry_run,
+            'threads': args.threads,
+            'prefer_resolution': not args.no_resolution,
+        }
+
+        return positional, kwargs
 
     def process(self, lib_a: Path, lib_b: Path, lib_c: Path, **kwargs) -> tuple[int, int]:
         # accept overwrite/dry_run/prefer_resolution/threads forwarded via kwargs

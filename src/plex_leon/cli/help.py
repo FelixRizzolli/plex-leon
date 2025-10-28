@@ -11,28 +11,17 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from plex_leon.utils.base_utility import BaseUtility
 
-# Import all utility classes
-from plex_leon.utils.migrate import MigrateUtility
-from plex_leon.utils.season_renamer import SeasonRenamerUtility
-from plex_leon.utils.episode_renamer import EpisodeRenamerUtility
-from plex_leon.utils.prepare import PrepareUtility
-
-
-# Registry of all available utilities
-UTILITIES: dict[str, type[BaseUtility]] = {
-    "migrate": MigrateUtility,
-    "season-renamer": SeasonRenamerUtility,
-    "episode-renamer": EpisodeRenamerUtility,
-    "prepare": PrepareUtility,
-}
+from plex_leon.shared.utility_discovery import discover_utilities
 
 
 def print_general_help() -> None:
     """Print general help listing all available commands."""
+    utilities = discover_utilities()
+
     print("plex-leon - Utilities for managing media libraries based on TVDB IDs\n")
     print("Available commands:\n")
 
-    for cmd_name, utility_class in UTILITIES.items():
+    for cmd_name, utility_class in utilities.items():
         # Instantiate to access properties (with dummy values for dry_run)
         util = utility_class(dry_run=True)
         print(f"  {cmd_name:20s} {util.brief_description}")
@@ -47,11 +36,12 @@ def print_command_help(command: str) -> None:
     Args:
         command: The command name (e.g., 'migrate', 'season-renamer')
     """
-    utility_class = UTILITIES.get(command)
+    utilities = discover_utilities()
+    utility_class = utilities.get(command)
 
     if not utility_class:
         print(f"Unknown command: {command}")
-        print(f"\nAvailable commands: {', '.join(UTILITIES.keys())}")
+        print(f"\nAvailable commands: {', '.join(utilities.keys())}")
         return
 
     # Instantiate to access properties
