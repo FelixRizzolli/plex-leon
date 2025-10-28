@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [3.0.1] - 2025-10-28
+### Fixed
+- `prepare`: corrected episode renaming pattern to use `s01e01` (season then episode) instead of the previously documented `eEE sSS`; updated README and module docstrings to match.
+
+
 ## [3.0.0] - 2025-10-28
 ### Added
 - Detailed statistics reporting to each utility: utilities now collect and display operation counts (e.g., RENAMED, SKIPPED, ERRORS) per show/category in table or steps format via `log_statistics()`.
