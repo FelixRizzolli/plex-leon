@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-plex-leon = "plex_leon.cli:main"
+plex-leon = "plex_leon.main:main"
 coverage = "scripts.coverage_script:main"
 
 [tool.poetry]
