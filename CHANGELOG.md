@@ -90,7 +90,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - Dry-run output now clearly shows all planned swap/merge operations.
 
 ## [2.0.0] - 2025-08-17
-
 ### Added
 - New utility: `season-renamer` for renaming season folders in a library to the canonical 'Season NN' form. Handles typos (e.g., 'Satffel'), different languages (e.g., 'Staffel'), and any folder with a single number. Supports dry-run and works recursively. Numbers >= 100 are supported.
 
@@ -102,7 +101,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - The CLI no longer defaults to migration. You must specify a subcommand (e.g., `migrate`, `season-renamer`).
 
 ## [1.3.0] - 2025-08-17
-
 ### Added
 - TV show episodes are now compared and moved individually: for each episode in a show present in both libraries, the tool matches by season and episode number (e.g., s01e01) and applies the same resolution and size logic as for movies. Each episode is categorized under `better-resolution/`, `greater-filesize/`, or `to-delete/` in library-c, preserving the show/season/episode folder structure. The show folder itself is not moved, only its episodes.
 
@@ -110,7 +108,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - README updated to clarify the per-episode comparison and categorization logic for TV shows.
 
 ## [1.2.0] - 2025-08-10
-
 ### Added
 - Support for a bucketed reference library-b layout under A–Z and a single non-letter bucket `0-9`.
 - Recursive scanning of library-b so TVDB IDs and matches are discovered inside bucket folders (not just top-level).
@@ -121,7 +118,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - Backward compatible: a flat, top-level-only library-b still works.
 
 ## [1.1.0] - 2025-08-09
-
 ### Added
 - Preflight check to ensure required external tools are installed on PATH. The CLI now exits with code 2 and a clear message when `ffprobe` (FFmpeg) or `mediainfo` are missing.
 - Movie categorization when moving from library-a to library-c based on comparison with the matching entry in library-b:
@@ -135,7 +131,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - README updated to document the new behavior, requirements, and exit codes.
 
 ## [1.0.0] - 2025-08-08
-
 Initial release.
 
 ### Features
