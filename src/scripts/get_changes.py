@@ -41,7 +41,8 @@ def get_changes(version: str, changelog_path: Path | None = None) -> str:
     if not match:
         return ""
 
-    start_pos = match.start()
+    # Start after the version header line (skip the headline)
+    start_pos = match.end() + 1  # +1 to skip the newline after the header
 
     # Find the next version header (or end of file)
     next_version_pattern = re.compile(r"^## \[\d+\.\d+\.\d+\]", re.MULTILINE)
@@ -52,8 +53,8 @@ def get_changes(version: str, changelog_path: Path | None = None) -> str:
     else:
         end_pos = len(content)
 
-    # Extract the section and strip trailing whitespace
-    section = content[start_pos:end_pos].rstrip()
+    # Extract the section and strip leading/trailing whitespace
+    section = content[start_pos:end_pos].strip()
 
     return section
 
