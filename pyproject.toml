@@ -22,7 +22,7 @@ packages = [{include = "plex_leon", from = "src"}]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
-pytest-cov = "^5.0"
+pytest-cov = "^7.0"
 
 
 [build-system]
