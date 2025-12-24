@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.13
+FROM mcr.microsoft.com/devcontainers/python:3.14
 
 # Set bash as the default shell
 ENV SHELL=/bin/bash 
