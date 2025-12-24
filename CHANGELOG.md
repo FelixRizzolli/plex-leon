@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [3.1.0] - 2025-12-24
+### Added
+- `episode-check` utility: compares local per-season episode counts with TVDB data and reports discrepancies in a per-season table.
+- `plex_leon.api.tvdb_client`: lightweight TVDB v4 client used by `episode-check` to fetch series episode data.
+
+### Changed
+- `README.md` updated to include `episode-check` documentation and usage examples.
+- `pyproject.toml` updated to include the `requests` dependency required by the TVDB client.
+
+### Tests
+- Unit tests for `episode-check` utilities and helpers added under `tests/unittests/utils/`.
 
 ## [3.0.2] - 2025-12-24
 ### Added
@@ -21,7 +32,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 ## [3.0.1] - 2025-10-28
 ### Fixed
 - `prepare`: corrected episode renaming pattern to use `s01e01` (season then episode) instead of the previously documented `eEE sSS`; updated README and module docstrings to match.
-
 
 ## [3.0.0] - 2025-10-28
 ### Added
@@ -58,7 +68,6 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 ### Added
 - New `prepare` utility: scans a library for TV show folders, validates shows (ensures `{tvdb-...}` suffix and detects duplicate episode files), creates canonical `Season NN` folders, and moves/renames loose episode files to the `Show (Year) - eEE sSS.ext` format. If validation reports ERROR-level issues for a show, processing for that show is skipped.
 - Test-data generator (`scripts/generate_prepare_test_library.py`) updated to remove and recreate the `data/library-p` test library and to produce a focused duplicate (Game of Thrones S01E05) for exercising `prepare`'s conflict handling.
-
 
 ## [2.3.1] - 2025-08-25
 ### Fixed
