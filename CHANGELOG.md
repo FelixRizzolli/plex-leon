@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+
+## [3.0.2] - 2025-12-24
+### Added
+- `get_current_version.py` and `get_changes.py` scripts for version and changelog extraction.
+- Release workflow: automates tagging and GitHub Release creation.
+- Publish workflow: publishes new versions to PyPI after a successful release.
+
+### Changed
+- Upgraded Python dependency from 3.13 to 3.14.
+- Upgraded `pytest` from v8 to v9 and `pytest-cov` from v5 to v7.
+
+### Removed
+- Removed the build-binaries workflow.
+
 ## [3.0.1] - 2025-10-28
 ### Fixed
 - `prepare`: corrected episode renaming pattern to use `s01e01` (season then episode) instead of the previously documented `eEE sSS`; updated README and module docstrings to match.
