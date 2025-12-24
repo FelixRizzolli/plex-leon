@@ -9,8 +9,8 @@ readme = "README.md"
 requires-python = ">=3.14,<4.0"
 dependencies = [
     "loguru (>=0.7.3,<0.8.0)",
-    "pytest (>=8.4.2,<9.0.0)",
-    "coverage (>=7.11.0,<8.0.0)"
+    "pytest (>=9.0.2,<10.0.0)",
+    "coverage (>=7.13.0,<8.0.0)"
 ]
 
 [project.scripts]
@@ -21,8 +21,8 @@ coverage = "scripts.coverage_script:main"
 packages = [{include = "plex_leon", from = "src"}]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.2"
-pytest-cov = "^5.0"
+pytest = "^9.0.2"
+pytest-cov = "^7.0"
 
 
 [build-system]
