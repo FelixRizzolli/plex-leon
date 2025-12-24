@@ -79,14 +79,21 @@ Move items from library-a to library-c when the TVDB ID exists in library-b.
 **Examples:**
 
 ```bash
-# Run migrate with defaults against the sample data folder (dry run)
+# With Poetry (for development)
 poetry run plex-leon migrate --dry-run
 
-# Specify custom paths and actually move files
+# If installed globally via pip (recommended)
+plex-leon migrate --dry-run
+
+# Specify custom paths and actually move files (Poetry)
 poetry run plex-leon migrate --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
+# Or, if installed globally:
+plex-leon migrate --lib-a /path/a --lib-b /path/b --lib-c /path/c --overwrite
 
 # Use 8 threads for faster metadata reads
 poetry run plex-leon migrate --threads 8
+# Or global:
+plex-leon migrate --threads 8
 ```
 
 ### season-renamer
@@ -111,11 +118,16 @@ Renames season folders in a library to the canonical 'Season NN' form.
 **Examples:**
 
 ```bash
-# Rename all season folders in a library (dry run)
+# With Poetry (for development)
 poetry run plex-leon season-renamer --lib ./data/library-b --dry-run
 
-# Actually rename all season folders in a library
+# If installed globally via pip (recommended)
+plex-leon season-renamer --lib ./data/library-b --dry-run
+
+# Actually rename all season folders in a library (Poetry)
 poetry run plex-leon season-renamer --lib ./data/library-b
+# Or global:
+plex-leon season-renamer --lib ./data/library-b
 ```
 
 ### episode-renamer
@@ -137,11 +149,16 @@ Renames episode files to the canonical format `<Show (Year)> - sNNeMM[ -ePP].ext
 **Examples:**
 
 ```bash
-# Rename all episode files to canonical form (dry run)
+# With Poetry (for development)
 poetry run plex-leon episode-renamer --lib ./data/library-e --dry-run
 
-# Actually rename episodes
+# If installed globally via pip (recommended)
+plex-leon episode-renamer --lib ./data/library-e --dry-run
+
+# Actually rename episodes (Poetry)
 poetry run plex-leon episode-renamer --lib ./data/library-e
+# Or global:
+plex-leon episode-renamer --lib ./data/library-e
 ```
 
 ### prepare
@@ -163,16 +180,21 @@ Organise loose TV episode files into `Season NN` folders and rename them to `Sho
 **Examples:**
 
 ```bash
-# Dry-run (preview changes)
+# With Poetry (for development)
 poetry run plex-leon prepare --lib ./data/library-p --dry-run
 
-# Apply changes to data/library-p
+# If installed globally via pip (recommended)
+plex-leon prepare --lib ./data/library-p --dry-run
+
+# Apply changes to data/library-p (Poetry)
 poetry run plex-leon prepare --lib ./data/library-p
+# Or global:
+plex-leon prepare --lib ./data/library-p
 ```
 
 ## Requirements & Installation
 
-- Python 3.13+
+- Python 3.14+
 - External tools on PATH (validated at startup): `ffprobe` (from FFmpeg) and `mediainfo`
 
 Below are a few supported ways to install the external tools and the Python package itself.
@@ -202,7 +224,15 @@ winget install MediaArea.MediaInfo
 
 ### Install the Python package
 
-Recommended (Poetry):
+Recommended (global pip):
+
+```bash
+pip install plex-leon
+# run the CLI directly without Poetry
+plex-leon --help
+```
+
+For development (Poetry):
 
 ```bash
 # create virtualenv and install deps defined in pyproject.toml
@@ -211,7 +241,7 @@ poetry install
 poetry run plex-leon --help
 ```
 
-Alternative (pip editable):
+Alternative (pip editable / development):
 
 ```bash
 python -m venv .venv
@@ -242,7 +272,7 @@ Follow these lightweight conventions when contributing and releasing:
 
 This repo can be used inside a development container (devcontainer) for a reproducible development environment. The devcontainer provides:
 
-- a consistent Python 3.13 environment
+- a consistent Python 3.14 environment
 - preinstalled development tools (linting, pytest, optional editors integration)
 
 To use the devcontainer:
