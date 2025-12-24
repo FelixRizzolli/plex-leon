@@ -7,7 +7,7 @@ The CLI is subcommand-based with the following utilities:
 - `migrate` — move items from library-a to library-c when the TVDB ID exists in library-b
 - `season-renamer` — renames season folders in a library to the canonical 'Season NN' form
 - `episode-renamer` — renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`
-- `episode-check` — placeholder
+- `episode-check` — Compare local episode counts with TVDB data
 - `prepare` — organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - eEE sSS.ext`
 
 Additionally, there is a `help` subcommand that prints a short, human-friendly summary of available commands and their one-line descriptions.
@@ -24,7 +24,39 @@ plex-leon help migrate
 
 - Or using the built-in argparse help for any subcommand:
 
+### episode-check
+
+Compare the number of episodes in your local TV show library with the episode counts from TVDB (The TV Database). Useful to identify shows with missing episodes.
+
+**How it works:**
+
+- Scans the library for show folders containing TVDB IDs: `Show Name (YYYY) {tvdb-12345}`.
+- Counts media files in `Season NN` folders (ignores non-media files and `Season 00` specials).
+- Fetches episode counts per season from TVDB for the matched series.
+- Prints a per-season comparison table highlighting discrepancies.
+
+**Options:**
+
+- `--lib PATH` — Path to the library to check (default: `./data/library-p`)
+
+**Prerequisites:**
+
+- A TVDB API key must be available via the `TVDB_API_KEY` environment variable.
+
+**Examples:**
+
 ```bash
+# With Poetry (for development)
+poetry run plex-leon episode-check
+
+# If installed globally via pip (recommended)
+plex-leon episode-check
+
+# Specify a different library
+poetry run plex-leon episode-check --lib /path/to/library
+```
+
+### prepare
 plex-leon migrate --help
 ```
 
