@@ -5,9 +5,18 @@
     "shutdownAction": "none",
 
     "remoteUser": "root",
-    "workspaceFolder": "/workspace/",
+    "workspaceFolder": "/workspace",
     
     "postCreateCommand": "bash -lc 'poetry install && ln -snf \"$(poetry env info --path)\" .venv || true'",
+
+    "mounts": [
+        "type=bind,source=${env:SSH_AUTH_SOCK},target=/ssh-agent",
+        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer,target=/.jbdevcontainer,type=bind"
+    ],
+
+    "containerEnv": {
+        "SSH_AUTH_SOCK": "/ssh-agent"
+    },
 
     "customizations": {
         "vscode": {
@@ -30,6 +39,11 @@
                     // automatically activate the selected environment in terminals
                     "python.terminal.activateEnvironment": true
             }
+        },
+        "jetbrains": {
+            "plugins": [
+                "com.github.copilot"
+            ]
         }
     }
 }
