@@ -104,22 +104,59 @@ class TestCountEpisodesInSeason:
         assert _count_episodes_in_season(nonexistent) == 0
 
     def test_apple_double_resource_forks_not_counted(self, tmp_path):
-        """Test that macOS AppleDouble sidecar files are not counted as episodes.
-
-        Simulates an exFAT volume where macOS has written '._' prefixed resource
-        fork files next to each episode.  Without the guard these would double
-        the reported episode count.
-        """
+        """Test that macOS AppleDouble sidecar files are not counted as episodes."""
         season_dir = tmp_path / "Season 01"
         season_dir.mkdir()
 
         episodes = ["episode1.mp4", "episode2.mkv", "episode3.avi"]
         for ep in episodes:
             (season_dir / ep).touch()
-            # Matching AppleDouble sidecar
             (season_dir / f"._{ep}").touch()
 
         assert _count_episodes_in_season(season_dir) == 3
+
+    def test_range_file_counted_as_multiple_episodes(self, tmp_path):
+        """A range file s01e02-e04 must be counted as 3 episodes, not 1."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e02-e04.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 3
+
+    def test_double_episode_counted_as_two(self, tmp_path):
+        """A double-episode file s01e05-e06 counts as 2."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e05-e06.mkv").touch()
+
+        assert _count_episodes_in_season(season_dir) == 2
+
+    def test_mixed_single_and_range_files(self, tmp_path):
+        """Single-episode and range files in the same season are tallied correctly."""
+        season_dir = tmp_path / "Season 02"
+        season_dir.mkdir()
+        # 1 + 3 + 1 = 5 episodes total
+        (season_dir / "Show (2020) - s02e01.mp4").touch()       # 1 ep
+        (season_dir / "Show (2020) - s02e02-e04.mp4").touch()   # 3 eps
+        (season_dir / "Show (2020) - s02e05.mp4").touch()       # 1 ep
+
+        assert _count_episodes_in_season(season_dir) == 5
+
+    def test_uppercase_range_tag_counted_correctly(self, tmp_path):
+        """Uppercase S01E01-E03 range tag is also counted as 3 episodes."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show S01E01-E03 - Title.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 3
+
+    def test_file_without_tag_counts_as_one(self, tmp_path):
+        """A media file with no parseable tag is counted as 1 (safe fallback)."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "some_video_no_tag.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 1
 
 
 class TestGetLocalEpisodeCounts:

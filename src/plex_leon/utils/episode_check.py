@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from plex_leon.api import TVDBClient
-from plex_leon.shared import strip_tvdb_suffix
+from plex_leon.shared import strip_tvdb_suffix, parse_episode_tag
 from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
 SHOW_DIR_REGEX = re.compile(r"^.+ \(\d{4}\) \{tvdb-(\d+)\}\Z")
@@ -66,20 +66,37 @@ def _is_media_file(path: Path) -> bool:
 
 
 def _count_episodes_in_season(season_dir: Path) -> int:
-    """Count media files in a season directory."""
+    """Count episodes in a season directory, range-aware.
+
+    A file whose name contains a multi-episode range tag (e.g.
+    ``Show - s01e02-e04.mp4``) is counted as the number of episodes it
+    spans (3 in that example) rather than as a single file.  Files with
+    no parseable episode tag are counted as 1 each.
+    """
     if not season_dir.is_dir():
         return 0
-    return sum(1 for f in season_dir.iterdir() if _is_media_file(f))
+    total = 0
+    for f in season_dir.iterdir():
+        if not _is_media_file(f):
+            continue
+        parsed = parse_episode_tag(f.name)
+        if parsed is not None:
+            _season, ep1, ep2 = parsed
+            total += (ep2 - ep1 + 1) if ep2 is not None else 1
+        else:
+            # No recognisable tag — count the file as one episode
+            total += 1
+    return total
 
 
 def _get_local_episode_counts(show_dir: Path) -> Dict[int, int]:
     """Get episode counts per season from local filesystem.
-    
+
     Parameters
     ----------
     show_dir : Path
         Path to the show directory.
-    
+
     Returns
     -------
     Dict[int, int]
