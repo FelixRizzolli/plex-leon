@@ -164,12 +164,14 @@ plex-leon season-renamer --lib ./data/library-b
 
 ### episode-renamer
 
-Renames episode files to the canonical format `<Show (Year)> - sNNeMM[ -ePP].ext`.
+Renames episode files to the canonical format `<Show (Year)> - sNNeMM[-ePP].ext`.
 
 **How it works:**
 
 - The show title and year are taken from the parent show folder (e.g., `Code Geass (2006) {tvdb-79525}` → `Code Geass (2006)`).
-- The episode id is parsed from the original filename (supports `s01e01`, `S01E01`, and double-episodes like `S01E01-E02`) and normalized to lowercase.
+- The episode tag is parsed from the original filename (supports `s01e01`, `S01E01`, and multi-episode
+  ranges like `S01E01-E04`) and normalized to lowercase. The full range is preserved in the output
+  filename — e.g., a file tagged `S01E01-E04` becomes `Code Geass (2006) - s01e01-e04.mkv`.
 - Any additional episode title text in the filename is removed.
 - Case-only changes (e.g., `S01E01` → `s01e01`) are performed via a safe two-step rename using a hidden swap file to avoid filesystem issues.
 
@@ -195,14 +197,21 @@ plex-leon episode-renamer --lib ./data/library-e
 
 ### prepare
 
-Organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - s01e01.ext`.
+Organise loose TV episode files into `Season NN` folders and rename them to `Show (Year) - s01e01[-e04].ext`.
 
 **How it works:**
 
-- Validates show folders (TVDB id must be present, duplicate detection).
-- Organises loose TV episode files into canonical `Season NN` folders.
-- Renames episodes to `<Show (Year)> - s01e01.ext` (season before episode).
-- Only processes files that pass validation checks.
+- Validates show folders: the folder name must contain a `{tvdb-...}` suffix and must not have
+  duplicate files claiming the same episode.
+- Organises loose TV episode files (files sitting directly in the show folder, not yet in a season
+  subfolder) into canonical `Season NN` folders.
+- Renames episodes to `<Show (Year)> - s01e01.ext` (season before episode, zero-padded, lowercase).
+  Multi-episode range files (e.g. `S01E01-E04`) produce a target name that preserves the full range:
+  `Show (Year) - s01e01-e04.ext`.
+- Supported naming patterns in source files:
+  - Standard tags: `S01E02`, `s1e2`, `S01E02-E04` (range → preserved in output)
+  - German style: `Episode 12 Staffel 2` or `Staffel 2 Episode 12`
+- Only processes files that pass validation checks; shows with errors are skipped.
 
 **Options:**
 

@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
+## [3.2.0] - 2026-02-23
+### Added
+- Multi-episode range tags (e.g. `S01E01-E04`) are now fully preserved when renaming: `episode-renamer` and `prepare`
+  both retain the complete range in the output filename (e.g. `Show (2020) - s01e01-e04.mp4`) instead of silently
+  dropping the range end. Affects all range sizes, not just double episodes.
+- `episode-check` now counts multi-episode range files correctly: a file named `Show - s01e02-e04.mp4` is counted as
+  3 episodes (the full span of the range) when comparing against TVDB, rather than as a single file.
+
+### Changed
+- Improved `.gitignore` file
+- Improved devcontainer setup which now supports also JetBrains IDEs
+- Improved `publish.yml` workflow to trigger on new tags
+
+### Fixed
+- Fixed a bug in the `episode-check` utility where macOS created AppleDouble resource fork files
+  (files prefixed with `._` on exFAT/FAT volumes) that appeared next to real media files. Those
+  `._` sidecar files share the media file extension (for example `._episode.mp4`) and were being
+  detected as media files, causing episode counts to be reported twice. The utility now ignores
+  files whose names start with `._` when detecting media files, preventing the double-counting.
+
+### Tests
+- Added unit tests for `episode-renamer` (`tests/unittests/utils/test_episode_renamer.py`) covering
+  single-episode renaming, multi-episode range preservation, dry-run behaviour, and TVDB suffix stripping.
+- Added unit tests for `prepare` (`tests/unittests/utils/test_prepare.py`) covering the internal
+  `_parse_season_episode_from_name` parser, multi-episode range target filenames, dry-run, and
+  `_validate_show` duplicate detection.
+- Added unit tests for `season-renamer` (`tests/unittests/utils/test_season_renamer.py`) covering
+  canonical renames, dry-run, and verifying that range episode files inside season folders are untouched.
+- Added unit tests for the range-aware `_count_episodes_in_season` in `episode-check` (range file
+  counted as multiple episodes, mixed single/range, uppercase tags, fallback for untagged files).
+- Updated test library generators to produce multi-episode range files (2–4 episode spans, ~1 in 8
+  chance) in `episode_renamer_tlg`, `season_renamer_tlg`, and `prepare_tlg` for realistic test data.
+
 ## [3.1.0] - 2025-12-24
 ### Added
 - `episode-check` utility: compares local per-season episode counts with TVDB data and reports discrepancies in a per-season table.
@@ -97,14 +130,13 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - CLI subcommand `episode-renamer` with `--lib` and `--dry-run`.
 
 ### Changed
-- Refactored shared logic into `utils.py` (episode parsing/normalization, season detection, two-step renames, iterators, formatting helpers, directory merge utilities).
+- Refactored shared logic into `utils.py` (episode parsing/normalization, season detection, two-step renames, directory merge utilities).
 - `migrate` and `season-renamer` now use the shared helpers, reducing duplication and improving readability.
 - README updated with episode-renamer docs and clarified CLI compatibility notes.
 
 ### Tests
 - Added tests for episode renamer and season renamer.
 - Expanded tests for migrate and CLI.
-- Added comprehensive tests for new utilities and regex behavior.
 
 ## [2.1.0] - 2025-08-22
 ### Added
