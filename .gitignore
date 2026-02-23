@@ -1,6 +1,10 @@
 # data
 data/*
 
+# Devcontainer Mounts
+.devcontainer/mounts/*
+!.devcontainer/mounts/.jbdevcontainer/.gitkeep
+
 # ---[ Python ]-------------------------------------------------------------------------------------
 # Byte-compiled / optimized / DLL files
 __pycache__/

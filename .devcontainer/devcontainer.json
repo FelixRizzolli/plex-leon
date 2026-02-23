@@ -11,7 +11,8 @@
 
     "mounts": [
         "type=bind,source=${env:SSH_AUTH_SOCK},target=/ssh-agent",
-        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer,target=/.jbdevcontainer,type=bind"
+        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer/config,target=/.jbdevcontainer/config,type=bind",
+        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer/JetBrains,target=/.jbdevcontainer/JetBrains,type=bind",
     ],
 
     "containerEnv": {
