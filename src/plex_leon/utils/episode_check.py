@@ -55,6 +55,12 @@ def _is_media_file(path: Path) -> bool:
     """Check if a file is a media file based on extension."""
     if not path.is_file():
         return False
+
+    # Skip macOS AppleDouble resource fork files (e.g. ._episode.mp4)
+    # created on exFAT/FAT volumes — they share the media extension but
+    # are metadata sidecar files, not actual episodes.
+    if path.name.startswith("._"):
+        return False
     ext = path.suffix.lower().lstrip('.')
     return ext in MEDIA_EXTS
 

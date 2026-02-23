@@ -56,6 +56,22 @@ class TestIsMediaFile:
         dir_path.mkdir()
         assert not _is_media_file(dir_path)
 
+    def test_apple_double_resource_forks_excluded(self, tmp_path):
+        """Test that macOS AppleDouble resource fork files (._filename) are excluded.
+
+        On exFAT volumes, macOS creates a '._' prefixed sidecar file next to
+        every file to store resource fork / extended attribute data. These files
+        share the same extension as the original, so without this guard they
+        would be counted as episodes, doubling the count.
+        """
+        resource_forks = ["._episode1.mp4", "._episode2.mkv", "._video.avi"]
+        for filename in resource_forks:
+            file_path = tmp_path / filename
+            file_path.touch()
+            assert not _is_media_file(file_path), (
+                f"{filename} is a resource fork and should not be identified as media"
+            )
+
 
 class TestCountEpisodesInSeason:
     """Tests for _count_episodes_in_season function."""
@@ -86,6 +102,24 @@ class TestCountEpisodesInSeason:
         """Test counting in nonexistent directory."""
         nonexistent = tmp_path / "does_not_exist"
         assert _count_episodes_in_season(nonexistent) == 0
+
+    def test_apple_double_resource_forks_not_counted(self, tmp_path):
+        """Test that macOS AppleDouble sidecar files are not counted as episodes.
+
+        Simulates an exFAT volume where macOS has written '._' prefixed resource
+        fork files next to each episode.  Without the guard these would double
+        the reported episode count.
+        """
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+
+        episodes = ["episode1.mp4", "episode2.mkv", "episode3.avi"]
+        for ep in episodes:
+            (season_dir / ep).touch()
+            # Matching AppleDouble sidecar
+            (season_dir / f"._{ep}").touch()
+
+        assert _count_episodes_in_season(season_dir) == 3
 
 
 class TestGetLocalEpisodeCounts:
