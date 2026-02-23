@@ -32,6 +32,7 @@ generator produces multiple seasons per show where configured.
 
 from __future__ import annotations
 
+import random
 from pathlib import Path
 import sys
 import shutil
@@ -81,7 +82,9 @@ def _base_show_name(folder_name: str) -> str:
     return m.group(1) if m else no_tvdb
 
 
-def create_library(root: Path, generator: BaseTestLibraryGenerator) -> None:
+def create_library(root: Path, generator: BaseTestLibraryGenerator, *, seed: int = 42) -> None:
+    rng = random.Random(seed)
+
     if root.exists():
         shutil.rmtree(root)
 
@@ -163,7 +166,7 @@ class PrepareTestLibraryGenerator(BaseTestLibraryGenerator):
             force = True
             args.remove('-f')
 
-        dest = ROOT_REL if not args else Path(args[0])
+        dest = self.repo_root / "data" / "library-p" if not args else Path(args[0])
 
         if dest.exists() and not force:
             resp = input(
@@ -172,7 +175,7 @@ class PrepareTestLibraryGenerator(BaseTestLibraryGenerator):
                 self.log_info("Aborted — target not removed.")
                 return 1
 
-        create_library(dest, self)
+        create_library(dest, self, seed=42)
         self.log_info("Done generating library-p test data.")
         return 0
 

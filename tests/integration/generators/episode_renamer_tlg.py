@@ -18,6 +18,7 @@ Differences to the season generator:
   - For some shows, the year in the show name is omitted in the episode filename.
   - For some shows, the SxxExx tag is uppercase (e.g., S01E01) instead of lowercase.
   - For some shows/episodes, an episode title is appended (and sometimes includes small typos).
+  - For some episodes, a multi-episode range tag is used (e.g., S01E01-E03 covering 2–4 episodes).
 
 Re-running is safe and will skip copies that already exist.
 """
@@ -113,9 +114,6 @@ def create_seasons_and_episodes(
         title_with_year = show.split(" {")[0].strip()
         title_no_year = strip_year_from_name(title_with_year)
 
-        # seasons mapping for this show (dict[season_num] = episode_count)
-        # retrieved from centralized `scripts.shared.tvshows` data
-        # (already assigned above to `seasons`).
         for season_num in sorted(seasons.keys()):
             season_dir = show_dir / f"Season {season_num:02d}"
             season_dir.mkdir(parents=True, exist_ok=True)
@@ -124,28 +122,28 @@ def create_seasons_and_episodes(
             ep_total = seasons[season_num]
             ep_num = 1
             while ep_num <= ep_total:
-                # Randomly decide if this file should be a double-episode file (about 1 in 8 chance, and only if next ep exists)
-                is_double = ep_num < ep_total and rng.random() < 0.125
-                if is_double:
-                    # S01E01-E02 style
+                # Randomly decide if this file should be a multi-episode range file
+                # (about 1 in 8 chance; range spans 2–4 episodes, capped at remaining)
+                remaining = ep_total - ep_num + 1
+                max_range = min(4, remaining)
+                is_range = max_range >= 2 and rng.random() < 0.125
+                if is_range:
                     ep_start = ep_num
-                    ep_end = ep_num + 1
-                    # Choose per-file whether to add a title and whether to add a tiny typo
+                    range_len = rng.randint(2, max_range)
+                    ep_end = ep_start + range_len - 1
+
                     add_title = include_titles and rng.random() < 0.85
                     episode_title = random_episode_title(
                         rng, tvdb, season_num, ep_start) if add_title else ""
                     if episode_title and rng.random() < 0.35:
                         episode_title = _introduce_typos(episode_title, rng)
 
-                    # Build S/E tag
                     s_tag = f"s{season_num:02d}e{ep_start:02d}-e{ep_end:02d}"
                     if upper_se_tag:
-                        s_tag = s_tag.upper()  # S01E01-E02
+                        s_tag = s_tag.upper()  # e.g. S01E01-E03
 
-                    # Build show part (maybe omit year)
                     show_part = title_with_year if include_year else title_no_year
 
-                    # Assemble filename
                     parts = [show_part, s_tag]
                     if episode_title:
                         parts.append(episode_title)
@@ -154,11 +152,11 @@ def create_seasons_and_episodes(
 
                     if dst.exists():
                         generator.log_info(f"skip (exists): {dst}")
-                        ep_num += 2
+                        ep_num += range_len
                         continue
                     dst.write_bytes(b"")
                     generator.log_info(f"touch: {dst}")
-                    ep_num += 2
+                    ep_num += range_len
                 else:
                     # Single episode file as before
                     add_title = include_titles and rng.random() < 0.85

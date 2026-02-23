@@ -17,10 +17,11 @@ TV show folders and normalises episode placement & naming:
 4. Create the target season directory named `Season NN` (NN zero-padded) if it
    does not already exist.
         5. Move & rename the file to:
-            <Show Name (YYYY)> - sSSeEE.ext   (per spec: 's01e01')
+            <Show Name (YYYY)> - sSSeEE[−eFF].ext   (per spec: 's01e01' or 's01e01-e04' for ranges)
      NOTE: The user requested the format `s01e01` (season then episode), which
      is the more common convention. The code uses this pattern for target
-     filenames.
+     filenames. For multi-episode files encoded as S01E01-E04 the full range
+     is preserved in the output filename (e.g. 's01e01-e04').
 6. Case-only changes are applied via a two-step rename using the existing
    `two_step_case_rename` helper.
 
@@ -71,6 +72,7 @@ from plex_leon.shared import (
     two_step_case_rename,
     parse_episode_tag,
     strip_tvdb_suffix,
+    normalize_episode_tag,
 )
 from plex_leon.utils.base_utility import BaseUtility, ParameterInfo
 
@@ -125,38 +127,34 @@ def _iter_show_dirs(root: Path):
                     pass
 
 
-def _parse_season_episode_from_name(name: str) -> tuple[int, int] | None:
-    """Extract (season, episode) from filename.
-
-    Order in target filename is season then episode per spec, and we return
-    (season, episode) for internal consistency with other helpers.
+def _parse_season_episode_from_name(name: str) -> tuple[int, int, int | None] | None:
+    """Extract (season, episode_start, episode_end_or_None) from filename.
+    Returns (season, ep1, ep2) where ep2 is the range end for multi-episode
+    files like S01E01-E04, or None for single episodes.
     """
-    # 1. Standard SxxExx pattern via existing helper
+    # 1. Standard SxxExx (or SxxExx-Eyy) pattern via existing helper
     tag = parse_episode_tag(name)
     if tag:
-        season, ep1, _ = tag
-        return (season, ep1)
-
+        season, ep1, ep2 = tag
+        return (season, ep1, ep2)
     # 2. German 'Episode N Staffel M'
     m = GERMAN_EP_FIRST.search(name)
     if m:
         try:
             ep = int(m.group(1))
             season = int(m.group(2))
-            return (season, ep)
+            return (season, ep, None)
         except ValueError:
             return None
-
     # 3. German 'Staffel M Episode N'
     m = GERMAN_SEASON_FIRST.search(name)
     if m:
         try:
             season = int(m.group(1))
             ep = int(m.group(2))
-            return (season, ep)
+            return (season, ep, None)
         except ValueError:
             return None
-
     return None
 
 
@@ -189,7 +187,7 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
             msgs.append(
                 f"WARN: could not parse season/episode from filename: {entry.name}")
             continue
-        season, ep = parsed
+        season, ep, _ = parsed
         counts.setdefault((season, ep), []).append(entry)
 
     # Detect duplicates: same season/episode mapped by multiple files
@@ -281,9 +279,13 @@ class PrepareUtility(BaseUtility):
                 parsed = _parse_season_episode_from_name(entry.name)
                 if not parsed:
                     continue
-                season, episode = parsed
+                season, episode, episode_end = parsed
                 season_dir = show_dir / f"Season {season:02d}"
-                target_name = f"{show_title} - s{season:02d}e{episode:02d}{entry.suffix.lower()}"
+                # Build episode tag: 's01e01' for single, 's01e01-e04' for ranges
+                ep_tag = f"s{season:02d}e{episode:02d}"
+                if episode_end is not None:
+                    ep_tag += f"-e{episode_end:02d}"
+                target_name = f"{show_title} - {ep_tag}{entry.suffix.lower()}"
                 target_path = season_dir / target_name
 
                 # Skip if already correct location/name

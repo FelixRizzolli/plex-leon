@@ -6,13 +6,22 @@ It will create the following structure (if missing):
 data/
   library-s/
     <TV Show Name with {tvdb-...}>/
-      Season 01/
+      Season 01/          ← folder name varies (staffel, saison, typos, …)
         <Show Name> - s01e01.mp4
         ...
       Season 02/
         ...
 
 This script only creates TV shows (no movies) in library-s, using the same TV show list and episode structure as in generate_merge_test_libraries.py.
+
+Season folder name variants are randomised per show (see `season_variants` list):
+casing variants, language variants (Staffel, Saison), and deliberate typos are all
+represented so that the season-renamer can be exercised against diverse inputs.
+
+Episode filenames inside each season folder occasionally use multi-episode range tags
+(e.g. ``s01e01-e03``) to represent files that span several episodes.  The season
+renamer itself only touches directory names, so these files are expected to survive
+the rename untouched.
 
 Re-running is safe and will skip copies that already exist.
 """
@@ -97,14 +106,31 @@ def create_seasons_and_episodes(
             season_dir = show_dir / season_folder
             season_dir.mkdir(parents=True, exist_ok=True)
             generator.log_info(f"mkdir: {season_dir}")
-            for ep_num in range(1, seasons[season_num] + 1):
-                dst = season_dir / \
-                    f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
-                if dst.exists():
-                    generator.log_info(f"skip (exists): {dst}")
-                    continue
-                dst.write_bytes(b"")
-                generator.log_info(f"touch: {dst}")
+            ep_total = seasons[season_num]
+            ep_num = 1
+            while ep_num <= ep_total:
+                # ~1 in 8 chance of a multi-episode range file (2–4 eps, capped at remaining)
+                remaining = ep_total - ep_num + 1
+                max_range = min(4, remaining)
+                is_range = max_range >= 2 and rng.random() < 0.125
+                if is_range:
+                    range_len = rng.randint(2, max_range)
+                    ep_end = ep_num + range_len - 1
+                    dst = season_dir / f"{title_prefix} - s{season_num:02d}e{ep_num:02d}-e{ep_end:02d}.mp4"
+                    if not dst.exists():
+                        dst.write_bytes(b"")
+                        generator.log_info(f"touch: {dst}")
+                    else:
+                        generator.log_info(f"skip (exists): {dst}")
+                    ep_num += range_len
+                else:
+                    dst = season_dir / f"{title_prefix} - s{season_num:02d}e{ep_num:02d}.mp4"
+                    if not dst.exists():
+                        dst.write_bytes(b"")
+                        generator.log_info(f"touch: {dst}")
+                    else:
+                        generator.log_info(f"skip (exists): {dst}")
+                    ep_num += 1
 
 
 def main(argv: list[str] | None = None) -> int:
