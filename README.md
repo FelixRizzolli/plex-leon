@@ -57,6 +57,7 @@ poetry run plex-leon episode-check --lib /path/to/library
 ```
 
 ### prepare
+```
 plex-leon migrate --help
 ```
 
