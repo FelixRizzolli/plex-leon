@@ -66,27 +66,37 @@ def _is_media_file(path: Path) -> bool:
 
 
 def _count_episodes_in_season(season_dir: Path) -> int:
-    """Count episodes in a season directory, range-aware.
+    """Count episodes in a season directory, range-aware and split-aware.
 
     A file whose name contains a multi-episode range tag (e.g.
     ``Show - s01e02-e04.mp4``) is counted as the number of episodes it
     spans (3 in that example) rather than as a single file.  Files with
     no parseable episode tag are counted as 1 each.
+
+    Split files (e.g. ``s01e01 - cd1.mp4`` and ``s01e01 - cd2.mp4``) are
+    counted as a single episode (not doubled).  The episode numbers from
+    all tagged files are collected into a set so that splits of the same
+    episode are deduplicated automatically.
     """
     if not season_dir.is_dir():
         return 0
-    total = 0
+    episodes_seen: set[int] = set()
+    untagged_count = 0
     for f in season_dir.iterdir():
         if not _is_media_file(f):
             continue
         parsed = parse_episode_tag(f.name)
         if parsed is not None:
-            _season, ep1, ep2 = parsed
-            total += (ep2 - ep1 + 1) if ep2 is not None else 1
+            _season, ep1, ep2, _split = parsed
+            if ep2 is not None:
+                for ep in range(ep1, ep2 + 1):
+                    episodes_seen.add(ep)
+            else:
+                episodes_seen.add(ep1)
         else:
             # No recognisable tag — count the file as one episode
-            total += 1
-    return total
+            untagged_count += 1
+    return len(episodes_seen) + untagged_count
 
 
 def _get_local_episode_counts(show_dir: Path) -> Dict[int, int]:

@@ -190,3 +190,87 @@ class TestTvdbSuffixStripping:
         assert "tvdb" not in renamed[0].name
         assert renamed[0].name == "Death Note (2006) - s01e01.mp4"
 
+
+# ---------------------------------------------------------------------------
+# Tests for split name renaming
+# ---------------------------------------------------------------------------
+
+class TestSplitNameRenaming:
+    """Verify that split names (CD1, disc1, part1, etc.) are preserved in output."""
+
+    @pytest.mark.parametrize("input_name, expected_name", [
+        ("ShowName S01E01-CD1.mp4", "My Show (2020) - s01e01 - cd1.mp4"),
+        ("ShowName S01E01-disc1.mp4", "My Show (2020) - s01e01 - disc1.mp4"),
+        ("ShowName S01E01-disk1.mp4", "My Show (2020) - s01e01 - disk1.mp4"),
+        ("ShowName S01E01-dvd1.mp4", "My Show (2020) - s01e01 - dvd1.mp4"),
+        ("ShowName S01E01-part1.mp4", "My Show (2020) - s01e01 - part1.mp4"),
+        ("ShowName S01E01-pt1.mp4", "My Show (2020) - s01e01 - pt1.mp4"),
+        # Space delimiter
+        ("ShowName S01E01 CD1.mp4", "My Show (2020) - s01e01 - cd1.mp4"),
+        ("ShowName S01E01 disc2.mp4", "My Show (2020) - s01e01 - disc2.mp4"),
+        # Range + split
+        ("ShowName S01E01-E02-CD1.mp4", "My Show (2020) - s01e01-e02 - cd1.mp4"),
+        ("ShowName S01E01-E02 disk1.mp4", "My Show (2020) - s01e01-e02 - disk1.mp4"),
+    ])
+    def test_split_name_renamed_on_disk(self, tmp_path, input_name, expected_name):
+        """Split name files are renamed with the correct format on disk."""
+        lib = _make_show(
+            tmp_path,
+            show_folder="My Show (2020) {tvdb-1}",
+            season="Season 01",
+            filenames=[input_name],
+        )
+        util = EpisodeRenamerUtility(dry_run=False)
+        (count,) = util.process(lib)
+        assert count == 1
+        expected = lib / "My Show (2020) {tvdb-1}" / "Season 01" / expected_name
+        assert expected.exists(), f"Expected {expected}"
+
+    def test_split_name_dry_run(self, tmp_path):
+        """Dry-run: split name file is detected but not renamed."""
+        lib = _make_show(
+            tmp_path,
+            show_folder="My Show (2020) {tvdb-1}",
+            season="Season 01",
+            filenames=["ShowName S01E01-CD1.mp4"],
+        )
+        util = EpisodeRenamerUtility(dry_run=True)
+        (count,) = util.process(lib)
+        assert count == 1
+        # Original still in place
+        original = lib / "My Show (2020) {tvdb-1}" / "Season 01" / "ShowName S01E01-CD1.mp4"
+        assert original.exists()
+
+    def test_already_correct_split_name_skipped(self, tmp_path):
+        """A file already named correctly with split is not counted as renamed."""
+        lib = _make_show(
+            tmp_path,
+            show_folder="My Show (2020) {tvdb-1}",
+            season="Season 01",
+            filenames=["My Show (2020) - s01e01 - cd1.mp4"],
+        )
+        util = EpisodeRenamerUtility(dry_run=True)
+        (count,) = util.process(lib)
+        assert count == 0
+
+    def test_mixed_split_and_normal_in_same_season(self, tmp_path):
+        """Split and non-split files in the same season are both handled."""
+        lib = _make_show(
+            tmp_path,
+            show_folder="My Show (2020) {tvdb-1}",
+            season="Season 01",
+            filenames=[
+                "Show S01E01.mp4",
+                "Show S01E02-CD1.mp4",
+                "Show S01E02-CD2.mp4",
+            ],
+        )
+        util = EpisodeRenamerUtility(dry_run=False)
+        (count,) = util.process(lib)
+        assert count == 3
+        season_dir = lib / "My Show (2020) {tvdb-1}" / "Season 01"
+        names = {f.name for f in season_dir.iterdir() if f.suffix == ".mp4"}
+        assert "My Show (2020) - s01e01.mp4" in names
+        assert "My Show (2020) - s01e02 - cd1.mp4" in names
+        assert "My Show (2020) - s01e02 - cd2.mp4" in names
+

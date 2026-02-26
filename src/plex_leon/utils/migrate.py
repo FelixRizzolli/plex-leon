@@ -148,7 +148,7 @@ class MigrateUtility(BaseUtility):
                             parsed = parse_episode_tag(fn)
                             if not parsed:
                                 continue
-                            s, e1, e2 = parsed
+                            s, e1, e2, _split = parsed
                             idx.setdefault((s, e1), Path(dirpath) / fn)
                             if e2 is not None:
                                 idx.setdefault((s, e2), Path(dirpath) / fn)

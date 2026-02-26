@@ -158,6 +158,65 @@ class TestCountEpisodesInSeason:
 
         assert _count_episodes_in_season(season_dir) == 1
 
+    def test_split_files_same_episode_counted_once(self, tmp_path):
+        """Split files for the same episode (e.g. cd1, cd2) count as one episode."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e01 - cd1.mp4").touch()
+        (season_dir / "Show (2020) - s01e01 - cd2.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 1
+
+    def test_split_files_different_episodes(self, tmp_path):
+        """Split files for different episodes are counted separately."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e01 - cd1.mp4").touch()
+        (season_dir / "Show (2020) - s01e01 - cd2.mp4").touch()
+        (season_dir / "Show (2020) - s01e02 - cd1.mp4").touch()
+        (season_dir / "Show (2020) - s01e02 - cd2.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 2
+
+    def test_split_files_mixed_with_normal(self, tmp_path):
+        """Mix of split and non-split files counted correctly."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e01.mp4").touch()           # 1 ep
+        (season_dir / "Show (2020) - s01e02 - cd1.mp4").touch()     # 1 ep (split)
+        (season_dir / "Show (2020) - s01e02 - cd2.mp4").touch()     # same ep (split)
+        (season_dir / "Show (2020) - s01e03.mp4").touch()           # 1 ep
+
+        assert _count_episodes_in_season(season_dir) == 3
+
+    def test_split_range_files_counted_correctly(self, tmp_path):
+        """Range split files: s01e01-e02-cd1 and s01e01-e02-cd2 count as 2 episodes."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e01-e02 - cd1.mp4").touch()
+        (season_dir / "Show (2020) - s01e01-e02 - cd2.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 2
+
+    def test_disc_split_counted_once(self, tmp_path):
+        """Disc split files (disc1, disc2) for the same episode count as one."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        (season_dir / "Show (2020) - s01e05 - disc1.mp4").touch()
+        (season_dir / "Show (2020) - s01e05 - disc2.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 1
+
+    def test_various_split_types_same_episode(self, tmp_path):
+        """Various split type names for the same episode count as one."""
+        season_dir = tmp_path / "Season 01"
+        season_dir.mkdir()
+        # These all refer to episode 3 with different split types
+        (season_dir / "Show (2020) - s01e03 - part1.mp4").touch()
+        (season_dir / "Show (2020) - s01e03 - part2.mp4").touch()
+
+        assert _count_episodes_in_season(season_dir) == 1
+
 
 class TestGetLocalEpisodeCounts:
     """Tests for _get_local_episode_counts function."""

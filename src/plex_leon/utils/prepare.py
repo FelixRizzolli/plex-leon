@@ -84,6 +84,10 @@ SHOW_DIR_REGEX = re.compile(r"^.+ \(\d{4}\) \{tvdb-\d+}\Z")
 GERMAN_EP_FIRST = re.compile(r"(?i)Episode\s+(\d+)\D+Staffel\s+(\d+)")
 GERMAN_SEASON_FIRST = re.compile(r"(?i)Staffel\s+(\d+)\D+Episode\s+(\d+)")
 
+# Split name suffix (cd, disc, disk, dvd, part, pt) with a number.
+# Matches e.g. " cd1", "-disc 2", " - part3".
+SPLIT_NAME_REGEX = re.compile(r"(?i)[\s-]+(cd|disc|disk|dvd|part|pt)\s*(\d+)")
+
 # Common media file extensions we care about. (Lowercase, without dot.)
 MEDIA_EXTS = {
     "mp4",
@@ -127,32 +131,46 @@ def _iter_show_dirs(root: Path):
                     pass
 
 
-def _parse_season_episode_from_name(name: str) -> tuple[int, int, int | None] | None:
-    """Extract (season, episode_start, episode_end_or_None) from filename.
-    Returns (season, ep1, ep2) where ep2 is the range end for multi-episode
-    files like S01E01-E04, or None for single episodes.
+def _extract_split_from_text(text: str) -> str | None:
+    """Extract a split name (cd1, disc2, etc.) from text."""
+    m = SPLIT_NAME_REGEX.search(text)
+    if m:
+        return f"{m.group(1).lower()}{m.group(2)}"
+    return None
+
+
+def _parse_season_episode_from_name(name: str) -> tuple[int, int, int | None, str | None] | None:
+    """Extract (season, episode_start, episode_end_or_None, split_name_or_None) from filename.
+
+    Returns (season, ep1, ep2, split) where ep2 is the range end for
+    multi-episode files like S01E01-E04, or None for single episodes.
+    split is a lowercase string like 'cd1', 'disc2', etc., or None.
     """
-    # 1. Standard SxxExx (or SxxExx-Eyy) pattern via existing helper
+    # 1. Standard SxxExx (or SxxExx-Eyy[-splitN]) pattern via existing helper
     tag = parse_episode_tag(name)
     if tag:
-        season, ep1, ep2 = tag
-        return (season, ep1, ep2)
-    # 2. German 'Episode N Staffel M'
+        season, ep1, ep2, split = tag
+        return (season, ep1, ep2, split)
+    # 2. German 'Episode N Staffel M [split]'
     m = GERMAN_EP_FIRST.search(name)
     if m:
         try:
             ep = int(m.group(1))
             season = int(m.group(2))
-            return (season, ep, None)
+            rest = name[m.end():]
+            split = _extract_split_from_text(rest)
+            return (season, ep, None, split)
         except ValueError:
             return None
-    # 3. German 'Staffel M Episode N'
+    # 3. German 'Staffel M Episode N [split]'
     m = GERMAN_SEASON_FIRST.search(name)
     if m:
         try:
             season = int(m.group(1))
             ep = int(m.group(2))
-            return (season, ep, None)
+            rest = name[m.end():]
+            split = _extract_split_from_text(rest)
+            return (season, ep, None, split)
         except ValueError:
             return None
     return None
@@ -174,8 +192,8 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
     if __import__("re").search(r"\{tvdb-\d+\}", name) is None:
         msgs.append(f"❌ ERROR: missing tvdb id in show folder name: '{name}'")
 
-    # Collect loose media files and map parsed (season, ep) -> files
-    counts: dict[tuple[int, int], list[Path]] = {}
+    # Collect loose media files and map parsed (season, ep, split) -> files
+    counts: dict[tuple[int, int, str | None], list[Path]] = {}
     for entry in sorted(show_dir.iterdir()):
         if entry.is_dir() or entry.name.startswith('.'):
             continue
@@ -187,15 +205,16 @@ def _validate_show(show_dir: Path) -> tuple[bool, list[str]]:
             msgs.append(
                 f"WARN: could not parse season/episode from filename: {entry.name}")
             continue
-        season, ep, _ = parsed
-        counts.setdefault((season, ep), []).append(entry)
+        season, ep, _ep_end, split = parsed
+        counts.setdefault((season, ep, split), []).append(entry)
 
-    # Detect duplicates: same season/episode mapped by multiple files
-    for (season, ep), files in counts.items():
+    # Detect duplicates: same season/episode/split mapped by multiple files
+    for (season, ep, split), files in counts.items():
         if len(files) > 1:
             file_list = ", ".join(str(p.name) for p in files)
+            split_info = f" ({split})" if split else ""
             msgs.append(
-                f"❌ ERROR: duplicate episode detected S{season:02d}E{ep:02d}: {file_list}")
+                f"❌ ERROR: duplicate episode detected S{season:02d}E{ep:02d}{split_info}: {file_list}")
 
     return (len([m for m in msgs if m.startswith("❌ ERROR:")]) == 0, msgs)
 
@@ -279,12 +298,14 @@ class PrepareUtility(BaseUtility):
                 parsed = _parse_season_episode_from_name(entry.name)
                 if not parsed:
                     continue
-                season, episode, episode_end = parsed
+                season, episode, episode_end, split = parsed
                 season_dir = show_dir / f"Season {season:02d}"
                 # Build episode tag: 's01e01' for single, 's01e01-e04' for ranges
                 ep_tag = f"s{season:02d}e{episode:02d}"
                 if episode_end is not None:
                     ep_tag += f"-e{episode_end:02d}"
+                if split is not None:
+                    ep_tag += f" - {split}"
                 target_name = f"{show_title} - {ep_tag}{entry.suffix.lower()}"
                 target_path = season_dir / target_name
 
