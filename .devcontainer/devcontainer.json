@@ -22,8 +22,6 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.python",
-                "ms-python.debugpy",
                 "eamodio.gitlens",
                 "gruntfuggly.todo-tree",
                 "aaron-bond.better-comments",
@@ -33,12 +31,6 @@
                 "files.autoSave": "afterDelay",
                 "files.autoSaveDelay": 1000,
                     "editor.formatOnSave": true,
-                    // prefer the Poetry-created virtualenv (symlinked to .venv) as the interpreter
-                    "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
-                    // ensure the language server analyses our src/ package
-                    "python.analysis.extraPaths": ["./src"],
-                    // automatically activate the selected environment in terminals
-                    "python.terminal.activateEnvironment": true
             }
         },
         "jetbrains": {

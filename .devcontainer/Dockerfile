@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.14
+FROM mcr.microsoft.com/devcontainers/typescript-node:24
 
 # Use bash as the shell for RUN commands
 SHELL ["/bin/bash", "-lc"]
@@ -22,11 +22,9 @@ git config --global --add safe.directory /workspace
 sudo apt-get update
 sudo apt-get install gh -y
 
-# Install poetry
-curl -sSL https://install.python-poetry.org | python3 -
-
 # Install ffmpeg & mediainfo
 sudo apt-get update -y
 sudo apt-get install -y ffmpeg
 sudo apt-get install -y mediainfo
+
 BASH
