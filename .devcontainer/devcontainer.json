@@ -12,12 +12,24 @@
     "mounts": [
         "type=bind,source=${env:SSH_AUTH_SOCK},target=/ssh-agent",
         "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer/config,target=/.jbdevcontainer/config,type=bind",
-        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer/JetBrains,target=/.jbdevcontainer/JetBrains,type=bind",
+        "source=${localWorkspaceFolder}/.devcontainer/mounts/.jbdevcontainer/JetBrains,target=/.jbdevcontainer/JetBrains,type=bind"
     ],
 
     "containerEnv": {
         "SSH_AUTH_SOCK": "/ssh-agent"
     },
+
+	"forwardPorts": [6080, 5901],
+	"portsAttributes": {
+		"6080": {
+			"label": "VNC web client (noVNC)",
+			"onAutoForward": "silent"
+		},
+		"5901": {
+			"label": "VNC TCP port",
+			"onAutoForward": "silent"
+		}
+	},
 
     "customizations": {
         "vscode": {
@@ -30,7 +42,7 @@
             "settings": {
                 "files.autoSave": "afterDelay",
                 "files.autoSaveDelay": 1000,
-                    "editor.formatOnSave": true,
+                "editor.formatOnSave": true
             }
         },
         "jetbrains": {

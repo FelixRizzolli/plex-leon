@@ -27,4 +27,26 @@ sudo apt-get update -y
 sudo apt-get install -y ffmpeg
 sudo apt-get install -y mediainfo
 
+# Install Electron/Chromium runtime dependencies + virtual display + VNC stack
+sudo apt-get install -y \
+  libnspr4 \
+  libnss3 \
+  libatk1.0-0 \
+  libatk-bridge2.0-0 \
+  libcups2 \
+  libdrm2 \
+  libxkbcommon0 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxrandr2 \
+  libgbm1 \
+  libasound2 \
+  libpango-1.0-0 \
+  libcairo2 \
+  libatspi2.0-0 \
+  xvfb \
+  x11vnc \
+  novnc \
+  websockify
+
 BASH
