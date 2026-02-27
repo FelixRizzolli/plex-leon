@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/oxlint_v1.0.0/crates/oxc_linter/src/rules/schema.json",
+  "plugins": ["vue", "typescript", "unicorn"],
+  "rules": {
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-unused-vars": "error",
+    "eqeqeq": ["error", "always"],
+    "prefer-const": "error",
+    "no-var": "error",
+    "object-shorthand": "error",
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-non-null-assertion": "warn",
+    "unicorn/prefer-module": "warn"
+  },
+  "ignorePatterns": [
+    "out/**",
+    "node_modules/**",
+    "coverage/**",
+    "*.d.ts"
+  ]
+}

@@ -55,5 +55,6 @@ echo ""
 echo "  Open: http://localhost:${NOVNC_PORT}/vnc.html"
 echo ""
 
-# ── 4. Electron ───────────────────────────────────────────────────────────────
-exec electron . --no-sandbox
+# ── 4. Electron (via electron-vite) ──────────────────────────────────────────
+export NO_SANDBOX=1
+pnpm i && exec pnpm run dev
