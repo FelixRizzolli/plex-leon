@@ -1,5 +1,7 @@
-{
-  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/oxlint_v1.0.0/crates/oxc_linter/src/rules/schema.json",
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["vue", "typescript", "unicorn"],
   "rules": {
     "no-console": "warn",
@@ -19,4 +21,4 @@
     "coverage/**",
     "*.d.ts"
   ]
-}
+});
