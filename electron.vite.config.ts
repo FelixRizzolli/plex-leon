@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   // ─── Main Process ────────────────────────────────────────────────────────────
@@ -8,7 +9,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
-        '@main': resolve('electron/main'),
+        '@main': resolve(__dirname, 'electron/main'),
       },
     },
     build: {
@@ -31,7 +32,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
-        '@preload': resolve('electron/preload'),
+        '@preload': resolve(__dirname, 'electron/preload'),
       },
     },
     build: {
@@ -60,24 +61,17 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '@': resolve('src'),
-        '@components': resolve('src/components'),
-        '@stores': resolve('src/stores'),
-        '@views': resolve('src/views'),
-        '@composables': resolve('src/composables'),
-        '@assets': resolve('src/assets'),
+        '@': resolve(__dirname, './src'),
+        '@components': resolve(__dirname, './src/components'),
+        '@stores': resolve(__dirname, './src/stores'),
+        '@views': resolve(__dirname, './src/views'),
+        '@composables': resolve(__dirname, './src/composables'),
+        '@assets': resolve(__dirname, './src/assets'),
       },
     },
     plugins: [
-      vue({
-        // Enable Vue 3.6 Vapor mode compiler options
-        // Per-component opt-in: add `vapor` attribute to <script vapor setup>
-        // or use compilerOptions here for global defaults
-        features: {
-          // Opt-in Vapor compilation globally or let components self-declare
-          optionAPI: false,
-        },
-      }),
+      vue(), 
+      tailwindcss(),
     ],
   },
 })

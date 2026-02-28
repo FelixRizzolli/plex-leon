@@ -13,6 +13,7 @@
     "skipLibCheck": true,
     "useDefineForClassFields": true,
     "outDir": "out/renderer",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],

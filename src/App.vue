@@ -7,8 +7,8 @@ const appStore = useAppStore()
 
 onMounted(() => {
   appStore.init()
-  // Apply saved theme on first render
-  document.documentElement.setAttribute('data-theme', appStore.theme)
+  // Apply saved theme on first render (.dark class for shadcn)
+  document.documentElement.classList.toggle('dark', appStore.theme === 'dark')
 })
 </script>
 
