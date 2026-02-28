@@ -1,46 +1,28 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import AppHeader from './AppHeader.vue'
-import AppSidebar from './AppSidebar.vue'
-import { useAppStore } from '@stores/app'
-
-const appStore = useAppStore()
+import SiteHeader from "@/components/SiteHeader.vue"
+import AppSidebar from "@/components/AppSidebar.vue"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
 </script>
 
 <template>
-  <div class="app-layout" :class="{ 'sidebar-collapsed': appStore.sidebarCollapsed }">
-    <AppHeader />
-    <div class="app-body">
-      <AppSidebar />
-      <main class="app-main">
-        <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </Transition>
-        </RouterView>
-      </main>
-    </div>
-  </div>
+  <SidebarProvider
+    :style="{
+      '--sidebar-width': 'calc(var(--spacing) * 72)',
+      '--header-height': 'calc(var(--spacing) * 12)',
+    }"
+  >
+    <AppSidebar />
+    <SidebarInset>
+      <SiteHeader />
+      <div class="flex flex-1 flex-col">
+        <div class="@container/main flex flex-1 flex-col gap-2">
+          <RouterView />
+        </div>
+      </div>
+    </SidebarInset>
+  </SidebarProvider>
 </template>
-
-<style scoped>
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.app-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.app-main {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  background: var(--color-bg);
-}
-</style>

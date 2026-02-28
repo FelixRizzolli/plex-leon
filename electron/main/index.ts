@@ -42,7 +42,9 @@ export function createMainWindow(): BrowserWindow {
 
   // Open external links in the host browser, not inside Electron
   win.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+    shell.openExternal(url).catch((err) => {
+      console.warn(`[shell] Could not open external URL "${url}":`, err.message)
+    })
     return { action: 'deny' }
   })
 
