@@ -37,7 +37,9 @@
                 "eamodio.gitlens",
                 "gruntfuggly.todo-tree",
                 "aaron-bond.better-comments",
-                "usernamehw.errorlens"
+                "usernamehw.errorlens",
+                "vue.volar",
+                "bradlc.vscode-tailwindcss"
             ],
             "settings": {
                 "files.autoSave": "afterDelay",
