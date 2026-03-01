@@ -34,6 +34,7 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "dnd-kit-vue": "0.0.2",
+    "electron-store": "11.0.2",
     "lucide-vue-next": "0.575.0",
     "pinia": "3.0.4",
     "radix-vue": "1.9.17",

@@ -8,6 +8,10 @@ export interface IElectronAPI {
   closeWindow: () => void;
   openFile: (filters?: Electron.FileFilter[]) => Promise<string | null>;
   saveFile: (defaultPath?: string) => Promise<string | null>;
+  settings: {
+    get: (key: string) => Promise<unknown>;
+    set: (key: string, value: unknown) => Promise<boolean>;
+  };
 }
 
 declare global {

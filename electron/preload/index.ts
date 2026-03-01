@@ -18,6 +18,12 @@ const api = {
     ipcRenderer.invoke('dialog:open-file', filters),
   saveFile: (defaultPath?: string): Promise<string | null> =>
     ipcRenderer.invoke('dialog:save-file', defaultPath),
+  // Settings
+  settings: {
+    get: (key: string): Promise<unknown> => ipcRenderer.invoke('settings:get', key),
+    set: (key: string, value: unknown): Promise<boolean> =>
+      ipcRenderer.invoke('settings:set', key, value),
+  },
 };
 
 // Expose under `window.api` – contextIsolation keeps renderer sandboxed

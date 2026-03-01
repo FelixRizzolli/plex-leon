@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog } from 'electron';
 import { ipcMain } from 'electron';
+import Store from 'electron-store';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // All IPC main-process handlers are registered here.
@@ -40,5 +41,17 @@ export function registerIpcHandlers(): void {
       defaultPath,
     });
     return canceled ? null : filePath;
+  });
+
+  // ── Settings (persistent store) ─────────────────────────────────────────
+  const store = new Store({ name: 'settings' });
+
+  ipcMain.handle('settings:get', (_event, key: string) => {
+    return store.get(key);
+  });
+
+  ipcMain.handle('settings:set', (_event, key: string, value: unknown) => {
+    store.set(key, value);
+    return true;
   });
 }

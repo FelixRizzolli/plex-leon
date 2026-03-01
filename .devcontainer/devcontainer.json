@@ -44,7 +44,7 @@
         /* Testing */
         "vitest.explorer",
         "ms-playwright.playwright",
-        
+
         /* Productivity */
         "GitHub.copilot",
         "GitHub.copilot-chat",
