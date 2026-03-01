@@ -52,27 +52,27 @@
         </Table>
       </CardContent>
       <CardFooter>
-        <Dialog>
-          <form>
-            <DialogTrigger as-child>
-              <Button variant="outline"> Open Dialog </Button>
-            </DialogTrigger>
-            <DialogContent class="sm:max-w-106.25">
+        <Dialog v-model:open="dialogOpen">
+          <DialogTrigger as-child>
+            <Button variant="outline"> Add Library </Button>
+          </DialogTrigger>
+          <DialogContent class="sm:max-w-106.25">
+            <form @submit.prevent="addLibrary">
               <DialogHeader>
                 <DialogTitle>Add Media Library</DialogTitle>
                 <DialogDescription>
                   Add a new media library here. Click save when you're done.
                 </DialogDescription>
               </DialogHeader>
-              <div class="grid gap-4">
+              <div class="grid gap-4 py-4">
                 <div class="grid gap-3">
-                  <Label for="name">Name</Label>
-                  <Input id="name" name="name" default-value="" />
+                  <Label for="lib-name">Name</Label>
+                  <Input id="lib-name" v-model="newLibrary.name" required />
                 </div>
                 <div class="grid gap-3">
-                  <Label for="type">Type</Label>
-                  <Select>
-                    <SelectTrigger>
+                  <Label for="lib-type">Type</Label>
+                  <Select v-model="newLibrary.type" required>
+                    <SelectTrigger id="lib-type">
                       <SelectValue placeholder="Select a media type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -84,18 +84,21 @@
                   </Select>
                 </div>
                 <div class="grid gap-3">
-                  <Label for="path">Path</Label>
-                  <Input id="path" name="path" default-value="" />
+                  <Label for="lib-path">Path</Label>
+                  <div class="flex gap-2">
+                    <Input id="lib-path" v-model="newLibrary.path" required class="flex-1" />
+                    <Button type="button" variant="outline" @click="browsePath">Browse</Button>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <DialogClose as-child>
-                  <Button variant="outline"> Cancel </Button>
+                  <Button variant="outline" type="button"> Cancel </Button>
                 </DialogClose>
                 <Button type="submit"> Save changes </Button>
               </DialogFooter>
-            </DialogContent>
-          </form>
+            </form>
+          </DialogContent>
         </Dialog>
       </CardFooter>
     </Card>
@@ -159,12 +162,27 @@
 
   const libraries = ref<Array<Library>>([]);
 
+  const dialogOpen = ref(false);
+
+  function makeEmptyLibrary() {
+    return { name: '', type: '', path: '' };
+  }
+
+  const newLibrary = ref(makeEmptyLibrary());
+
+  async function browsePath() {
+    const selected = await window.api.openDirectory();
+    if (selected) newLibrary.value.path = selected;
+  }
+
   async function loadSettings() {
     try {
       const v1 = await window.api.settings.get('tvdb');
       const v2 = await window.api.settings.get('tmdb');
+      const libs = await window.api.settings.get('libraries');
       if (typeof v1 === 'string') tvdb.value = v1;
       if (typeof v2 === 'string') tmdb.value = v2;
+      if (typeof libs === 'string') libraries.value = JSON.parse(libs) as Array<Library>;
     } catch (e) {
       // ignore
     }
@@ -173,6 +191,24 @@
   async function save() {
     await window.api.settings.set('tvdb', tvdb.value);
     await window.api.settings.set('tmdb', tmdb.value);
+  }
+
+  async function addLibrary() {
+    const library: Library = {
+      id: crypto.randomUUID(),
+      name: newLibrary.value.name,
+      type: newLibrary.value.type,
+      path: newLibrary.value.path,
+    };
+    libraries.value.push(library);
+    newLibrary.value = makeEmptyLibrary();
+    dialogOpen.value = false;
+    try {
+      await window.api.settings.set('libraries', JSON.stringify(libraries.value));
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to save libraries', e);
+    }
   }
 
   onMounted(() => {

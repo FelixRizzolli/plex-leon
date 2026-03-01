@@ -18,6 +18,7 @@ const api = {
     ipcRenderer.invoke('dialog:open-file', filters),
   saveFile: (defaultPath?: string): Promise<string | null> =>
     ipcRenderer.invoke('dialog:save-file', defaultPath),
+  openDirectory: (): Promise<string | null> => ipcRenderer.invoke('dialog:open-directory'),
   // Settings
   settings: {
     get: (key: string): Promise<unknown> => ipcRenderer.invoke('settings:get', key),

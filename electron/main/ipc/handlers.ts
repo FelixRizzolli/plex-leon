@@ -43,6 +43,13 @@ export function registerIpcHandlers(): void {
     return canceled ? null : filePath;
   });
 
+  ipcMain.handle('dialog:open-directory', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+    });
+    return canceled ? null : filePaths[0];
+  });
+
   // ── Settings (persistent store) ─────────────────────────────────────────
   const store = new Store({ name: 'settings' });
 
