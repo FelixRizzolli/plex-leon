@@ -71,7 +71,17 @@
                 </div>
                 <div class="grid gap-3">
                   <Label for="type">Type</Label>
-                  <Input id="type" name="type" default-value="" />
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a media type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tvshows"> TV Shows </SelectItem>
+                      <SelectItem value="movies"> Movies </SelectItem>
+                      <SelectItem value="music"> Music </SelectItem>
+                      <SelectItem value="books"> Books </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div class="grid gap-3">
                   <Label for="path">Path</Label>
@@ -123,6 +133,13 @@
     DialogTitle,
     DialogTrigger,
   } from '@/components/ui/dialog';
+  import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select';
   import { Input } from '@/components/ui/input';
   import { Label } from '@/components/ui/label';
   import { Button } from '@/components/ui/button';
