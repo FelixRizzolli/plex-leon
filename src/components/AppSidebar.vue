@@ -1,25 +1,15 @@
 <script setup lang="ts">
   import {
-    IconCamera,
-    IconChartBar,
     IconDashboard,
-    IconDatabase,
-    IconFileAi,
-    IconFileDescription,
-    IconFolder,
     IconHelp,
-    IconInnerShadowTop,
-    IconListDetails,
-    IconReport,
-    IconSearch,
+    IconBoltFilled,
     IconSettings,
-    IconUsers,
+    IconClipboardList,
+    IconArrowsJoin,
+    IconZoomCheck,
   } from '@tabler/icons-vue';
 
-  import NavDocuments from '@/components/NavDocuments.vue';
-  import NavMain from '@/components/NavMain.vue';
-  import NavSecondary from '@/components/NavSecondary.vue';
-  import NavUser from '@/components/NavUser.vue';
+  import NavSection from '@/components/NavSection.vue';
   import {
     Sidebar,
     SidebarContent,
@@ -42,73 +32,22 @@
         url: '#',
         icon: IconDashboard,
       },
-      {
-        title: 'Lifecycle',
-        url: '#',
-        icon: IconListDetails,
-      },
-      {
-        title: 'Analytics',
-        url: '#',
-        icon: IconChartBar,
-      },
-      {
-        title: 'Projects',
-        url: '#',
-        icon: IconFolder,
-      },
-      {
-        title: 'Team',
-        url: '#',
-        icon: IconUsers,
-      },
     ],
-    navClouds: [
+    utilities: [
       {
-        title: 'Capture',
-        icon: IconCamera,
-        isActive: true,
+        title: 'Prepare',
         url: '#',
-        items: [
-          {
-            title: 'Active Proposals',
-            url: '#',
-          },
-          {
-            title: 'Archived',
-            url: '#',
-          },
-        ],
+        icon: IconClipboardList,
       },
       {
-        title: 'Proposal',
-        icon: IconFileDescription,
+        title: 'Migrate',
         url: '#',
-        items: [
-          {
-            title: 'Active Proposals',
-            url: '#',
-          },
-          {
-            title: 'Archived',
-            url: '#',
-          },
-        ],
+        icon: IconArrowsJoin,
       },
       {
-        title: 'Prompts',
-        icon: IconFileAi,
+        title: 'Episode Check',
         url: '#',
-        items: [
-          {
-            title: 'Active Proposals',
-            url: '#',
-          },
-          {
-            title: 'Archived',
-            url: '#',
-          },
-        ],
+        icon: IconZoomCheck,
       },
     ],
     navSecondary: [
@@ -122,28 +61,6 @@
         url: '#',
         icon: IconHelp,
       },
-      {
-        title: 'Search',
-        url: '#',
-        icon: IconSearch,
-      },
-    ],
-    documents: [
-      {
-        name: 'Data Library',
-        url: '#',
-        icon: IconDatabase,
-      },
-      {
-        name: 'Reports',
-        url: '#',
-        icon: IconReport,
-      },
-      {
-        name: 'Word Assistant',
-        url: '#',
-        icon: IconFileDescription,
-      },
     ],
   };
 </script>
@@ -153,22 +70,21 @@
     <SidebarHeader>
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton as-child class="data-[slot=sidebar-menu-button]:!p-1.5">
+          <SidebarMenuButton as-child class="data-[slot=sidebar-menu-button]:p-1.5!">
             <a href="#">
-              <IconInnerShadowTop class="!size-5" />
-              <span class="text-base font-semibold">Acme Inc.</span>
+              <IconBoltFilled class="size-5!" />
+              <span class="text-base font-semibold">Leon v4</span>
             </a>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarHeader>
     <SidebarContent>
-      <NavMain :items="data.navMain" />
-      <NavDocuments :items="data.documents" />
-      <NavSecondary :items="data.navSecondary" class="mt-auto" />
+      <NavSection :items="data.navMain" />
+      <NavSection :title="'Utilities'" :items="data.utilities" />
+      <NavSection :items="data.navSecondary" class="mt-auto" />
     </SidebarContent>
     <SidebarFooter>
-      <NavUser :user="data.user" />
     </SidebarFooter>
   </Sidebar>
 </template>
