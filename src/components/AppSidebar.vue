@@ -4,10 +4,10 @@
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton as-child class="data-[slot=sidebar-menu-button]:p-1.5!">
-            <a href="#">
+            <RouterLink to="/" class="flex items-center gap-2">
               <IconBoltFilled class="size-5!" />
               <span class="text-base font-semibold">Leon v4</span>
-            </a>
+            </RouterLink>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -33,6 +33,7 @@
     IconZoomCheck,
   } from '@tabler/icons-vue';
 
+  import { RouterLink } from 'vue-router';
   import NavSection from '@/components/NavSection.vue';
   import {
     Sidebar,
@@ -53,36 +54,36 @@
     navMain: [
       {
         title: 'Dashboard',
-        url: '#',
+        url: '/',
         icon: IconDashboard,
       },
     ],
     utilities: [
       {
         title: 'Prepare',
-        url: '#',
+        url: '/utility/prepare',
         icon: IconClipboardList,
       },
       {
         title: 'Migrate',
-        url: '#',
+        url: '/utility/migrate',
         icon: IconArrowsJoin,
       },
       {
         title: 'Episode Check',
-        url: '#',
+        url: '/utility/episode-check',
         icon: IconZoomCheck,
       },
     ],
     navSecondary: [
       {
         title: 'Settings',
-        url: '#',
+        url: '/settings',
         icon: IconSettings,
       },
       {
         title: 'Get Help',
-        url: '#',
+        url: '/help',
         icon: IconHelp,
       },
     ],
