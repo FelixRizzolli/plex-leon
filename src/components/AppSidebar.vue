@@ -1,3 +1,27 @@
+<template>
+  <Sidebar collapsible="offcanvas">
+    <SidebarHeader>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton as-child class="data-[slot=sidebar-menu-button]:p-1.5!">
+            <a href="#">
+              <IconBoltFilled class="size-5!" />
+              <span class="text-base font-semibold">Leon v4</span>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
+    <SidebarContent>
+      <NavSection :items="data.navMain" />
+      <NavSection :title="'Utilities'" :items="data.utilities" />
+      <NavSection :items="data.navSecondary" class="mt-auto" />
+    </SidebarContent>
+    <SidebarFooter>
+    </SidebarFooter>
+  </Sidebar>
+</template>
+
 <script setup lang="ts">
   import {
     IconDashboard,
@@ -64,27 +88,3 @@
     ],
   };
 </script>
-
-<template>
-  <Sidebar collapsible="offcanvas">
-    <SidebarHeader>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton as-child class="data-[slot=sidebar-menu-button]:p-1.5!">
-            <a href="#">
-              <IconBoltFilled class="size-5!" />
-              <span class="text-base font-semibold">Leon v4</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarHeader>
-    <SidebarContent>
-      <NavSection :items="data.navMain" />
-      <NavSection :title="'Utilities'" :items="data.utilities" />
-      <NavSection :items="data.navSecondary" class="mt-auto" />
-    </SidebarContent>
-    <SidebarFooter>
-    </SidebarFooter>
-  </Sidebar>
-</template>

@@ -1,10 +1,3 @@
-<script setup lang="ts">
-  import { RouterView } from 'vue-router';
-  import SiteHeader from '@/components/SiteHeader.vue';
-  import AppSidebar from '@/components/AppSidebar.vue';
-  import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-</script>
-
 <template>
   <SidebarProvider
     :style="{
@@ -23,3 +16,10 @@
     </SidebarInset>
   </SidebarProvider>
 </template>
+
+<script setup lang="ts">
+  import { RouterView } from 'vue-router';
+  import SiteHeader from '@/components/SiteHeader.vue';
+  import AppSidebar from '@/components/AppSidebar.vue';
+  import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+</script>

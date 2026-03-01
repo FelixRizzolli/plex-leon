@@ -1,3 +1,7 @@
+<template>
+  <AppLayout />
+</template>
+
 <script setup lang="ts">
   import { onMounted } from 'vue';
   import { useAppStore } from '@stores/app';
@@ -11,7 +15,3 @@
     document.documentElement.classList.toggle('dark', appStore.theme === 'dark');
   });
 </script>
-
-<template>
-  <AppLayout />
-</template>

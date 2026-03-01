@@ -1,13 +1,3 @@
-<script setup lang="ts">
-  import { Moon, Sun } from 'lucide-vue-next';
-  import { Button } from '@/components/ui/button';
-  import { Separator } from '@/components/ui/separator';
-  import { SidebarTrigger } from '@/components/ui/sidebar';
-  import { useAppStore } from '@/stores/app';
-
-  const appStore = useAppStore();
-</script>
-
 <template>
   <header
     class="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)"
@@ -26,3 +16,13 @@
     </div>
   </header>
 </template>
+
+<script setup lang="ts">
+  import { Moon, Sun } from 'lucide-vue-next';
+  import { Button } from '@/components/ui/button';
+  import { Separator } from '@/components/ui/separator';
+  import { SidebarTrigger } from '@/components/ui/sidebar';
+  import { useAppStore } from '@/stores/app';
+
+  const appStore = useAppStore();
+</script>
