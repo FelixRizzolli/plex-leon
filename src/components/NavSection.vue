@@ -20,6 +20,7 @@
 
   import {
     SidebarGroup,
+    SidebarGroupLabel,
     SidebarGroupContent,
     SidebarMenu,
     SidebarMenuButton,
@@ -33,7 +34,7 @@
   }
 
   defineProps<{
-    title: string;
+    title?: string;
     items: NavItem[];
   }>();
 </script>
