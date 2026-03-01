@@ -16,8 +16,9 @@
     "migrate": {
       "title": "Migrieren"
     },
-    "episode-check": {
+    "episodeCheck": {
       "title": "Episodenprüfung"
-    }
+    },
+    "toggleTheme": "Hell/Dunkel wechseln"
   }
 }

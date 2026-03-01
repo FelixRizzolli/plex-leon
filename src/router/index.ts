@@ -35,7 +35,7 @@ const routes: RouteRecordRaw[] = [
     path: '/utility/episode-check',
     name: 'utility-episode-check',
     component: () => import('@views/UtilityEpisodeCheckView.vue'),
-    meta: { titleKey: ['utility.title', 'utility.episode-check.title'] },
+    meta: { titleKey: ['utility.title', 'utility.episodeCheck.title'] },
   },
   {
     path: '/utility/migrate',

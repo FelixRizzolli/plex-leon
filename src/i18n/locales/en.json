@@ -16,8 +16,9 @@
     "migrate": {
       "title": "Migrate"
     },
-    "episode-check": {
+    "episodeCheck": {
       "title": "Episode Check"
     }
-  }
+  },
+  "toggleTheme": "Toggle theme"
 }

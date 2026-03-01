@@ -72,7 +72,7 @@
         icon: IconArrowsJoin,
       },
       {
-        title: t('utility.episode-check.title'),
+        title: t('utility.episodeCheck.title'),
         url: '/utility/episode-check',
         icon: IconZoomCheck,
       },
