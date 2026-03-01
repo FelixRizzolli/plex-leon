@@ -34,12 +34,29 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "eamodio.gitlens",
-        "gruntfuggly.todo-tree",
-        "aaron-bond.better-comments",
-        "usernamehw.errorlens",
+        /* Vue & Tailwind CSS */
         "vue.volar",
-        "bradlc.vscode-tailwindcss"
+        "bradlc.vscode-tailwindcss",
+
+        /* Code Quality */
+        "oxc.oxc-vscode",
+
+        /* Testing */
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        
+        /* Productivity */
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "usernamehw.errorlens",
+        "aaron-bond.better-comments",
+        "gruntfuggly.todo-tree",
+        "wix.vscode-import-cost",
+        "mskelton.npm-outdated",
+
+        /* Git */
+        "eamodio.gitlens",
+        "mhutchie.git-graph"
       ],
       "settings": {
         "files.autoSave": "afterDelay",
