@@ -1,0 +1,23 @@
+{
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "settings": {
+    "title": "Settings"
+  },
+  "help": {
+    "title": "Help"
+  },
+  "utility": {
+    "title": "Utility",
+    "prepare": {
+      "title": "Prepare"
+    },
+    "migrate": {
+      "title": "Migrate"
+    },
+    "episode-check": {
+      "title": "Episode Check"
+    }
+  }
+}

@@ -1,6 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router';
 
+import { useI18n } from 'vue-i18n';
 import { createRouter, createWebHashHistory } from 'vue-router';
+const { t } = useI18n();
 
 // ─── Route definitions ────────────────────────────────────────────────────────
 // Using hash history so Electron file:// URIs resolve correctly
@@ -10,37 +12,37 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'dashboard',
     component: () => import('@views/DashboardView.vue'),
-    meta: { title: 'Dashboard' },
+    meta: { title: t('dashboard.title') },
   },
   {
     path: '/settings',
     name: 'settings',
     component: () => import('@views/SettingsView.vue'),
-    meta: { title: 'Settings' },
+    meta: { title: t('settings.title') },
   },
   {
     path: '/help',
     name: 'help',
     component: () => import('@views/HelpView.vue'),
-    meta: { title: 'Help' },
+    meta: { title: t('help.title') },
   },
   {
     path: '/utility/prepare',
     name: 'utility-prepare',
     component: () => import('@views/UtilityPrepareView.vue'),
-    meta: { title: 'Utility: Prepare' },
+    meta: { title: `${t('utility.title')}: ${t('utility.prepare.title')}` },
   },
   {
     path: '/utility/episode-check',
     name: 'utility-episode-check',
     component: () => import('@views/UtilityEpisodeCheckView.vue'),
-    meta: { title: 'Utility: Episode Check' },
+    meta: { title: `${t('utility.title')}: ${t('utility.episode-check.title')}` },
   },
   {
     path: '/utility/migrate',
     name: 'utility-migrate',
     component: () => import('@views/UtilityMigrateView.vue'),
-    meta: { title: 'Utility: Migrate' },
+    meta: { title: `${t('utility.title')}: ${t('utility.migrate.title')}` },
   },
   {
     path: '/:pathMatch(.*)*',

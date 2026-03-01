@@ -17,12 +17,14 @@
       <NavSection :title="'Utilities'" :items="data.utilities" />
       <NavSection :items="data.navSecondary" class="mt-auto" />
     </SidebarContent>
-    <SidebarFooter>
-    </SidebarFooter>
+    <SidebarFooter> </SidebarFooter>
   </Sidebar>
 </template>
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
+
   import {
     IconDashboard,
     IconHelp,
@@ -53,36 +55,36 @@
     },
     navMain: [
       {
-        title: 'Dashboard',
+        title: t('dashboard.title'),
         url: '/',
         icon: IconDashboard,
       },
     ],
     utilities: [
       {
-        title: 'Prepare',
+        title: t('utility.prepare.title'),
         url: '/utility/prepare',
         icon: IconClipboardList,
       },
       {
-        title: 'Migrate',
+        title: t('utility.migrate.title'),
         url: '/utility/migrate',
         icon: IconArrowsJoin,
       },
       {
-        title: 'Episode Check',
+        title: t('utility.episode-check.title'),
         url: '/utility/episode-check',
         icon: IconZoomCheck,
       },
     ],
     navSecondary: [
       {
-        title: 'Settings',
+        title: t('settings.title'),
         url: '/settings',
         icon: IconSettings,
       },
       {
-        title: 'Get Help',
+        title: t('help.title'),
         url: '/help',
         icon: IconHelp,
       },

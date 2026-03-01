@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
     "composite": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -23,5 +24,5 @@
       "@types/*": ["./src/types/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "src/**/*.json", "tests/**/*.ts"]
 }
