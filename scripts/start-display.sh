@@ -2,9 +2,20 @@
 # Starts a virtual display (Xvfb), a VNC server (x11vnc), and a noVNC web
 # client (websockify), then launches Electron on that display.
 #
+# Usage: bash scripts/start-display.sh [pnpm-script]
+#   pnpm-script  The pnpm script to run (default: dev)
+#
 # Access the UI at: http://localhost:6080/vnc.html
 #
+# ELECTRON_ENABLE_LOGGING=1 forwards all Chromium/renderer console output
+# (console.log, console.error, warnings, etc.) to stdout so it is visible
+# in the VS Code / devcontainer terminal instead of being swallowed by the
+# virtual display.  Without this flag, browser-side logs are silent.
+#
 set -euo pipefail
+
+# ── 0. Config ─────────────────────────────────────────────────────────────────
+PNPM_SCRIPT="${1:-dev}"
 
 DISPLAY_NUM=1
 VNC_PORT=5901
@@ -56,5 +67,14 @@ echo "  Open: http://localhost:${NOVNC_PORT}/vnc.html"
 echo ""
 
 # ── 4. Electron (via electron-vite) ──────────────────────────────────────────
+# ELECTRON_ENABLE_LOGGING=1 — forward Chromium / renderer console.* calls to
+# stdout so they appear in the devcontainer terminal alongside main-process
+# logs.  Values: 1 (stderr/stdout), "file" (write to userData/electron_debug.log).
+export ELECTRON_ENABLE_LOGGING=1
+
+# NO_SANDBOX=1 is needed when running as root inside a container without
+# kernel user-namespaces (Chromium's sandbox requires them).
 export NO_SANDBOX=1
-pnpm i && exec pnpm run dev
+
+echo "[electron] Running: pnpm run ${PNPM_SCRIPT}"
+pnpm i && exec pnpm run "${PNPM_SCRIPT}"
