@@ -1,41 +1,36 @@
 <script setup lang="ts">
-import type { Component } from "vue"
+  import type { Component } from 'vue';
 
-import {
-  IconDots,
-  IconFolder,
-  IconShare3,
-  IconTrash,
-} from "@tabler/icons-vue"
+  import { IconDots, IconFolder, IconShare3, IconTrash } from '@tabler/icons-vue';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+  import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from '@/components/ui/dropdown-menu';
+  import {
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuAction,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+  } from '@/components/ui/sidebar';
 
-interface Document {
-  name: string
-  url: string
-  icon?: Component
-}
+  interface Document {
+    name: string;
+    url: string;
+    icon?: Component;
+  }
 
-defineProps<{
-  items: Document[]
-}>()
+  defineProps<{
+    items: Document[];
+  }>();
 
-const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 </script>
 
 <template>
@@ -51,10 +46,7 @@ const { isMobile } = useSidebar()
         </SidebarMenuButton>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <SidebarMenuAction
-              show-on-hover
-              class="data-[state=open]:bg-accent rounded-sm"
-            >
+            <SidebarMenuAction show-on-hover class="data-[state=open]:bg-accent rounded-sm">
               <IconDots />
               <span class="sr-only">More</span>
             </SidebarMenuAction>

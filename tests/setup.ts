@@ -1,13 +1,13 @@
-import { setActivePinia } from 'pinia'
-import { createPinia } from 'pinia'
-import { beforeEach, vi } from 'vitest'
+import { setActivePinia } from 'pinia';
+import { createPinia } from 'pinia';
+import { beforeEach, vi } from 'vitest';
 
 // ─── Global Vitest setup ──────────────────────────────────────────────────────
 
 // Fresh Pinia instance for every test
 beforeEach(() => {
-  setActivePinia(createPinia())
-})
+  setActivePinia(createPinia());
+});
 
 // Mock the Electron API bridge so tests run in jsdom without Electron
 vi.stubGlobal('api', {
@@ -18,4 +18,4 @@ vi.stubGlobal('api', {
   closeWindow: vi.fn(),
   openFile: vi.fn().mockResolvedValue(null),
   saveFile: vi.fn().mockResolvedValue(null),
-})
+});

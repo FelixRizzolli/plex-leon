@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron';
 
 // ─── Typed IPC bridge exposed to the renderer ─────────────────────────────────
 // No third-party toolkit – just the built-in Electron contextBridge API.
@@ -18,8 +18,7 @@ const api = {
     ipcRenderer.invoke('dialog:open-file', filters),
   saveFile: (defaultPath?: string): Promise<string | null> =>
     ipcRenderer.invoke('dialog:save-file', defaultPath),
-}
+};
 
 // Expose under `window.api` – contextIsolation keeps renderer sandboxed
-contextBridge.exposeInMainWorld('api', api)
-
+contextBridge.exposeInMainWorld('api', api);

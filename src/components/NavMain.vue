@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import type { Component } from "vue"
-import { IconCirclePlusFilled, IconMail } from "@tabler/icons-vue"
+  import type { Component } from 'vue';
+  import { IconCirclePlusFilled, IconMail } from '@tabler/icons-vue';
 
-import { Button } from '@/components/ui/button'
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
+  import { Button } from '@/components/ui/button';
+  import {
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+  } from '@/components/ui/sidebar';
 
-interface NavItem {
-  title: string
-  url: string
-  icon?: Component
-}
+  interface NavItem {
+    title: string;
+    url: string;
+    icon?: Component;
+  }
 
-defineProps<{
-  items: NavItem[]
-}>()
+  defineProps<{
+    items: NavItem[];
+  }>();
 </script>
 
 <template>

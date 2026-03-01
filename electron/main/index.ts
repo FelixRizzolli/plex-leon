@@ -1,21 +1,22 @@
-import { app, shell, BrowserWindow } from 'electron'
-import { join } from 'path'
-import { registerIpcHandlers } from './ipc/handlers'
+import { app, shell, BrowserWindow } from 'electron';
+import { join } from 'path';
+
+import { registerIpcHandlers } from './ipc/handlers';
 
 // ─── App Lifecycle ────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
-  registerIpcHandlers()
-  createMainWindow()
+  registerIpcHandlers();
+  createMainWindow();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
-  })
-})
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+  });
+});
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+  if (process.platform !== 'darwin') app.quit();
+});
 
 // ─── Window Factory ───────────────────────────────────────────────────────────
 
@@ -35,25 +36,25 @@ export function createMainWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
     },
-  })
+  });
 
   // Graceful show – avoids white flash on load
-  win.once('ready-to-show', () => win.show())
+  win.once('ready-to-show', () => win.show());
 
   // Open external links in the host browser, not inside Electron
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url).catch((err) => {
-      console.warn(`[shell] Could not open external URL "${url}":`, err.message)
-    })
-    return { action: 'deny' }
-  })
+      console.warn(`[shell] Could not open external URL "${url}":`, err.message);
+    });
+    return { action: 'deny' };
+  });
 
   // Load the renderer – dev server in dev, built HTML in prod
   if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
-    win.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    win.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    win.loadFile(join(__dirname, '../renderer/index.html'))
+    win.loadFile(join(__dirname, '../renderer/index.html'));
   }
 
-  return win
+  return win;
 }

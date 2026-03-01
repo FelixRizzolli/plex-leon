@@ -1,7 +1,7 @@
-import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import vue from '@vitejs/plugin-vue'
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   // ─── Main Process ────────────────────────────────────────────────────────────
@@ -69,9 +69,6 @@ export default defineConfig({
         '@assets': resolve(__dirname, './src/assets'),
       },
     },
-    plugins: [
-      vue(), 
-      tailwindcss(),
-    ],
+    plugins: [vue(), tailwindcss()],
   },
-})
+});

@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is inspired by Keep a Changelog and follows semantic versioning.
 
 ## [3.2.0] - 2026-02-23
+
 ### Added
+
 - Multi-episode range tags (e.g. `S01E01-E04`) are now fully preserved when renaming: `episode-renamer` and `prepare`
   both retain the complete range in the output filename (e.g. `Show (2020) - s01e01-e04.mp4`) instead of silently
   dropping the range end. Affects all range sizes, not just double episodes.
@@ -13,11 +15,13 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
   3 episodes (the full span of the range) when comparing against TVDB, rather than as a single file.
 
 ### Changed
+
 - Improved `.gitignore` file
 - Improved devcontainer setup which now supports also JetBrains IDEs
 - Improved `publish.yml` workflow to trigger on new tags
 
 ### Fixed
+
 - Fixed a bug in the `episode-check` utility where macOS created AppleDouble resource fork files
   (files prefixed with `._` on exFAT/FAT volumes) that appeared next to real media files. Those
   `._` sidecar files share the media file extension (for example `._episode.mp4`) and were being
@@ -25,6 +29,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
   files whose names start with `._` when detecting media files, preventing the double-counting.
 
 ### Tests
+
 - Added unit tests for `episode-renamer` (`tests/unittests/utils/test_episode_renamer.py`) covering
   single-episode renaming, multi-episode range preservation, dry-run behaviour, and TVDB suffix stripping.
 - Added unit tests for `prepare` (`tests/unittests/utils/test_prepare.py`) covering the internal
@@ -38,36 +43,48 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
   chance) in `episode_renamer_tlg`, `season_renamer_tlg`, and `prepare_tlg` for realistic test data.
 
 ## [3.1.0] - 2025-12-24
+
 ### Added
+
 - `episode-check` utility: compares local per-season episode counts with TVDB data and reports discrepancies in a per-season table.
 - `plex_leon.api.tvdb_client`: lightweight TVDB v4 client used by `episode-check` to fetch series episode data.
 
 ### Changed
+
 - `README.md` updated to include `episode-check` documentation and usage examples.
 - `pyproject.toml` updated to include the `requests` dependency required by the TVDB client.
 
 ### Tests
+
 - Unit tests for `episode-check` utilities and helpers added under `tests/unittests/utils/`.
 
 ## [3.0.2] - 2025-12-24
+
 ### Added
+
 - `get_current_version.py` and `get_changes.py` scripts for version and changelog extraction.
 - Release workflow: automates tagging and GitHub Release creation.
 - Publish workflow: publishes new versions to PyPI after a successful release.
 
 ### Changed
+
 - Upgraded Python dependency from 3.13 to 3.14.
 - Upgraded `pytest` from v8 to v9 and `pytest-cov` from v5 to v7.
 
 ### Removed
+
 - Removed the build-binaries workflow.
 
 ## [3.0.1] - 2025-10-28
+
 ### Fixed
+
 - `prepare`: corrected episode renaming pattern to use `s01e01` (season then episode) instead of the previously documented `eEE sSS`; updated README and module docstrings to match.
 
 ## [3.0.0] - 2025-10-28
+
 ### Added
+
 - Detailed statistics reporting to each utility: utilities now collect and display operation counts (e.g., RENAMED, SKIPPED, ERRORS) per show/category in table or steps format via `log_statistics()`.
 - `BaseUtility` class: abstract base class providing shared functionality for all utilities including logging helpers, dry-run/forced options, and statistics tracking via `increment_stat()`.
 - `BaseTestLibraryGenerator` class: abstract base class for test data generators with shared download logic and consistent structure.
@@ -79,6 +96,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - CLI default behavior: calling `plex-leon` with no subcommand now launches the interactive `menu` automatically.
 
 ### Changed
+
 - **Logging system**: migrated from Python's standard `logging` to `loguru` for enhanced logging capabilities with colored output and structured formatting. All utilities now use consistent log levels (TRACE, DEBUG, INFO, WARNING, ERROR) with emoji prefixes (ℹ️, ⚠️, ❌, 🐛, 🔍).
 - **Architecture refactoring**: all utility scripts (`migrate`, `season-renamer`, `episode-renamer`, `prepare`) converted to class-based approach inheriting from `BaseUtility`, sharing common code and reducing duplication.
 - **README.md**: comprehensive update with better utility descriptions, improved structure, detailed development guidelines (commit conventions, semantic versioning), devcontainer documentation, and expanded Requirements & Installation instructions.
@@ -86,6 +104,7 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - **CLI entrypoint**: the main CLI entrypoint moved from `cli.py` to `main.py`. The new `main.py` no longer uses a hardcoded command registry — commands are discovered dynamically from utility classes at runtime.
 
 ### Tests
+
 - Removed old/obsolete tests and reorganized test structure with clear separation between unit and integration tests.
 - Moved test library generator scripts to `/tests/integration/generators/` with standardized naming (`*_tlg.py`).
 - Added comprehensive unit tests for helper functions in `/tests/unittests/shared/` covering:
@@ -98,23 +117,30 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - Refactored generator scripts using `BaseTestLibraryGenerator` class for consistent structure and shared video download functionality.
 
 ## [2.4.0] - 2025-10-10
+
 ### Added
+
 - New `prepare` utility: scans a library for TV show folders, validates shows (ensures `{tvdb-...}` suffix and detects duplicate episode files), creates canonical `Season NN` folders, and moves/renames loose episode files to the `Show (Year) - eEE sSS.ext` format. If validation reports ERROR-level issues for a show, processing for that show is skipped.
 - Test-data generator (`scripts/generate_prepare_test_library.py`) updated to remove and recreate the `data/library-p` test library and to produce a focused duplicate (Game of Thrones S01E05) for exercising `prepare`'s conflict handling.
 
 ## [2.3.1] - 2025-08-25
+
 ### Fixed
+
 - `season-renamer` no longer renames top-level show folders in the library, even if their names contain digits (e.g., 'Game of Thrones 2011'). Only subfolders (season folders) are considered for renaming.
 - Test data generator now always creates a show folder without a TVDB id or year (e.g., 'Game of Thrones 2011') with a season subfolder, ensuring this edge case is always present for testing.
 
 ## [2.3.0] - 2025-08-23
+
 ### Added
+
 - CLI now reports wall-clock duration for each command:
   - `migrate`: `Done. Eligible files/folders moved: X; skipped: Y. Took Z.ZZs.`
   - `season-renamer`: `Done. Season folders renamed: N. Took Z.ZZs.`
   - `episode-renamer`: `Done. Episode files renamed: N. Took Z.ZZs.`
 
 ### Changed
+
 - Migrate performance improvements and tuning:
   - Optional concurrency for metadata reads via `--threads <N>` (I/O bound).
   - `--no-resolution` to skip resolution comparisons when you want size-only heuristics.
@@ -122,7 +148,9 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - README updated to document timing output and new migrate flags.
 
 ## [2.2.0] - 2025-08-23
+
 ### Added
+
 - New `episode-renamer` utility that renames episode files to `<Show (Year)> - sNNeMM[ -ePP].ext`.
   - Show title/year is taken from the show folder; TVDB suffix is stripped.
   - Episode ids parsed from filenames (supports lowercase/uppercase and double episodes) and normalized to lowercase.
@@ -130,50 +158,66 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - CLI subcommand `episode-renamer` with `--lib` and `--dry-run`.
 
 ### Changed
+
 - Refactored shared logic into `utils.py` (episode parsing/normalization, season detection, two-step renames, directory merge utilities).
 - `migrate` and `season-renamer` now use the shared helpers, reducing duplication and improving readability.
 - README updated with episode-renamer docs and clarified CLI compatibility notes.
 
 ### Tests
+
 - Added tests for episode renamer and season renamer.
 - Expanded tests for migrate and CLI.
 
 ## [2.1.0] - 2025-08-22
+
 ### Added
+
 - `season-renamer` now uses a robust two-step swap logic for case-only renames (e.g., 'season 01' → '.plexleon_swap_Season 01' → 'Season 01').
 - If a canonical 'Season NN' folder already exists, contents are merged non-destructively; any conflicts are moved to a '.plexleon_conflicts' subfolder. No folders or files are deleted or overwritten by default.
 - Dry-run output now clearly shows all planned swap/merge operations.
 
 ## [2.0.0] - 2025-08-17
+
 ### Added
+
 - New utility: `season-renamer` for renaming season folders in a library to the canonical 'Season NN' form. Handles typos (e.g., 'Satffel'), different languages (e.g., 'Staffel'), and any folder with a single number. Supports dry-run and works recursively. Numbers >= 100 are supported.
 
 ### Changed
+
 - CLI is now subcommand-based. You must use `poetry run plex-leon migrate ...` instead of `poetry run plex-leon ...`.
 - Improved regex for parsing season and episode numbers in the migrate script, now supports numbers >= 100.
 
 ### Breaking
+
 - The CLI no longer defaults to migration. You must specify a subcommand (e.g., `migrate`, `season-renamer`).
 
 ## [1.3.0] - 2025-08-17
+
 ### Added
+
 - TV show episodes are now compared and moved individually: for each episode in a show present in both libraries, the tool matches by season and episode number (e.g., s01e01) and applies the same resolution and size logic as for movies. Each episode is categorized under `better-resolution/`, `greater-filesize/`, or `to-delete/` in library-c, preserving the show/season/episode folder structure. The show folder itself is not moved, only its episodes.
 
 ### Changed
+
 - README updated to clarify the per-episode comparison and categorization logic for TV shows.
 
 ## [1.2.0] - 2025-08-10
+
 ### Added
+
 - Support for a bucketed reference library-b layout under A–Z and a single non-letter bucket `0-9`.
 - Recursive scanning of library-b so TVDB IDs and matches are discovered inside bucket folders (not just top-level).
 - Sample data generator updated with titles starting with special characters (e.g., `[REC] …`) that land in the `0-9` bucket.
 
 ### Changed
+
 - README updated to document the bucketed layout and recursive scanning behavior for library-b.
 - Backward compatible: a flat, top-level-only library-b still works.
 
 ## [1.1.0] - 2025-08-09
+
 ### Added
+
 - Preflight check to ensure required external tools are installed on PATH. The CLI now exits with code 2 and a clear message when `ffprobe` (FFmpeg) or `mediainfo` are missing.
 - Movie categorization when moving from library-a to library-c based on comparison with the matching entry in library-b:
   - `better-resolution/` when the source video has higher pixel count (width×height).
@@ -183,12 +227,15 @@ The format is inspired by Keep a Changelog and follows semantic versioning.
 - Detailed decision logs for eligible items (resolution and size of A vs B), plus a final summary of moved/skipped counts.
 
 ### Changed
+
 - README updated to document the new behavior, requirements, and exit codes.
 
 ## [1.0.0] - 2025-08-08
+
 Initial release.
 
 ### Features
+
 - CLI `plex-leon` that moves items from library-a to library-c when their TVDB ID exists in library-b.
 - TVDB ID parsing from names using case-insensitive pattern `{tvdb-<digits>}` (e.g., `{tvdb-155}`).
 - Only considers top-level children of each library; ignores hidden entries.

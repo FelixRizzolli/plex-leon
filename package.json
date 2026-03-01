@@ -2,6 +2,9 @@
   "name": "plex-leon",
   "version": "4.0.0",
   "description": "Electron app with Vue 3.6 Vapor Mode, Vite 8, TypeScript, Pinia",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -15,12 +18,10 @@
     "test:coverage": "vitest run --coverage",
     "lint": "oxlint src electron tests",
     "lint:fix": "oxlint --fix src electron tests",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.28.2",
   "dependencies": {
     "@dnd-kit/abstract": "^0.3.2",
     "@tabler/icons-vue": "^3.37.1",
@@ -49,12 +50,15 @@
     "@vue/test-utils": "^2.4.6",
     "electron": "^40.6.1",
     "electron-vite": "^5.0.0",
+    "eslint-plugin-vue": "^10.8.0",
     "jsdom": "^26.1.0",
+    "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
     "typescript": "6.0.0-beta",
     "vite": "8.0.0-beta.16",
     "vitest": "^4.0.18"
   },
+  "packageManager": "pnpm@10.28.2",
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron"
